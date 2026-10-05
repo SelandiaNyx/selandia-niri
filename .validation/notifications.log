@@ -1,10 +1,10 @@
 Starting SwayNotificationCenter version swaync 0.12.6
-** Message: 10:19:15.948: configModel.vala:513: Loading Config: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.json"
+** Message: 10:27:34.091: configModel.vala:513: Loading Config: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.json"
 
-(process:21884): Adwaita-WARNING **: 10:19:15.957: Using GtkSettings:gtk-application-prefer-dark-theme with libadwaita is unsupported. Please use AdwStyleManager:color-scheme instead.
-** Message: 10:19:16.035: functions.vala:104: Loading CSS: "/etc/xdg/swaync/style.css"
-** Message: 10:19:16.035: functions.vala:117: Loading CSS: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.css"
-** Message: 10:19:16.038: factory.vala:55: Loading widget: title
-** Message: 10:19:16.038: factory.vala:55: Loading widget: dnd
-** Message: 10:19:16.039: factory.vala:55: Loading widget: mpris
-** Message: 10:19:16.039: factory.vala:17: Loading widget: widget-notifications
+(process:306055): Adwaita-WARNING **: 10:27:34.100: Using GtkSettings:gtk-application-prefer-dark-theme with libadwaita is unsupported. Please use AdwStyleManager:color-scheme instead.
+** Message: 10:27:34.185: functions.vala:104: Loading CSS: "/etc/xdg/swaync/style.css"
+** Message: 10:27:34.185: functions.vala:117: Loading CSS: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.css"
+** Message: 10:27:34.187: factory.vala:55: Loading widget: title
+** Message: 10:27:34.187: factory.vala:55: Loading widget: dnd
+** Message: 10:27:34.189: factory.vala:55: Loading widget: mpris
+** Message: 10:27:34.189: factory.vala:17: Loading widget: widget-notifications

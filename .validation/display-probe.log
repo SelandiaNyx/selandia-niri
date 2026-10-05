@@ -1,15 +1,15 @@
-2026-10-05T01:33:37.793826Z  INFO niri: starting version 26.04 (8ed0da4)
-2026-10-05T01:33:37.794037Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-ugiv2cjh/niri/config.kdl"
-2026-10-05T01:33:37.924915Z DEBUG niri::niri: putting output winit at x=0 y=0
-2026-10-05T01:33:37.924948Z  INFO niri: listening on Wayland socket: wayland-3
-2026-10-05T01:33:37.924950Z  INFO niri: IPC listening on: /run/user/1000/niri.wayland-3.36015.sock
-2026-10-05T01:33:37.925897Z  INFO niri: listening on X11 socket: :3
-2026-10-05T01:33:37.981000Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-ugiv2cjh/niri/config.kdl"
-2026-10-05T01:33:38.033879Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-ugiv2cjh/niri/config.kdl"
-2026-10-05T01:33:38.046931Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-ugiv2cjh/niri/config.kdl"
-2026-10-05T01:33:38.107484Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-ugiv2cjh/niri/config.kdl"
-2026-10-05T01:33:39.608423Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-ugiv2cjh/niri/config.kdl"
-2026-10-05T01:33:39.611822Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-ugiv2cjh/niri/config.kdl"
-2026-10-05T01:33:39.672758Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-ugiv2cjh/niri/config.kdl"
-2026-10-05T01:33:39.677532Z  INFO niri::utils::signals::platform: quitting due to receiving signal SIGTERM
-2026-10-05T01:33:39.680060Z DEBUG niri::utils::watcher: exiting watcher thread for Explicit("/tmp/selandia-display-probe-ugiv2cjh/niri/config.kdl")
+2026-10-05T02:24:22.236195Z  INFO niri: starting version 26.04 (8ed0da4)
+2026-10-05T02:24:22.236412Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uww9nsmd/niri/config.kdl"
+2026-10-05T02:24:22.367705Z DEBUG niri::niri: putting output winit at x=0 y=0
+2026-10-05T02:24:22.367732Z  INFO niri: listening on Wayland socket: wayland-3
+2026-10-05T02:24:22.367734Z  INFO niri: IPC listening on: /run/user/1000/niri.wayland-3.245693.sock
+2026-10-05T02:24:22.368718Z  INFO niri: listening on X11 socket: :3
+2026-10-05T02:24:22.424557Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uww9nsmd/niri/config.kdl"
+2026-10-05T02:24:22.480160Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uww9nsmd/niri/config.kdl"
+2026-10-05T02:24:22.492782Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uww9nsmd/niri/config.kdl"
+2026-10-05T02:24:22.553932Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uww9nsmd/niri/config.kdl"
+2026-10-05T02:24:24.054658Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uww9nsmd/niri/config.kdl"
+2026-10-05T02:24:24.054881Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uww9nsmd/niri/config.kdl"
+2026-10-05T02:24:24.126332Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uww9nsmd/niri/config.kdl"
+2026-10-05T02:24:24.132582Z  INFO niri::utils::signals::platform: quitting due to receiving signal SIGTERM
+2026-10-05T02:24:24.134578Z DEBUG niri::utils::watcher: exiting watcher thread for Explicit("/tmp/selandia-display-probe-uww9nsmd/niri/config.kdl")

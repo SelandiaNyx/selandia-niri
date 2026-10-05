@@ -141,16 +141,16 @@ def main():
                 time.sleep(.1)
             raise RuntimeError(f"截图未写入：{path}")
 
-        # The overview keeps its own name: the "desktop" settings page below must
-        # not overwrite the evidence for the desktop itself.
-        screenshot("desktop-overview.png")
-        # The notification centre is only ever captured with the panel open, and
-        # it gets a unique name so nothing else can replace it.
-        subprocess.run(["swaync-client", "-t"], env=env, check=True, timeout=5)
-        time.sleep(1)
+        # The notification centre is captured FIRST, with the panel the step
+        # above just opened still visible: --hide-all dismisses the cards, so a
+        # capture taken after it cannot show the thing being verified. It keeps a
+        # unique name that no settings page overwrites.
         screenshot("notifications-center.png", hide_notifications=False)
         subprocess.run(["swaync-client", "--skip-wait", "--hide-all"], env=env, check=False, timeout=5,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # The overview keeps its own name: the "desktop" settings page below must
+        # not overwrite the evidence for the desktop itself.
+        screenshot("desktop-overview.png")
         launcher = start("fuzzel", ["fuzzel", "--config", str(ROOT / "niri/theme/fuzzel.ini")], env)
         time.sleep(1)
         for process in processes:
@@ -223,6 +223,7 @@ def main():
         # project fails the run, upstream noise is recorded with its context.
         import bar_log
         report = bar_log.analyse((ARTIFACTS / "waybar.log").read_text(errors="replace"))
+        report["project_findings"] = bar_log.project_findings(report)
         (ARTIFACTS / "waybar-log-report.json").write_text(
             json.dumps(report, ensure_ascii=False, indent=2) + "\n")
         if report["project_findings"]:

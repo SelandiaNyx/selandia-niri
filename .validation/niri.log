@@ -1,9 +1,12 @@
-2026-10-05T02:21:45.392084Z  INFO niri: starting version 26.04 (8ed0da4)
-2026-10-05T02:21:45.397514Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl"
-2026-10-05T02:21:45.453864Z DEBUG niri::niri: putting output winit at x=0 y=0
-2026-10-05T02:21:45.453896Z  INFO niri: listening on Wayland socket: wayland-2
-2026-10-05T02:21:45.453899Z  INFO niri: IPC listening on: /run/user/1000/niri.wayland-2.83679.sock
-2026-10-05T02:21:45.454776Z  INFO niri: listening on X11 socket: :2
-2026-10-05T02:21:45.455544Z  WARN niri::cursor: error loading xcursor default@48: no default icon
-2026-10-05T02:21:54.551955Z  INFO niri::utils::signals::platform: quitting due to receiving signal SIGTERM
-2026-10-05T02:21:54.553710Z DEBUG niri::utils::watcher: exiting watcher thread for Explicit("/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl")
+2026-10-05T02:27:33.823972Z  INFO niri: starting version 26.04 (8ed0da4)
+2026-10-05T02:27:33.829258Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl"
+2026-10-05T02:27:33.886692Z DEBUG niri::niri: putting output winit at x=0 y=0
+2026-10-05T02:27:33.886728Z  INFO niri: listening on Wayland socket: wayland-2
+2026-10-05T02:27:33.886731Z  INFO niri: IPC listening on: /run/user/1000/niri.wayland-2.306029.sock
+2026-10-05T02:27:33.887848Z  INFO niri: listening on X11 socket: :2
+2026-10-05T02:27:33.888672Z  WARN niri::cursor: error loading xcursor default@48: no default icon
+2026-10-05T02:27:37.585797Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/notifications-center.png"
+2026-10-05T02:27:37.989154Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/desktop-overview.png"
+2026-10-05T02:27:39.382650Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/launcher.png"
+2026-10-05T02:27:41.157711Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/control.png"
+2026-10-05T02:27:43.187221Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/sound.png"

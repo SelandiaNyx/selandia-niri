@@ -1,6 +1,7 @@
-[2026-10-05 10:19:16.146] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
-[2026-10-05 10:19:16.148] [info] Discovered appearance 'dark'
-[2026-10-05 10:19:16.148] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
-[2026-10-05 10:19:16.151] [info] Niri IPC starting
-[2026-10-05 10:19:16.155] [warning] No batteries.
-[2026-10-05 10:19:16.223] [info] Bar configured (width: 1121, height: 46) for output: winit
+[2026-10-05 10:27:34.309] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:27:34.311] [info] Discovered appearance 'dark'
+[2026-10-05 10:27:34.312] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:27:34.315] [info] Niri IPC starting
+[2026-10-05 10:27:34.318] [warning] No batteries.
+[2026-10-05 10:27:34.374] [info] Bar configured (width: 1031, height: 46) for output: winit
+[2026-10-05 10:27:34.374] [info] Bar configured (width: 1121, height: 46) for output: winit

@@ -66,6 +66,7 @@ REQUIRED_SOURCES = (
     "niri/shell/sleep_guard.py",
     "niri/shell/power_actions.py",
     "niri/shell/bar_layout.py",
+    "niri/shell/bar_fit.py",
     "niri/shell/font_scale.py",
     "niri/shell/lock_session.py",
     "niri/theme/panel.css", "niri/theme/waybar.css", "niri/theme/swaync.css",

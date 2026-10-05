@@ -118,12 +118,25 @@ def main():
             pump_until(lambda: private_dialog_window(dialog) is not None)
             window = private_dialog_window(dialog)
             assert window is not None, "Font dialog was not mapped in private Niri"
-            subprocess.run(["niri", "msg", "action", "focus-window", "--id", str(window["id"])],
-                           check=True, capture_output=True, timeout=3)
+            # Focus can take a moment when the compositor is busy with the other
+            # probes, so keep asking and re-pumping frames instead of asserting
+            # after a single fixed delay (that made this probe flaky).
+            def focus_dialog():
+                current = private_dialog_window(dialog)
+                if current is None:
+                    return False
+                if not current.get("is_focused"):
+                    subprocess.run(["niri", "msg", "action", "focus-window", "--id", str(current["id"])],
+                                   check=False, capture_output=True, timeout=3)
+                    return False
+                return True
+
+            try:
+                pump_until(focus_dialog, timeout=6)
+            except AssertionError:
+                raise AssertionError("Font dialog is not visible/focused for screenshot")
             paint_after = time.monotonic() + .3
             pump_until(lambda: time.monotonic() >= paint_after)
-            focused = private_dialog_window(dialog)
-            assert focused and focused.get("is_focused"), "Font dialog is not visible/focused for screenshot"
             path = Path(sys.argv[1]).resolve()
             path.parent.mkdir(parents=True, exist_ok=True)
             old = path.stat().st_mtime_ns if path.exists() else None
