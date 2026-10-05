@@ -1,0 +1,45 @@
+[2026-10-05 10:57:40.049] [info] Using configuration file /tmp/wb-only-notification.json
+[2026-10-05 10:57:40.051] [info] Discovered appearance 'dark'
+[2026-10-05 10:57:40.051] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:40.054] [info] Niri IPC starting
+[2026-10-05 10:57:40.057] [warning] No batteries.
+
+** (waybar:507777): WARNING **: 10:57:40.094: AT-SPI: Could not obtain desktop path or name
+
+[2026-10-05 10:57:40.107] [info] Bar configured (width: 1228, height: 46) for output: winit
+
+** (waybar:507777): WARNING **: 10:57:40.107: atk-bridge: GetRegisteredEvents returned message with unknown signature
+
+** (waybar:507777): WARNING **: 10:57:40.107: atk-bridge: get_device_events_reply: unknown signature
+[2026-10-05 10:57:43.005] [info] Reloading...
+[2026-10-05 10:57:43.011] [info] Using configuration file /tmp/wb-only-notification.json
+[2026-10-05 10:57:43.011] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:43.017] [warning] No batteries.
+[2026-10-05 10:57:43.020] [info] Bar configured (width: 1228, height: 46) for output: winit
+[2026-10-05 10:57:43.407] [info] Reloading...
+[2026-10-05 10:57:43.411] [info] Using configuration file /tmp/wb-only-notification.json
+[2026-10-05 10:57:43.412] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:43.418] [warning] No batteries.
+[2026-10-05 10:57:43.424] [info] Bar configured (width: 1228, height: 46) for output: winit
+[2026-10-05 10:57:43.808] [info] Reloading...
+[2026-10-05 10:57:43.813] [info] Using configuration file /tmp/wb-only-notification.json
+[2026-10-05 10:57:43.813] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:43.820] [warning] No batteries.
+[2026-10-05 10:57:43.824] [info] Bar configured (width: 1228, height: 46) for output: winit
+[2026-10-05 10:57:44.210] [info] Reloading...
+[2026-10-05 10:57:44.215] [info] Using configuration file /tmp/wb-only-notification.json
+[2026-10-05 10:57:44.216] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:44.223] [warning] No batteries.
+[2026-10-05 10:57:44.228] [info] Bar configured (width: 1228, height: 46) for output: winit
+[2026-10-05 10:57:44.611] [info] Reloading...
+
+** (waybar:507876): CRITICAL **: 10:57:44.614: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:57:44.615] [info] Using configuration file /tmp/wb-only-notification.json
+[2026-10-05 10:57:44.616] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:44.619] [warning] No batteries.
+[2026-10-05 10:57:44.623] [info] Bar configured (width: 1228, height: 46) for output: winit
+[2026-10-05 10:57:45.012] [info] Reloading...
+[2026-10-05 10:57:45.017] [info] Using configuration file /tmp/wb-only-notification.json
+[2026-10-05 10:57:45.018] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:45.025] [warning] No batteries.
+[2026-10-05 10:57:45.029] [info] Bar configured (width: 1228, height: 46) for output: winit

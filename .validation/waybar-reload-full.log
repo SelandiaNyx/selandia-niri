@@ -1,0 +1,59 @@
+[2026-10-05 10:57:13.143] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:57:13.251] [info] Discovered appearance 'dark'
+[2026-10-05 10:57:13.251] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:13.254] [info] Niri IPC starting
+[2026-10-05 10:57:13.258] [warning] No batteries.
+
+** (waybar:506282): WARNING **: 10:57:13.305: AT-SPI: Could not obtain desktop path or name
+
+[2026-10-05 10:57:13.320] [info] Bar configured (width: 1228, height: 46) for output: winit
+
+** (waybar:506282): WARNING **: 10:57:13.320: atk-bridge: GetRegisteredEvents returned message with unknown signature
+
+** (waybar:506282): WARNING **: 10:57:13.320: atk-bridge: get_device_events_reply: unknown signature
+[2026-10-05 10:57:16.094] [info] Reloading...
+
+** (waybar:506559): CRITICAL **: 10:57:16.100: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+
+** (waybar:506560): CRITICAL **: 10:57:16.102: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:57:16.104] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:57:16.104] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:16.110] [warning] No batteries.
+[2026-10-05 10:57:16.116] [info] Bar configured (width: 1228, height: 46) for output: winit
+[2026-10-05 10:57:16.495] [info] Reloading...
+
+** (waybar:506718): CRITICAL **: 10:57:16.497: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+
+** (waybar:506719): CRITICAL **: 10:57:16.500: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:57:16.500] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:57:16.500] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:16.503] [warning] No batteries.
+[2026-10-05 10:57:16.507] [info] Bar configured (width: 1228, height: 46) for output: winit
+[2026-10-05 10:57:16.896] [info] Reloading...
+
+** (waybar:506873): CRITICAL **: 10:57:16.900: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:57:16.901] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:57:16.901] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:16.904] [warning] No batteries.
+[2026-10-05 10:57:16.909] [info] Bar configured (width: 1228, height: 46) for output: winit
+[2026-10-05 10:57:17.297] [info] Reloading...
+
+** (waybar:507012): CRITICAL **: 10:57:17.300: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:57:17.301] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:57:17.301] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:17.304] [warning] No batteries.
+[2026-10-05 10:57:17.308] [info] Bar configured (width: 1228, height: 46) for output: winit
+[2026-10-05 10:57:17.698] [info] Reloading...
+
+** (waybar:507141): CRITICAL **: 10:57:17.702: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:57:17.703] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:57:17.703] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:17.707] [warning] No batteries.
+[2026-10-05 10:57:17.712] [info] Bar configured (width: 1228, height: 46) for output: winit
+[2026-10-05 10:57:18.098] [info] Reloading...
+
+** (waybar:507274): CRITICAL **: 10:57:18.101: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:57:18.102] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:57:18.102] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:57:18.106] [warning] No batteries.
+[2026-10-05 10:57:18.112] [info] Bar configured (width: 1228, height: 46) for output: winit
