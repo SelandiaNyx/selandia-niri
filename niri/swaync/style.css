@@ -1,0 +1,82 @@
+/* Shared pearl/cyan/violet glass palette. GTK 4 (SwayNC >= 0.12). */
+@define-color cc-bg rgba(16, 21, 34, 0.88);
+@define-color noti-bg rgba(31, 42, 60, 0.86);
+@define-color noti-border-color rgba(214, 234, 255, 0.18);
+@define-color text-color #eef5ff;
+@define-color text-color-disabled #9daec6;
+* {
+    font-family: "Inter", "Noto Sans", "Noto Sans CJK SC", sans-serif;
+    font-size: 13px;
+}
+.control-center {
+    background: linear-gradient(145deg, rgba(37, 49, 70, 0.91), rgba(16, 21, 34, 0.88) 58%, rgba(37, 32, 55, 0.89));
+    color: @text-color;
+    border: 1px solid @noti-border-color;
+    border-radius: 24px;
+    padding: 18px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+/* The upstream focused row paints a rectangular grey background around cards. */
+.notification-group,
+.notification-group:focus,
+.notification-group:focus-within,
+.notification-row,
+.notification-row:focus,
+.notification-row:focus-within,
+.notification-row:hover,
+.notification-row .notification-background {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    outline: none;
+}
+.notification-row .notification-background .notification,
+.notification {
+    background: @noti-bg;
+    color: @text-color;
+    border: 1px solid @noti-border-color;
+    border-radius: 18px;
+    padding: 6px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.notification-row .notification-background .notification.critical {
+    border-color: rgba(255, 180, 196, 0.6);
+}
+.notification-group:focus .notification,
+.notification-row:focus .notification,
+.notification-row:focus-within .notification {
+    border-color: rgba(148, 223, 255, 0.40);
+}
+.notification-content { padding: 10px; }
+.summary { color: #eef5ff; font-weight: 600; font-size: 14px; }
+.body { color: #c6d4e7; }
+.time, .app-name { color: #9daec6; font-size: 11px; }
+.widget-title { color: #eef5ff; margin: 4px 0 18px; }
+.widget-title > label { font-size: 18px; font-weight: 600; }
+.widget-title > button { font-size: 11px; }
+.widget-dnd {
+    margin: 4px 0 18px;
+    color: #c6d4e7;
+    border-radius: 14px;
+    background: rgba(214, 234, 255, 0.05);
+    padding: 12px;
+}
+.widget-mpris { margin: 4px 0 14px; }
+.widget-mpris-player { border-radius: 18px; padding: 12px; }
+button {
+    color: #d4e1f3;
+    background: rgba(214, 234, 255, 0.07);
+    border: 1px solid rgba(214, 234, 255, 0.12);
+    border-radius: 12px;
+    padding: 8px 12px;
+    box-shadow: none;
+    text-shadow: none;
+}
+button:hover { background: rgba(148, 223, 255, 0.16); color: #eef5ff; }
+.notification-default-action { background: transparent; }
+.close-button { border-radius: 12px; background: rgba(214, 234, 255, 0.10); }
+switch { border-radius: 20px; background: rgba(214, 234, 255, 0.12); }
+switch:checked { background: linear-gradient(120deg, #94dfff, #c4b5fd); }
+switch slider { background: #eef5ff; border-radius: 20px; }
+scrollbar { background: transparent; }
+scrollbar slider { background: rgba(214, 234, 255, 0.18); border-radius: 8px; }

@@ -1,0 +1,36 @@
+[
+  {
+    "mode": "dark",
+    "observed": {
+      "disabled_text": "#a1a9b1",
+      "font": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_value_type": "QString",
+      "font_weight": 400,
+      "icons": "breeze-dark",
+      "palette_path": "/tmp/selandia-qt6ct-native-pz6xhn1e/dark, \"中文\"/qt6ct/colors/selandia.conf",
+      "qt_roles": 22,
+      "style": "qt6ct-style",
+      "text": "#fcfcfc",
+      "window": "#202326"
+    },
+    "stderr": ""
+  },
+  {
+    "mode": "light",
+    "observed": {
+      "disabled_text": "#707d8a",
+      "font": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_value_type": "QString",
+      "font_weight": 400,
+      "icons": "breeze",
+      "palette_path": "/tmp/selandia-qt6ct-native-pz6xhn1e/light, \"中文\"/qt6ct/colors/selandia.conf",
+      "qt_roles": 22,
+      "style": "qt6ct-style",
+      "text": "#232629",
+      "window": "#eff0f1"
+    },
+    "stderr": ""
+  }
+]

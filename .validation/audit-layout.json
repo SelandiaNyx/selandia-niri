@@ -1,0 +1,1218 @@
+[
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "quick",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "sound",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "displays",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "input",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "network",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "hardware",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "appearance",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "desktop",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "applications",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "language",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "power",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "time",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "startup",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "services",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "security",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      960,
+      600
+    ],
+    "page": "system",
+    "actual": [
+      960,
+      600
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "quick",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "sound",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "displays",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "input",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "network",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "hardware",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "appearance",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "desktop",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "applications",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "language",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "power",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "time",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "startup",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "services",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "security",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "light",
+    "font_size": 12,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "system",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "quick",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "sound",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "displays",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "input",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "network",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "hardware",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "appearance",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "desktop",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "applications",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "language",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "power",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "time",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "startup",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "services",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "security",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "en_US",
+    "mode": "dark",
+    "font_size": 20,
+    "requested": [
+      960,
+      820
+    ],
+    "page": "system",
+    "actual": [
+      960,
+      820
+    ],
+    "content_width": 713,
+    "horizontal": [
+      713.0,
+      713.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "quick",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "sound",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "displays",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "input",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "network",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "hardware",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "appearance",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "desktop",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "applications",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "language",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "power",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "time",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "startup",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "services",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "security",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  },
+  {
+    "language": "zh_CN",
+    "mode": "dark",
+    "font_size": 16,
+    "requested": [
+      768,
+      600
+    ],
+    "page": "system",
+    "actual": [
+      768,
+      600
+    ],
+    "content_width": 521,
+    "horizontal": [
+      521.0,
+      521.0
+    ]
+  }
+]

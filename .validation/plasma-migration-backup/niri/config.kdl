@@ -1,0 +1,34 @@
+// Selandia's Niri · Niri >= 26.04
+// 修改并保存即热加载；快捷键：Super+/。首次登录建议先看 README.md。
+// Niri uses the FIRST matching output rule / Niri 优先采用首个匹配的屏幕规则。
+include "conf/display-settings.kdl"
+include "conf/input.kdl"
+include "conf/outputs.kdl"
+// Legacy/manual defaults remain available / 保留已有手动屏幕默认配置。
+include "monitor.kdl"
+include "conf/appearance.kdl"
+include "theme/theme.kdl"
+include "conf/windows.kdl"
+include "conf/binds.kdl"
+include "conf/local.kdl"
+
+spawn-sh-at-startup "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/start-session\""
+
+environment {
+    QT_QPA_PLATFORM "wayland;xcb"
+    QT_QPA_PLATFORMTHEME "kde"
+    XDG_MENU_PREFIX "plasma-"
+    XMODIFIERS "@im=fcitx"
+    QT_IM_MODULE "fcitx"
+    // GTK 使用 Wayland 原生输入法协议；兼容旧 X11 应用请单独设置 GTK_IM_MODULE。
+    GTK_IM_MODULE null
+}
+
+// Niri 自动按需启动 xwayland-satellite；不要手动设置 DISPLAY。
+screenshot-path "~/Pictures/Screenshots/Niri-%Y-%m-%d_%H-%M-%S.png"
+prefer-no-csd
+hotkey-overlay { skip-at-startup; }
+
+include "conf/desktop-settings.kdl"
+
+include "conf/language.kdl"

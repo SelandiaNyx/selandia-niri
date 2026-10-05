@@ -1,0 +1,47 @@
+# Niri on Arch Linux · Niri 桌面的 Arch 官方仓库依赖。
+# Optional / 可选: power-profiles-daemon (hardware power profiles / 硬件电源模式)
+# AI providers are configured separately / AI 服务单独配置，不自动安装模型或 Codex。
+niri
+xwayland-satellite
+waybar
+fuzzel
+swaync
+swaybg
+swayidle
+swaylock
+kitty
+wl-clipboard
+cliphist
+libnotify
+brightnessctl
+ddcutil
+playerctl
+wireplumber
+pipewire
+pipewire-pulse
+libpulse
+xdg-desktop-portal-gnome
+xdg-desktop-portal-gtk
+polkit-kde-agent
+gnome-keyring
+network-manager-applet
+networkmanager
+blueman
+pavucontrol
+fcitx5
+fcitx5-gtk
+fcitx5-qt
+zenity
+xdg-utils
+xdg-user-dirs
+python
+python-gobject
+gtk3
+gtk-layer-shell
+gsettings-desktop-schemas
+breeze
+breeze-gtk
+qt6ct
+librsvg
+noto-fonts-cjk
+ttf-jetbrains-mono-nerd

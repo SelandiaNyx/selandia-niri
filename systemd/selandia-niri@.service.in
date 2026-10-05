@@ -1,0 +1,12 @@
+[Unit]
+Description=Selandia's Niri component (%i)
+PartOf=selandia-niri.target graphical-session.target
+After=graphical-session.target
+StartLimitIntervalSec=30
+StartLimitBurst=3
+
+[Service]
+ExecStart=@COMPONENTS@ %i
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=5

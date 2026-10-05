@@ -1,0 +1,143 @@
+{
+  "worker_lifetime": {
+    "exit_code": 0,
+    "completed_phases": [
+      "write_one"
+    ],
+    "missing_phases": [
+      "write_two",
+      "finally"
+    ],
+    "scope": "Actual Panel.work/on_destroy; mocked application; temporary-file transaction only"
+  },
+  "refresh_overwrites_draft": {
+    "during_refresh": {
+      "form_sensitive": true,
+      "apply_sensitive": true
+    },
+    "user_entered": 20,
+    "after_read_callback": 16,
+    "scope": "Actual SettingsPage.refresh; delayed callback and widgets are test doubles"
+  },
+  "shortcut_localization": {
+    "total": 117,
+    "en_US": {
+      "mixed_count": 18,
+      "mixed_examples": [
+        {
+          "keys": "Super+Left",
+          "description": "Focus / 聚焦 · Column / 列 · Left / 左"
+        },
+        {
+          "keys": "Super+Shift+Left",
+          "description": "Move / 移动 · Column / 列 · Left / 左"
+        },
+        {
+          "keys": "Super+Alt+Left",
+          "description": "Focus / 聚焦 · Monitor / 显示器 · Left / 左"
+        },
+        {
+          "keys": "Super+Alt+Shift+Left",
+          "description": "Move / 移动 · Monitor / 显示器 · Left / 左"
+        },
+        {
+          "keys": "Super+Right",
+          "description": "Focus / 聚焦 · Column / 列 · Right / 右"
+        },
+        {
+          "keys": "Super+Shift+Right",
+          "description": "Move / 移动 · Column / 列 · Right / 右"
+        },
+        {
+          "keys": "Super+Alt+Right",
+          "description": "Focus / 聚焦 · Monitor / 显示器 · Right / 右"
+        },
+        {
+          "keys": "Super+Alt+Shift+Right",
+          "description": "Move / 移动 · Monitor / 显示器 · Right / 右"
+        }
+      ],
+      "workspace_and_capture": [
+        {
+          "keys": "Super+PageUp",
+          "description": "Go to workspace"
+        },
+        {
+          "keys": "Super+1",
+          "description": "Go to workspace"
+        },
+        {
+          "keys": "Super+Shift+1",
+          "description": "Move to workspace"
+        },
+        {
+          "keys": "Print",
+          "description": "Screenshot screen · 屏幕截图 · Clipboard only / 仅剪贴板"
+        },
+        {
+          "keys": "Ctrl+Print",
+          "description": "Screenshot screen · 屏幕截图 · Save + clipboard / 保存及剪贴板"
+        }
+      ]
+    },
+    "zh_CN": {
+      "mixed_count": 46,
+      "mixed_examples": [
+        {
+          "keys": "Super+Left",
+          "description": "Focus / 聚焦 · Column / 列 · Left / 左"
+        },
+        {
+          "keys": "Super+Shift+Left",
+          "description": "Move / 移动 · Column / 列 · Left / 左"
+        },
+        {
+          "keys": "Super+Alt+Left",
+          "description": "Focus / 聚焦 · Monitor / 显示器 · Left / 左"
+        },
+        {
+          "keys": "Super+Alt+Shift+Left",
+          "description": "Move / 移动 · Monitor / 显示器 · Left / 左"
+        },
+        {
+          "keys": "Super+Right",
+          "description": "Focus / 聚焦 · Column / 列 · Right / 右"
+        },
+        {
+          "keys": "Super+Shift+Right",
+          "description": "Move / 移动 · Column / 列 · Right / 右"
+        },
+        {
+          "keys": "Super+Alt+Right",
+          "description": "Focus / 聚焦 · Monitor / 显示器 · Right / 右"
+        },
+        {
+          "keys": "Super+Alt+Shift+Right",
+          "description": "Move / 移动 · Monitor / 显示器 · Right / 右"
+        }
+      ],
+      "workspace_and_capture": [
+        {
+          "keys": "Super+PageUp",
+          "description": "切换工作区 Previous / 上一个"
+        },
+        {
+          "keys": "Super+1",
+          "description": "切换工作区 1"
+        },
+        {
+          "keys": "Super+Shift+1",
+          "description": "移至工作区 1 (follow / 跟随窗口)"
+        },
+        {
+          "keys": "Print",
+          "description": "Screenshot screen · 屏幕截图 · Clipboard only / 仅剪贴板"
+        },
+        {
+          "keys": "Ctrl+Print",
+          "description": "Screenshot screen · 屏幕截图 · Save + clipboard / 保存及剪贴板"
+        }
+      ]
+    }
+  }
+}

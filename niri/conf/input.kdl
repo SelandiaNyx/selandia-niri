@@ -1,0 +1,28 @@
+input {
+    keyboard {
+        xkb { layout "us"; }
+        repeat-delay 250
+        repeat-rate 40
+        numlock
+    }
+    touchpad {
+        tap
+        dwt
+        natural-scroll
+        scroll-method "two-finger"
+    }
+    mouse { accel-profile "flat"; }
+    // 仅移入可见窗口时跟随焦点，不因鼠标经过而横向滚屏。
+    focus-follows-mouse max-scroll-amount="0%"
+    workspace-auto-back-and-forth
+}
+
+cursor {
+    xcursor-theme "Bibata-Modern-Classic"
+    xcursor-size 24
+    hide-when-typing
+}
+
+gestures {
+    hot-corners { off; }
+}

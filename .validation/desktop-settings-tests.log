@@ -1,0 +1,330 @@
+test_environment_state_path (test_appearance.AppearanceTests.test_environment_state_path) ... ok
+test_first_install_failure_removes_committed_new_assets (test_appearance.AppearanceTests.test_first_install_failure_removes_committed_new_assets) ... ok
+test_font_and_numeric_injection_rejected_before_writes (test_appearance.AppearanceTests.test_font_and_numeric_injection_rejected_before_writes) ... ok
+test_mid_transaction_failure_restores_old_assets_and_preferences (test_appearance.AppearanceTests.test_mid_transaction_failure_restores_old_assets_and_preferences) ... ok
+test_missing_and_invalid_preferences_load_defaults (test_appearance.AppearanceTests.test_missing_and_invalid_preferences_load_defaults) ... ok
+test_preserves_original_sources_and_unknown_launcher_options (test_appearance.AppearanceTests.test_preserves_original_sources_and_unknown_launcher_options) ... ok
+test_presets_cover_all_components_without_absolute_paths (test_appearance.AppearanceTests.test_presets_cover_all_components_without_absolute_paths) ... ok
+test_replaces_every_duplicate_ini_option (test_appearance.AppearanceTests.test_replaces_every_duplicate_ini_option) ... ok
+test_restore_cli_keeps_preset_after_project_asset_replacement (test_appearance.AppearanceTests.test_restore_cli_keeps_preset_after_project_asset_replacement) ... ok
+test_restore_cli_preserves_invalid_preferences_and_current_assets (test_appearance.AppearanceTests.test_restore_cli_preserves_invalid_preferences_and_current_assets) ... ok
+test_restore_cli_without_preferences_does_not_create_state_or_assets (test_appearance.AppearanceTests.test_restore_cli_without_preferences_does_not_create_state_or_assets) ... ok
+test_restore_defaults_resets_settings_and_all_assets (test_appearance.AppearanceTests.test_restore_defaults_resets_settings_and_all_assets) ... ok
+test_roundtrip_and_all_component_files (test_appearance.AppearanceTests.test_roundtrip_and_all_component_files) ... ok
+test_state_write_failure_restores_all_assets (test_appearance.AppearanceTests.test_state_write_failure_restores_all_assets) ... ok
+test_symlink_destination_refused_without_touching_target (test_appearance.AppearanceTests.test_symlink_destination_refused_without_touching_target) ... ok
+test_symlink_directory_refused (test_appearance.AppearanceTests.test_symlink_directory_refused) ... ok
+test_valid_font_names_and_boundaries (test_appearance.AppearanceTests.test_valid_font_names_and_boundaries) ... ok
+test_actions_use_device_ids_as_arguments (test_audio_backend.AudioTests.test_actions_use_device_ids_as_arguments) ... ok
+test_existing_streams_move_only_when_explicitly_requested (test_audio_backend.AudioTests.test_existing_streams_move_only_when_explicitly_requested) ... ok
+test_invalid_actions_never_invoke_server (test_audio_backend.AudioTests.test_invalid_actions_never_invoke_server) ... ok
+test_invalid_json_rejected (test_audio_backend.AudioTests.test_invalid_json_rejected) ... ok
+test_missing_localized_descriptions_have_readable_fallbacks (test_audio_backend.AudioTests.test_missing_localized_descriptions_have_readable_fallbacks) ... ok
+test_monitor_detection_keeps_real_microphones (test_audio_backend.AudioTests.test_monitor_detection_keeps_real_microphones) ... ok
+test_partial_move_reports_failure_and_continues_other_streams (test_audio_backend.AudioTests.test_partial_move_reports_failure_and_continues_other_streams) ... ok
+test_process_timeout_and_missing_binary_have_readable_errors (test_audio_backend.AudioTests.test_process_timeout_and_missing_binary_have_readable_errors) ... ok
+test_process_uses_utf8_locale_and_preserves_error_details (test_audio_backend.AudioTests.test_process_uses_utf8_locale_and_preserves_error_details) ... ok
+test_profile_and_port_schema_variants_preserve_availability (test_audio_backend.AudioTests.test_profile_and_port_schema_variants_preserve_availability) ... ok
+test_read_state_supports_hotplug_without_default_and_filters_monitors (test_audio_backend.AudioTests.test_read_state_supports_hotplug_without_default_and_filters_monitors) ... ok
+test_unavailable_service_raises_instead_of_showing_empty_success (test_audio_backend.AudioTests.test_unavailable_service_raises_instead_of_showing_empty_success) ... ok
+test_volume_averages_channels_and_distinguishes_missing_data (test_audio_backend.AudioTests.test_volume_averages_channels_and_distinguishes_missing_data) ... ok
+test_check_only_runs_existing_validator (test_control.ControlScriptTests.test_check_only_runs_existing_validator) ... ok
+test_check_propagates_validation_failure (test_control.ControlScriptTests.test_check_propagates_validation_failure) ... ok
+test_controller_lock_prevents_overlapping_mutations (test_control.ControlScriptTests.test_controller_lock_prevents_overlapping_mutations) ... ok
+test_deployment_failure_is_reported (test_control.ControlScriptTests.test_deployment_failure_is_reported) ... ok
+test_dry_runs_print_transaction_without_mutating (test_control.ControlScriptTests.test_dry_runs_print_transaction_without_mutating) ... ok
+test_existing_qt_mixer_satisfies_install (test_control.ControlScriptTests.test_existing_qt_mixer_satisfies_install) ... ok
+test_install_healthy_packages_skips_system_update (test_control.ControlScriptTests.test_install_healthy_packages_skips_system_update) ... ok
+test_install_missing_package_upgrades_before_validation_and_deployment (test_control.ControlScriptTests.test_install_missing_package_upgrades_before_validation_and_deployment) ... ok
+test_integrity_check_error_aborts_before_package_changes (test_control.ControlScriptTests.test_integrity_check_error_aborts_before_package_changes) ... ok
+test_interactive_menu_can_exit_without_mutating (test_control.ControlScriptTests.test_interactive_menu_can_exit_without_mutating) ... ok
+test_invalid_command_and_unknown_options_do_nothing (test_control.ControlScriptTests.test_invalid_command_and_unknown_options_do_nothing) ... ok
+test_invalid_saved_appearance_stops_deployment (test_control.ControlScriptTests.test_invalid_saved_appearance_stops_deployment) ... ok
+test_legacy_conflicting_flags_do_nothing (test_control.ControlScriptTests.test_legacy_conflicting_flags_do_nothing) ... ok
+test_legacy_install_defaults_to_install_without_opening_menu (test_control.ControlScriptTests.test_legacy_install_defaults_to_install_without_opening_menu) ... ok
+test_legacy_install_with_no_arguments_installs (test_control.ControlScriptTests.test_legacy_install_with_no_arguments_installs) ... ok
+test_legacy_packages_flag_still_installs_missing_packages (test_control.ControlScriptTests.test_legacy_packages_flag_still_installs_missing_packages) ... ok
+test_legacy_uninstall_flag_can_preview_without_confirmation (test_control.ControlScriptTests.test_legacy_uninstall_flag_can_preview_without_confirmation) ... ok
+test_legacy_uninstall_flag_uses_safe_restore (test_control.ControlScriptTests.test_legacy_uninstall_flag_uses_safe_restore) ... ok
+test_legacy_wrapper_forwards_explicit_lifecycle_commands (test_control.ControlScriptTests.test_legacy_wrapper_forwards_explicit_lifecycle_commands) ... ok
+test_no_arguments_on_noninteractive_input_only_shows_help (test_control.ControlScriptTests.test_no_arguments_on_noninteractive_input_only_shows_help) ... ok
+test_no_packages_bypasses_every_package_query_and_transaction (test_control.ControlScriptTests.test_no_packages_bypasses_every_package_query_and_transaction) ... ok
+test_no_packages_with_broken_python_stops_before_any_action (test_control.ControlScriptTests.test_no_packages_with_broken_python_stops_before_any_action) ... ok
+test_noninteractive_uninstall_requires_explicit_confirmation (test_control.ControlScriptTests.test_noninteractive_uninstall_requires_explicit_confirmation) ... ok
+test_package_failure_prevents_validation_and_deployment (test_control.ControlScriptTests.test_package_failure_prevents_validation_and_deployment) ... ok
+test_preflight_failure_prevents_package_and_configuration_changes (test_control.ControlScriptTests.test_preflight_failure_prevents_package_and_configuration_changes) ... ok
+test_repair_can_bootstrap_python_with_missing_runtime_files (test_control.ControlScriptTests.test_repair_can_bootstrap_python_with_missing_runtime_files) ... ok
+test_repair_checks_selected_qt_mixer (test_control.ControlScriptTests.test_repair_checks_selected_qt_mixer) ... ok
+test_repair_healthy_packages_skips_system_update (test_control.ControlScriptTests.test_repair_healthy_packages_skips_system_update) ... ok
+test_repair_missing_and_damaged_packages_in_one_transaction (test_control.ControlScriptTests.test_repair_missing_and_damaged_packages_in_one_transaction) ... ok
+test_repair_reinstalls_damaged_package_without_needed (test_control.ControlScriptTests.test_repair_reinstalls_damaged_package_without_needed) ... ok
+test_status_inventories_and_checks_packages_without_mutating (test_control.ControlScriptTests.test_status_inventories_and_checks_packages_without_mutating) ... ok
+test_status_reports_missing_or_damaged_packages_without_mutating (test_control.ControlScriptTests.test_status_reports_missing_or_damaged_packages_without_mutating) ... ok
+test_status_reports_unhealthy_deployment_without_mutating (test_control.ControlScriptTests.test_status_reports_unhealthy_deployment_without_mutating) ... ok
+test_uninstall_dry_run_only_previews_restore (test_control.ControlScriptTests.test_uninstall_dry_run_only_previews_restore) ... ok
+test_uninstall_never_queries_packages_or_validates_config (test_control.ControlScriptTests.test_uninstall_never_queries_packages_or_validates_config) ... ok
+test_uninstall_preflight_failure_preserves_installation (test_control.ControlScriptTests.test_uninstall_preflight_failure_preserves_installation) ... ok
+test_uninstall_without_installation_is_a_noop (test_control.ControlScriptTests.test_uninstall_without_installation_is_a_noop) ... ok
+test_update_always_upgrades_configured_packages (test_control.ControlScriptTests.test_update_always_upgrades_configured_packages) ... ok
+test_update_keeps_existing_qt_mixer (test_control.ControlScriptTests.test_update_keeps_existing_qt_mixer) ... ok
+test_update_restores_saved_appearance_before_validation_but_preview_does_not (test_control.ControlScriptTests.test_update_restores_saved_appearance_before_validation_but_preview_does_not) ... ok
+test_validation_failure_prevents_deployment (test_control.ControlScriptTests.test_validation_failure_prevents_deployment) ... ok
+test_dry_run_does_not_create_state (test_deploy.DeploymentTests.test_dry_run_does_not_create_state) ... ok
+test_dry_run_reports_missing_portal_repair_without_writes (test_deploy.DeploymentTests.test_dry_run_reports_missing_portal_repair_without_writes) ... ok
+test_failed_install_restores_previous_config (test_deploy.DeploymentTests.test_failed_install_restores_previous_config) ... ok
+test_failed_repair_restores_missing_portal_and_preserves_manifest (test_deploy.DeploymentTests.test_failed_repair_restores_missing_portal_and_preserves_manifest) ... ok
+test_failed_uninstall_restores_the_installed_state (test_deploy.DeploymentTests.test_failed_uninstall_restores_the_installed_state) ... ok
+test_failed_uninstall_rolls_back_restored_original_of_absent_target (test_deploy.DeploymentTests.test_failed_uninstall_rolls_back_restored_original_of_absent_target) ... ok
+test_malformed_manifest_is_rejected_without_changes (test_deploy.DeploymentTests.test_malformed_manifest_is_rejected_without_changes) ... ok
+test_missing_original_backup_refuses_reinstall_and_uninstall (test_deploy.DeploymentTests.test_missing_original_backup_refuses_reinstall_and_uninstall) ... ok
+test_preflight_accepts_missing_target_but_refuses_foreign_edits_without_mutation (test_deploy.DeploymentTests.test_preflight_accepts_missing_target_but_refuses_foreign_edits_without_mutation) ... ok
+test_preflight_refuses_missing_project_script_before_any_writes (test_deploy.DeploymentTests.test_preflight_refuses_missing_project_script_before_any_writes) ... ok
+test_quote_systemd_path (test_deploy.DeploymentTests.test_quote_systemd_path) ... ok
+test_refuse_foreign_modification_before_uninstall (test_deploy.DeploymentTests.test_refuse_foreign_modification_before_uninstall) ... ok
+test_reinstall_and_restore_directory_and_dangling_link (test_deploy.DeploymentTests.test_reinstall_and_restore_directory_and_dangling_link) ... ok
+test_reinstall_repairs_missing_portal_preserving_original_backup (test_deploy.DeploymentTests.test_reinstall_repairs_missing_portal_preserving_original_backup) ... ok
+test_reinstall_repairs_missing_portal_without_inventing_original (test_deploy.DeploymentTests.test_reinstall_repairs_missing_portal_without_inventing_original) ... ok
+test_reinstall_updates_generated_unit_preserving_first_backup (test_deploy.DeploymentTests.test_reinstall_updates_generated_unit_preserving_first_backup) ... ok
+test_repair_refuses_modified_portal_and_foreign_dangling_symlink (test_deploy.DeploymentTests.test_repair_refuses_modified_portal_and_foreign_dangling_symlink) ... ok
+test_root_refused_before_any_config_or_state_write (test_deploy.DeploymentTests.test_root_refused_before_any_config_or_state_write) ... ok
+test_simultaneous_deployment_is_refused (test_deploy.DeploymentTests.test_simultaneous_deployment_is_refused) ... ok
+test_status_reports_uninstalled_missing_and_stale_config_without_mutation (test_deploy.DeploymentTests.test_status_reports_uninstalled_missing_and_stale_config_without_mutation) ... ok
+test_uninstall_does_not_require_intact_project_sources (test_deploy.DeploymentTests.test_uninstall_does_not_require_intact_project_sources) ... ok
+test_uninstall_preview_is_read_only_with_missing_managed_target (test_deploy.DeploymentTests.test_uninstall_preview_is_read_only_with_missing_managed_target) ... ok
+test_uninstall_preview_without_manifest_does_not_create_state (test_deploy.DeploymentTests.test_uninstall_preview_without_manifest_does_not_create_state) ... ok
+test_uninstall_restores_originals_when_managed_targets_were_removed (test_deploy.DeploymentTests.test_uninstall_restores_originals_when_managed_targets_were_removed) ... ok
+test_uninstall_stop_failure_leaves_all_files_untouched (test_deploy.DeploymentTests.test_uninstall_stop_failure_leaves_all_files_untouched) ... ok
+test_launcher_prefers_generated_theme_and_falls_back_to_shipped_config (test_desktop_actions.DesktopActionTests.test_launcher_prefers_generated_theme_and_falls_back_to_shipped_config) ... ok
+test_lock_prefers_generated_theme_without_touching_real_session (test_desktop_actions.DesktopActionTests.test_lock_prefers_generated_theme_without_touching_real_session) ... ok
+test_maintenance_uses_held_terminal_and_separate_controller_arguments (test_desktop_actions.DesktopActionTests.test_maintenance_uses_held_terminal_and_separate_controller_arguments) ... ok
+test_maintenance_without_controller_fails_before_terminal (test_desktop_actions.DesktopActionTests.test_maintenance_without_controller_fails_before_terminal) ... ok
+test_panel_modes_preserve_mode_and_quoted_script_path (test_desktop_actions.DesktopActionTests.test_panel_modes_preserve_mode_and_quoted_script_path) ... ok
+test_process_monitor_prefers_btop_then_htop_then_top (test_desktop_actions.DesktopActionTests.test_process_monitor_prefers_btop_then_htop_then_top) ... ok
+test_theme_reload_validates_then_only_restarts_running_theme_services (test_desktop_actions.DesktopActionTests.test_theme_reload_validates_then_only_restarts_running_theme_services) ... ok
+test_amd_utilization_vram_and_temperature (test_metrics.MetricsTests.test_amd_utilization_vram_and_temperature) ... ok
+test_cpu_guest_time_is_not_counted_twice (test_metrics.MetricsTests.test_cpu_guest_time_is_not_counted_twice) ... ok
+test_cpu_no_elapsed_ticks_and_decreasing_iowait_unavailable (test_metrics.MetricsTests.test_cpu_no_elapsed_ticks_and_decreasing_iowait_unavailable) ... ok
+test_cpu_warmup_delta_and_counter_reset (test_metrics.MetricsTests.test_cpu_warmup_delta_and_counter_reset) ... ok
+test_default_route_avoids_summing_bridge_or_vpn_traffic (test_metrics.MetricsTests.test_default_route_avoids_summing_bridge_or_vpn_traffic) ... ok
+test_formatters_use_binary_bytes_and_explicit_unavailable (test_metrics.MetricsTests.test_formatters_use_binary_bytes_and_explicit_unavailable) ... ok
+test_intel_without_busy_counter_has_no_invented_utilization (test_metrics.MetricsTests.test_intel_without_busy_counter_has_no_invented_utilization) ... ok
+test_ipv6_only_default_route_and_down_interface (test_metrics.MetricsTests.test_ipv6_only_default_route_and_down_interface) ... ok
+test_malformed_cpu_does_not_become_zero (test_metrics.MetricsTests.test_malformed_cpu_does_not_become_zero) ... ok
+test_memavailable_avoids_counting_reclaimable_cache_as_used (test_metrics.MetricsTests.test_memavailable_avoids_counting_reclaimable_cache_as_used) ... ok
+test_memory_legacy_fallback_clamps_and_swap_disabled_is_real_zero (test_metrics.MetricsTests.test_memory_legacy_fallback_clamps_and_swap_disabled_is_real_zero) ... ok
+test_missing_files_return_unavailable_and_json_serializable (test_metrics.MetricsTests.test_missing_files_return_unavailable_and_json_serializable) ... ok
+test_network_counter_reset_does_not_spike (test_metrics.MetricsTests.test_network_counter_reset_does_not_spike) ... ok
+test_network_rates_use_elapsed_monotonic_time (test_metrics.MetricsTests.test_network_rates_use_elapsed_monotonic_time) ... ok
+test_network_zero_elapsed_and_bad_rows_are_unavailable (test_metrics.MetricsTests.test_network_zero_elapsed_and_bad_rows_are_unavailable) ... ok
+test_new_recreated_or_returning_interface_needs_new_baseline (test_metrics.MetricsTests.test_new_recreated_or_returning_interface_needs_new_baseline) ... ok
+test_nvidia_optional_query_na_fields_and_timeout (test_metrics.MetricsTests.test_nvidia_optional_query_na_fields_and_timeout) ... ok
+test_suspended_nvidia_gpu_is_not_woken_for_polling (test_metrics.MetricsTests.test_suspended_nvidia_gpu_is_not_woken_for_polling) ... ok
+test_thermal_fallback_and_invalid_values (test_metrics.MetricsTests.test_thermal_fallback_and_invalid_values) ... ok
+test_waybar_tooltip_escapes_hardware_names_and_has_pressure_class (test_metrics.MetricsTests.test_waybar_tooltip_escapes_hardware_names_and_has_pressure_class) ... ok
+test_bad_and_empty_provider_responses (test_shell_data.ChatTests.test_bad_and_empty_provider_responses) ... ok
+test_compatible_chat_uses_environment_key_and_v1_base (test_shell_data.ChatTests.test_compatible_chat_uses_environment_key_and_v1_base) ... ok
+test_invalid_endpoint_rejected_before_network (test_shell_data.ChatTests.test_invalid_endpoint_rejected_before_network) ... ok
+test_malformed_credential_never_appears_in_error (test_shell_data.ChatTests.test_malformed_credential_never_appears_in_error) ... ok
+test_missing_key_and_model_are_actionable (test_shell_data.ChatTests.test_missing_key_and_model_are_actionable) ... ok
+test_model_discovery (test_shell_data.ChatTests.test_model_discovery) ... ok
+test_network_errors_and_redirects (test_shell_data.ChatTests.test_network_errors_and_redirects) ... ok
+test_ollama_chat_sends_only_supplied_messages (test_shell_data.ChatTests.test_ollama_chat_sends_only_supplied_messages) ... ok
+test_provider_error_does_not_echo_sensitive_body (test_shell_data.ChatTests.test_provider_error_does_not_echo_sensitive_body) ... ok
+test_settings_store_no_key_and_use_private_file (test_shell_data.ChatTests.test_settings_store_no_key_and_use_private_file) ... ok
+test_every_real_binding_has_a_searchable_entry (test_shell_data.ShortcutTests.test_every_real_binding_has_a_searchable_entry) ... ok
+test_local_override_and_hidden_alias_remain_discoverable (test_shell_data.ShortcutTests.test_local_override_and_hidden_alias_remain_discoverable) ... ok
+test_unmodified_keys_and_comments (test_shell_data.ShortcutTests.test_unmodified_keys_and_comments) ... ok
+
+----------------------------------------------------------------------
+Ran 136 tests in 2.714s
+
+OK
+Back up and install / 备份后安装：/tmp/niri deploy's dzg3est6/config/niri ← /home/SelandiaNyx/Selandia's Niri/niri
+Install new / 新建配置：/tmp/niri deploy's dzg3est6/config/systemd/user/selandia-niri.target ← /home/SelandiaNyx/Selandia's Niri/systemd/selandia-niri.target
+Install new / 新建配置：/tmp/niri deploy's dzg3est6/config/systemd/user/selandia-niri@.service ← generated systemd service / 生成的 systemd 服务
+Install new / 新建配置：/tmp/niri deploy's dzg3est6/config/xdg-desktop-portal/niri-portals.conf ← /home/SelandiaNyx/Selandia's Niri/portals/niri-portals.conf
+Backup and restore record / 备份及回退记录：/tmp/niri deploy's dzg3est6/state/install.json
+Install / 安装：/tmp/niri deploy's c5k8k653/config/niri
+Install / 安装：/tmp/niri deploy's c5k8k653/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's c5k8k653/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's c5k8k653/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's c5k8k653/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's 2xojbroa/config/niri
+Install / 安装：/tmp/niri deploy's 2xojbroa/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 536ju4np/config/niri
+Install / 安装：/tmp/niri deploy's 536ju4np/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 536ju4np/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 536ju4np/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 536ju4np/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's 536ju4np/config/xdg-desktop-portal/niri-portals.conf
+Install / 安装：/tmp/niri deploy's owqhbtl5/config/niri
+Install / 安装：/tmp/niri deploy's owqhbtl5/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's owqhbtl5/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's owqhbtl5/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's owqhbtl5/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's owqhbtl5/config/niri
+Restore / 回退：/tmp/niri deploy's owqhbtl5/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's owqhbtl5/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's owqhbtl5/config/niri
+Restore / 回退：/tmp/niri deploy's owqhbtl5/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's owqhbtl5/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's owqhbtl5/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's owqhbtl5/state/removed-9c02_pz0
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's 5ktm6fdd/config/niri
+Install / 安装：/tmp/niri deploy's 5ktm6fdd/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 5ktm6fdd/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 5ktm6fdd/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 5ktm6fdd/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's 5ktm6fdd/config/niri
+Restore / 回退：/tmp/niri deploy's 5ktm6fdd/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's 5ktm6fdd/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's 5ktm6fdd/config/niri
+Restore / 回退：/tmp/niri deploy's 5ktm6fdd/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's 5ktm6fdd/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's 5ktm6fdd/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's 5ktm6fdd/state/removed-q_amr7fc
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's fw7jg8pe/config/niri
+Install / 安装：/tmp/niri deploy's fw7jg8pe/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's fw7jg8pe/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's fw7jg8pe/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's fw7jg8pe/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's 5w2jhy18/config/niri
+Install / 安装：/tmp/niri deploy's 5w2jhy18/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 5w2jhy18/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 5w2jhy18/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 5w2jhy18/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Deployment preflight passed / 部署预检查通过。
+Install / 安装：/tmp/niri deploy's zhpvssry/config/niri
+Install / 安装：/tmp/niri deploy's zhpvssry/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's zhpvssry/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's zhpvssry/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's zhpvssry/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's pnyg5hjs/config/niri
+Install / 安装：/tmp/niri deploy's pnyg5hjs/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's pnyg5hjs/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's pnyg5hjs/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's pnyg5hjs/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's pnyg5hjs/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's pnyg5hjs/config/niri
+Restore / 回退：/tmp/niri deploy's pnyg5hjs/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's pnyg5hjs/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's pnyg5hjs/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's pnyg5hjs/state/removed-wcqsgu3i
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's wc74syr2/config/niri
+Install / 安装：/tmp/niri deploy's wc74syr2/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's wc74syr2/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's wc74syr2/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's wc74syr2/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's wc74syr2/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's wc74syr2/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's wc74syr2/config/niri
+Restore / 回退：/tmp/niri deploy's wc74syr2/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's wc74syr2/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's wc74syr2/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's wc74syr2/state/removed-0093x782
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's s4lnhmvw/config/niri
+Install / 安装：/tmp/niri deploy's s4lnhmvw/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's s4lnhmvw/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's s4lnhmvw/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's s4lnhmvw/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's s4lnhmvw/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's s4lnhmvw/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's s4lnhmvw/config/niri
+Restore / 回退：/tmp/niri deploy's s4lnhmvw/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's s4lnhmvw/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's s4lnhmvw/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's s4lnhmvw/state/removed-8m6ez8c2
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's 3t7_q8xh/config/niri
+Install / 安装：/tmp/niri deploy's 3t7_q8xh/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 3t7_q8xh/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 3t7_q8xh/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 3t7_q8xh/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's 3t7_q8xh/config/systemd/user/selandia-niri@.service
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 3t7_q8xh/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's 3t7_q8xh/config/niri
+Restore / 回退：/tmp/niri deploy's 3t7_q8xh/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's 3t7_q8xh/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's 3t7_q8xh/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's 3t7_q8xh/state/removed-qbh9mwe5
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's xzdclya5/config/niri
+Install / 安装：/tmp/niri deploy's xzdclya5/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's xzdclya5/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's xzdclya5/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's xzdclya5/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Not installed / 尚未安装本项目的配置。
+Install / 安装：/tmp/niri deploy's y_09858k/config/niri
+Install / 安装：/tmp/niri deploy's y_09858k/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's y_09858k/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's y_09858k/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's y_09858k/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Ready / 正常：/tmp/niri deploy's y_09858k/config/niri
+Ready / 正常：/tmp/niri deploy's y_09858k/config/systemd/user/selandia-niri.target
+Ready / 正常：/tmp/niri deploy's y_09858k/config/systemd/user/selandia-niri@.service
+Ready / 正常：/tmp/niri deploy's y_09858k/config/xdg-desktop-portal/niri-portals.conf
+Install / 安装：/tmp/niri deploy's ch4uzf5e/config/niri
+Install / 安装：/tmp/niri deploy's ch4uzf5e/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's ch4uzf5e/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's ch4uzf5e/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's ch4uzf5e/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Would stop this desktop's user services / 将停止本项目的用户服务。
+Archive managed / 归档托管配置：/tmp/niri deploy's ch4uzf5e/config/niri
+Restore original / 恢复原配置：/tmp/niri deploy's ch4uzf5e/config/niri ← /tmp/niri deploy's ch4uzf5e/state/backup-tmvqn9n1/niri
+Archive managed / 归档托管配置：/tmp/niri deploy's ch4uzf5e/config/systemd/user/selandia-niri.target
+Archive managed / 归档托管配置：/tmp/niri deploy's ch4uzf5e/config/systemd/user/selandia-niri@.service
+Archive managed / 归档托管配置：/tmp/niri deploy's ch4uzf5e/config/xdg-desktop-portal/niri-portals.conf
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Restore / 回退：/tmp/niri deploy's ch4uzf5e/config/niri
+Restore / 回退：/tmp/niri deploy's ch4uzf5e/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's ch4uzf5e/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's ch4uzf5e/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's ch4uzf5e/state/removed-vh8ysdtx
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's lnv77mjm/config/niri
+Install / 安装：/tmp/niri deploy's lnv77mjm/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's lnv77mjm/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's lnv77mjm/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's lnv77mjm/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Nothing to restore / 没有本项目的安装记录，无需回退。
+Install / 安装：/tmp/niri deploy's qyymls2y/config/niri
+Install / 安装：/tmp/niri deploy's qyymls2y/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's qyymls2y/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's qyymls2y/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's qyymls2y/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's qyymls2y/config/niri
+Restore / 回退：/tmp/niri deploy's qyymls2y/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's qyymls2y/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's qyymls2y/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's qyymls2y/state/removed-n8hhp8fz
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's uqr9_lvc/config/niri
+Install / 安装：/tmp/niri deploy's uqr9_lvc/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's uqr9_lvc/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's uqr9_lvc/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's uqr9_lvc/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。

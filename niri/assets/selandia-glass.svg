@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160">
+  <title>Selandia Glass</title>
+  <desc>Original abstract glass wallpaper: flowing pearl, cyan and violet ribbons on midnight blue.</desc>
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#182138"/><stop offset=".5" stop-color="#101522"/><stop offset="1" stop-color="#0a111e"/>
+    </linearGradient>
+    <radialGradient id="violet" cx=".1" cy=".65" r=".8">
+      <stop stop-color="#8371c7" stop-opacity=".36"/><stop offset=".58" stop-color="#635993" stop-opacity=".10"/><stop offset="1" stop-color="#101522" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cyan" cx=".75" cy=".15" r=".75">
+      <stop stop-color="#72c8e6" stop-opacity=".23"/><stop offset=".6" stop-color="#3684a3" stop-opacity=".06"/><stop offset="1" stop-color="#101522" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ribbon" x1=".05" y1=".8" x2=".9" y2=".2">
+      <stop stop-color="#c4b5fd" stop-opacity=".08"/>
+      <stop offset=".3" stop-color="#8878bf" stop-opacity=".24"/>
+      <stop offset=".58" stop-color="#94dfff" stop-opacity=".35"/>
+      <stop offset=".78" stop-color="#e5f7ff" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#94dfff" stop-opacity=".03"/>
+    </linearGradient>
+    <linearGradient id="inner" x1=".15" y1=".6" x2=".85" y2=".25">
+      <stop stop-color="#251e40" stop-opacity=".8"/><stop offset=".48" stop-color="#16273e" stop-opacity=".3"/><stop offset=".8" stop-color="#82bfd7" stop-opacity=".2"/><stop offset="1" stop-color="#a8eaff" stop-opacity=".05"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="1" x2="1" y2="0">
+      <stop stop-color="#c4b5fd" stop-opacity="0"/><stop offset=".32" stop-color="#c4b5fd" stop-opacity=".45"/><stop offset=".64" stop-color="#e6f9ff" stop-opacity=".75"/><stop offset=".85" stop-color="#94dfff" stop-opacity=".28"/><stop offset="1" stop-color="#94dfff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="lip" x1="0" y1=".8" x2="1" y2=".1">
+      <stop stop-color="#c4b5fd" stop-opacity=".02"/><stop offset=".42" stop-color="#c4b5fd" stop-opacity=".25"/><stop offset=".66" stop-color="#94dfff" stop-opacity=".18"/><stop offset="1" stop-color="#94dfff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx=".52" cy=".45" r=".78">
+      <stop offset=".4" stop-color="#070c17" stop-opacity="0"/><stop offset="1" stop-color="#070c17" stop-opacity=".55"/>
+    </radialGradient>
+    <filter id="glow" x="-.3" y="-.3" width="1.6" height="1.6"><feGaussianBlur stdDeviation="30"/></filter>
+    <filter id="soft" x="-.3" y="-.3" width="1.6" height="1.6"><feGaussianBlur stdDeviation="10"/></filter>
+  </defs>
+  <rect width="3840" height="2160" fill="url(#night)"/>
+  <rect width="3840" height="2160" fill="url(#violet)"/>
+  <rect width="3840" height="2160" fill="url(#cyan)"/>
+  <!-- Long asymmetric folds leave quiet space around the top bar and sidebar. -->
+  <path d="M-500 1850C160 2240 910 2280 1660 1740S2160 460 2920 340 3930 680 4210 1040" fill="none" stroke="url(#lip)" stroke-width="230" filter="url(#glow)"/>
+  <path d="M-470 1710C290 2200 990 2100 1640 1610S2230 480 2910 400 3820 620 4160 1010L4220 1140C3800 830 3450 570 2950 590S2380 1430 1740 1870 290 2420-490 1930Z" fill="url(#ribbon)"/>
+  <path d="M-470 1710C290 2200 990 2100 1640 1610S2230 480 2910 400 3820 620 4160 1010" fill="none" stroke="url(#edge)" stroke-width="3"/>
+  <path d="M-470 1750C285 2240 1010 2140 1670 1650S2260 510 2920 435 3840 650 4180 1060" fill="none" stroke="url(#edge)" stroke-width="1.5" opacity=".26"/>
+  <path d="M-510 1810C220 2280 970 2200 1690 1720S2340 560 2950 505 3830 730 4200 1110L4220 1160C3800 830 3450 570 2950 590S2380 1430 1740 1870 290 2420-490 1930Z" fill="url(#inner)"/>
+  <path d="M-490 1930C290 2420 1100 2310 1740 1870S2450 610 2950 590 3800 830 4220 1140" fill="none" stroke="url(#edge)" stroke-width="2" opacity=".65"/>
+  <!-- A second, finer sheet catches a cool highlight. -->
+  <path d="M-350 1310C470 1720 1230 1590 1710 1100S2150 310 2730 180 3630 290 4100 550L4110 660C3500 380 3110 250 2750 330S2250 820 1800 1330 520 1850-360 1450Z" fill="url(#ribbon)" opacity=".46"/>
+  <path d="M-350 1310C470 1720 1230 1590 1710 1100S2150 310 2730 180 3630 290 4100 550" fill="none" stroke="url(#edge)" stroke-width="2" opacity=".4"/>
+  <path d="M-360 1450C520 1850 1350 1840 1800 1330S2390 410 2750 330 3500 380 4110 660" fill="none" stroke="url(#edge)" stroke-width="1.5" opacity=".38"/>
+  <!-- Specular highlights are baked into the SVG, independent of compositor blur. -->
+  <path d="M1390 1800C1820 1540 2040 1030 2310 715" fill="none" stroke="#b5dfff" stroke-width="10" opacity=".13" filter="url(#soft)"/>
+  <path d="M2590 430C2970 280 3440 400 3730 600" fill="none" stroke="#b5eaff" stroke-width="8" opacity=".15" filter="url(#soft)"/>
+  <rect width="3840" height="2160" fill="url(#vignette)"/>
+</svg>

@@ -1,0 +1,111 @@
+
+Configuration validation / 配置校验
+2026-10-02T15:47:04.872407Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/config.kdl"
+2026-10-02T15:47:04.872435Z  INFO niri: config is valid
+2026-10-02T15:47:04.881876Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl"
+2026-10-02T15:47:04.881898Z  INFO niri: config is valid
+JSON OK: niri/swaync/config.json
+JSON OK: niri/waybar/config.jsonc
+Shell syntax OK: 6 files
+Python syntax OK: 31 files
+GTK 3 + GtkLayerShell + SVG support OK / 原生面板及 SVG 壁纸依赖正常
+Theme CSS OK: GTK 3 + GTK 4 / 主题样式校验通过
+
+Runtime dependencies / 运行依赖
+  OK  niri
+  OK  xwayland-satellite
+  OK  waybar
+  OK  fuzzel
+  OK  swaync
+  OK  swaync-client
+  OK  swaybg
+  OK  swayidle
+  OK  swaylock
+  OK  kitty
+  OK  wl-copy
+  OK  wl-paste
+  OK  cliphist
+  OK  notify-send
+  OK  brightnessctl
+  OK  ddcutil
+  OK  playerctl
+  OK  wpctl
+  OK  pactl
+  OK  nmcli
+  OK  nm-applet
+  OK  nm-connection-editor
+  OK  blueman-manager
+  OK  fcitx5
+  OK  zenity
+  OK  gdbus
+  OK  flock
+  OK  xdg-open
+  OK  audio mixer / 音频混音器
+xdg-desktop-portal-gnome 50.0-1
+xdg-desktop-portal-gtk 1.15.3-1
+polkit-kde-agent 6.7.5-1
+gnome-keyring 1:50.0-1
+fcitx5-gtk 5.1.7-1
+fcitx5-qt 5.1.16-1
+  Optional power profiles unavailable / 可选硬件电源模式不可用（power-profiles-daemon）。
+  AI: configure a provider in the sidebar; no AI account/model is installed automatically. / AI：在侧栏配置服务，不自动安装账号或模型。
+
+Current Niri session / 当前 Niri 会话
+Output "Hubei Century Joint Innovation Technology Co.Ltd P275MV PLUS 0000000000000" (DP-6)
+  Current mode: 3840x2160 @ 160.000 Hz
+  Variable refresh rate: supported, disabled
+  Physical size: 600x340 mm
+  Logical position: 0, 0
+  Logical size: 3840x2160
+  Scale: 1
+  Transform: normal
+  Available modes:
+    3840x2160@60.000 (preferred)
+    3840x2160@160.000 (current)
+    3840x2160@144.000
+    3840x2160@120.000
+    3840x2160@119.880
+    3840x2160@60.000
+    3840x2160@59.940
+    3840x2160@50.000
+    3840x2160@30.000
+    3840x2160@29.970
+    2560x1440@120.000
+    2560x1440@60.000
+    1920x1080@120.000
+    1920x1080@119.880
+    1920x1080@60.000
+    1920x1080@60.000
+    1920x1080@59.940
+    1920x1080@50.000
+    1568x1080@160.000
+    1600x900@60.000
+    1280x1024@75.025
+    1280x1024@60.020
+    1290x886@160.003
+    1280x720@60.000
+    1280x720@60.000
+    1280x720@59.940
+    1280x720@50.000
+    1024x768@75.029
+    1024x768@60.004
+    800x600@75.000
+    800x600@60.317
+    720x576@50.000
+    720x576@50.000
+    720x480@60.000
+    720x480@60.000
+    720x480@59.940
+    720x480@59.940
+    640x480@75.000
+    640x480@60.000
+    640x480@59.940
+    640x480@59.940
+    720x400@70.082
+
+● selandia-niri.target - Selandia's Niri desktop
+     Loaded: loaded (/home/SelandiaNyx/.config/systemd/user/selandia-niri.target; linked; preset: enabled)
+     Active: active since Fri 2026-10-02 23:39:34 CST; 7min ago
+ Invocation: 3e197ad2065641dea1f5112b9b4e97f0
+
+Oct 02 23:39:34 archbyselandianyx systemd[1040]: Reached target Selandia's Niri desktop.

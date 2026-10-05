@@ -1,0 +1,11 @@
+[Unit]
+Description=Selandia's Niri desktop
+Requisite=niri.service
+After=niri.service
+PartOf=niri.service graphical-session.target
+Wants=selandia-niri@waybar.service selandia-niri@notifications.service
+Wants=selandia-niri@wallpaper.service selandia-niri@idle.service
+Wants=selandia-niri@sleep-lock.service
+Wants=selandia-niri@clipboard-text.service selandia-niri@clipboard-image.service
+Wants=selandia-niri@polkit.service
+# Fcitx5 / nm-applet / blueman-applet 由 Niri 的 XDG autostart 启动。

@@ -1,0 +1,1 @@
+PASS lock: real Wayland readiness, correct display and PID identity, repeated lock reuses confirmed client

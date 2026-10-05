@@ -1,0 +1,144 @@
+{
+  "A1": {
+    "launcher_selection": {
+      "dedicated_unit_preferred": false,
+      "component_unit_available": false,
+      "inside_service_unit": false
+    },
+    "cgroup_lifecycle_verified": false,
+    "note": "skipped: no reachable user systemd manager in this environment (Failed to connect to user scope bus via local transport: 没有可用的数据); tests/test_lock_isolation.py asserts this on a real session"
+  },
+  "A5": {
+    "shortcuts": 117,
+    "english_with_chinese": 0,
+    "chinese_with_english_pair": 0,
+    "workspace_target_example": {
+      "keys": "Super+1",
+      "english": "Go to workspace 1",
+      "chinese": "切换到工作区 1"
+    },
+    "launcher_placeholder": {
+      "en_US": "Search applications",
+      "zh_CN": "搜索应用",
+      "source_template": "placeholder=Search applications"
+    }
+  },
+  "A3": {
+    "wide_font_widths": 68,
+    "reported_narrow_output": {
+      "logical_width": 1067,
+      "font_size": 16,
+      "layout": "compact"
+    },
+    "acceptance": {
+      "12px": {
+        "1920x1080@150%": "wide",
+        "2560x1440@200%": "wide",
+        "3840x2160@150%": "wide"
+      },
+      "16px": {
+        "1920x1080@150%": "wide",
+        "2560x1440@200%": "wide",
+        "3840x2160@150%": "wide"
+      },
+      "20px": {
+        "1920x1080@150%": "compact",
+        "2560x1440@200%": "compact",
+        "3840x2160@150%": "wide"
+      }
+    },
+    "compact_right": [
+      "custom/layout",
+      "pulseaudio",
+      "network",
+      "battery",
+      "tray",
+      "custom/notification",
+      "custom/control"
+    ],
+    "connected_outputs": [
+      3840
+    ]
+  },
+  "A8": {
+    "interface_px_to_points": {
+      "12": 9,
+      "13": 10,
+      "16": 12,
+      "20": 15
+    },
+    "gtk_font_16px": "Noto Sans 12",
+    "qt_font_16px": "Noto Sans,12,-1,5,50,0,0,0,0,0",
+    "fuzzel_16px": "Inter:pixelsize=17",
+    "lock_16px_points": 24,
+    "terminal_14pt_unchanged": "Iosevka Term,14,-1,5,50,0,0,0,0,0"
+  },
+  "A4": {
+    "system_theme": "breeze-dark",
+    "extension_name": "selandia-symbolic",
+    "scales": {
+      "100%": {
+        "before": {
+          "transparent": 375,
+          "partial": 8,
+          "opaque": 101,
+          "solid": false
+        },
+        "before_file": "/usr/share/icons/breeze-dark/devices/22/input-keyboard-symbolic.svg",
+        "after": {
+          "transparent": 168,
+          "partial": 48,
+          "opaque": 108,
+          "solid": false
+        },
+        "after_file": "/tmp/selandia-fix-summary-383myo9e/selandia-icons-1000/selandia-symbolic/scalable/input-keyboard-symbolic.svg"
+      },
+      "150%": {
+        "before": {
+          "transparent": 0,
+          "partial": 0,
+          "opaque": 1936,
+          "solid": true
+        },
+        "before_file": "/usr/share/icons/breeze-dark/devices/32/input-keyboard-symbolic.svg",
+        "after": {
+          "transparent": 712,
+          "partial": 92,
+          "opaque": 492,
+          "solid": false
+        },
+        "after_file": "/tmp/selandia-fix-summary-383myo9e/selandia-icons-1000/selandia-symbolic/scalable/input-keyboard-symbolic.svg"
+      },
+      "200%": {
+        "before": {
+          "transparent": 3389,
+          "partial": 32,
+          "opaque": 935,
+          "solid": false
+        },
+        "before_file": "/usr/share/icons/breeze-dark/devices/22@2x/input-keyboard-symbolic.svg",
+        "after": {
+          "transparent": 1628,
+          "partial": 144,
+          "opaque": 1144,
+          "solid": false
+        },
+        "after_file": "/tmp/selandia-fix-summary-383myo9e/selandia-icons-1000/selandia-symbolic/scalable/input-keyboard-symbolic.svg"
+      }
+    }
+  },
+  "A2_A6_A7": {
+    "note": "asserted by the unit tests, each of which fails on the pre-fix code",
+    "tests": {
+      "A2": "tests/test_panel_lifecycle.py (commit task completes after the window is destroyed)",
+      "A6": "tests/test_power_actions.py (Stay awake refuses before locking; suspend failure is reported)",
+      "A7": "tests/test_settings_refresh.py (the form is frozen during a re-read; a stale result is ignored)"
+    }
+  },
+  "verification_limits": [
+    "A1 cgroup lifecycle needs a reachable user systemd manager; tests/test_lock_isolation.py skips otherwise",
+    "A3 visual acceptance at 1920x1080@150%, 2560x1440@200% and 3840x2160@150% needs a compositor",
+    "A4/A3/A5 screenshots need a nested compositor; the nested Niri cannot start in this sandbox",
+    "application_theme writes ~/.config, which this sandbox keeps read-only; the converted GTK/Qt font values are asserted in tests and take effect when Appearance is applied on the desktop"
+  ]
+}

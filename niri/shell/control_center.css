@@ -1,0 +1,390 @@
+/* Compact Niri control center. Palette comes from the user's generated theme;
+ * keep these rules scoped so native dialogs and other panels stay independent. */
+window.glass-window.control-center-window .glass-surface {
+    border-radius: 26px;
+    border-color: alpha(@ink, .18);
+    box-shadow: inset 0 1px alpha(@ink, .17), inset 0 -1px alpha(@cyan, .045);
+}
+window.glass-window.control-center-window .panel-header,
+window.glass-window.control-center-window .control-header {
+    padding: 15px 18px 12px;
+    border-bottom: 1px solid alpha(@ink, .075);
+}
+window.glass-window.control-center-window .panel-content { padding: 12px 14px 14px; }
+window.glass-window.control-center-window .control-heading {
+    font-size: 1.5em;
+    font-weight: 700;
+    letter-spacing: -.35px;
+    color: @ink;
+}
+window.glass-window.control-center-window .control-caption {
+    font-size: .85em;
+    font-weight: 400;
+    color: @muted;
+}
+window.glass-window.control-center-window .control-clock { font-size: 1.25em; font-weight: 600; letter-spacing: 0; }
+window.glass-window.control-center-window button.close-button {
+    min-width: 28px;
+    min-height: 28px;
+    border-color: alpha(@ink, .12);
+    background: alpha(@ink, .035);
+    color: @muted;
+}
+window.glass-window.control-center-window .control-tabs {
+    padding: 3px;
+    border-radius: 13px;
+    border-color: alpha(@ink, .08);
+    background: alpha(@ink, .025);
+}
+window.glass-window.control-center-window .control-tabs button {
+    min-height: 26px;
+    padding: 4px 3px;
+    border-radius: 10px;
+    color: @muted;
+    font-size: .9em;
+}
+window.glass-window.control-center-window .control-tabs button:checked {
+    color: @ink;
+    background: alpha(@cyan, .14);
+    border-color: alpha(@cyan, .25);
+    box-shadow: inset 0 1px alpha(@ink, .06);
+}
+window.glass-window.control-center-window .quick-overview { padding: 0; }
+
+/* A pill has two distinct targets: the left toggles, the chevron opens detail. */
+window.glass-window.control-center-window .quick-tile {
+    min-height: 61px;
+    border: 1px solid alpha(@ink, .12);
+    border-radius: 18px;
+    background: alpha(@ink, .045);
+    transition: background-color 180ms ease-out, border-color 180ms ease-out;
+    box-shadow: inset 0 1px alpha(@ink, .045);
+}
+window.glass-window.control-center-window .quick-tile.active {
+    border-color: alpha(@cyan, .3);
+    background-color: alpha(@cyan, .15);
+}
+window.glass-window.control-center-window button.quick-toggle {
+    padding: 9px 9px;
+    min-width: 0;
+    min-height: 40px;
+    background: transparent;
+    border: none;
+    border-radius: 17px;
+    box-shadow: none;
+    color: @ink;
+}
+window.glass-window.control-center-window button.quick-toggle:hover {
+    background: alpha(@ink, .065);
+}
+window.glass-window.control-center-window button.quick-toggle:focus {
+    box-shadow: inset 0 0 0 1px alpha(@cyan, .8);
+}
+window.glass-window.control-center-window .quick-icon {
+    min-width: 18px;
+    min-height: 18px;
+    padding: 8px;
+    border-radius: 50%;
+    color: @ink;
+    background: alpha(@ink, .1);
+    transition: background-color 180ms ease-out, color 180ms ease-out;
+}
+window.glass-window.control-center-window .quick-tile.active .quick-icon {
+    color: @on_accent;
+    background: @cyan;
+}
+window.glass-window.control-center-window .quick-title {
+    color: @ink;
+    font-size: 1em;
+    font-weight: 600;
+}
+window.glass-window.control-center-window .quick-state {
+    color: @muted;
+    font-size: .78em;
+}
+window.glass-window.control-center-window .quick-tile.active .quick-state {
+    color: alpha(@ink, .82);
+}
+window.glass-window.control-center-window button.quick-disclosure {
+    min-width: 25px;
+    min-height: 32px;
+    padding: 5px 3px;
+    margin: 8px 5px 8px 0;
+    border: none;
+    border-left: 1px solid alpha(@ink, .11);
+    border-radius: 0 12px 12px 0;
+    color: @muted;
+    background: transparent;
+    box-shadow: none;
+}
+window.glass-window.control-center-window button.quick-disclosure:hover,
+window.glass-window.control-center-window button.quick-disclosure:focus {
+    color: @ink;
+    background: alpha(@cyan, .12);
+}
+
+/* Media is a peer of connectivity, visible immediately when the panel opens. */
+window.glass-window.control-center-window .media-card {
+    min-height: 146px;
+    padding: 11px 12px;
+    border: 1px solid alpha(@cyan, .2);
+    border-radius: 19px;
+    background: linear-gradient(145deg, alpha(@violet, .15), alpha(@cyan, .055));
+    box-shadow: inset 0 1px alpha(@ink, .08);
+}
+window.glass-window.control-center-window .media-cover {
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 10px;
+    color: @cyan;
+    background: linear-gradient(135deg, alpha(@cyan, .2), alpha(@violet, .1));
+}
+window.glass-window.control-center-window .media-heading {
+    color: @ink;
+    font-size: 1em;
+    font-weight: 600;
+}
+window.glass-window.control-center-window .media-subtitle,
+window.glass-window.control-center-window .media-state {
+    color: @muted;
+    font-size: .78em;
+}
+window.glass-window.control-center-window .media-card.playing .media-state { color: @cyan; }
+window.glass-window.control-center-window .media-error { color: @danger; font-size: .8em; }
+window.glass-window.control-center-window .media-source button {
+    min-height: 17px;
+    padding: 3px 6px;
+    border: 1px solid alpha(@ink, .09);
+    border-radius: 8px;
+    color: @muted;
+    background: alpha(@ink, .025);
+    box-shadow: none;
+    font-size: .78em;
+}
+window.glass-window.control-center-window .media-source button:hover {
+    color: @ink;
+    background: alpha(@ink, .07);
+}
+window.glass-window.control-center-window button.media-transport {
+    min-width: 28px;
+    min-height: 28px;
+    padding: 4px;
+    border: none;
+    border-radius: 50%;
+    color: @ink;
+    background: transparent;
+    box-shadow: none;
+}
+window.glass-window.control-center-window button.media-transport:hover {
+    background: alpha(@ink, .12);
+}
+window.glass-window.control-center-window button.media-play {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 4px;
+    border: 1px solid alpha(@ink, .25);
+    border-radius: 50%;
+    color: @on_accent;
+    background: @ink;
+    box-shadow: 0 2px 5px alpha(black, .2);
+}
+window.glass-window.control-center-window button.media-play:hover {
+    background: @cyan;
+    border-color: @cyan;
+}
+window.glass-window.control-center-window button.media-play:disabled {
+    opacity: .36;
+    box-shadow: none;
+}
+
+/* Broad, easy-to-grab sliders retain a precise percentage at the trailing edge. */
+window.glass-window.control-center-window .quick-slider-card {
+    padding: 10px 13px;
+    border: 1px solid alpha(@ink, .105);
+    border-radius: 18px;
+    background: alpha(@ink, .045);
+    box-shadow: inset 0 1px alpha(@ink, .025);
+}
+window.glass-window.control-center-window .quick-slider-label {
+    font-size: .95em;
+    font-weight: 600;
+    color: @ink;
+}
+window.glass-window.control-center-window .quick-slider-value {
+    font-size: .85em;
+    font-weight: 600;
+    color: @cyan;
+}
+window.glass-window.control-center-window .quick-slider-caption { color: @muted; font-size: .8em; }
+window.glass-window.control-center-window button.quick-slider-icon.muted { color: @cyan; background: alpha(@cyan, .15); }
+window.glass-window.control-center-window .quick-slider-icon {
+    min-width: 20px;
+    min-height: 20px;
+    color: @ink;
+}
+window.glass-window.control-center-window button.quick-slider-icon {
+    padding: 5px;
+    min-width: 22px;
+    min-height: 22px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    box-shadow: none;
+}
+window.glass-window.control-center-window button.quick-slider-icon:hover {
+    background: alpha(@ink, .1);
+}
+window.glass-window.control-center-window .quick-slider-card scale {
+    padding: 7px 1px;
+    min-height: 16px;
+}
+window.glass-window.control-center-window .quick-slider-card button.quick-disclosure {
+    min-height: 24px;
+    margin: 0;
+    padding: 2px 3px;
+}
+window.glass-window.control-center-window .quick-slider-card scale trough {
+    min-height: 8px;
+    border-radius: 8px;
+    background: alpha(@ink, .11);
+}
+window.glass-window.control-center-window .quick-slider-card scale highlight {
+    min-height: 8px;
+    border-radius: 8px;
+    background: linear-gradient(to right, alpha(@violet, .9), @cyan);
+}
+window.glass-window.control-center-window .quick-slider-card scale slider {
+    min-width: 16px;
+    min-height: 16px;
+    margin: -5px;
+    border: 1px solid alpha(@ink, .85);
+    border-radius: 50%;
+    background: @ink;
+    box-shadow: 0 1px 4px alpha(black, .3);
+}
+
+window.glass-window.control-center-window .quick-details {
+    padding: 3px 4px;
+    color: @muted;
+    font-size: .85em;
+}
+window.glass-window.control-center-window .quick-details > title {
+    min-height: 26px;
+    padding: 1px 3px;
+}
+window.glass-window.control-center-window .quick-details > title:hover { color: @ink; }
+window.glass-window.control-center-window .quick-details .card {
+    padding: 10px;
+    border-radius: 12px;
+}
+window.glass-window.control-center-window .quick-footer {
+    padding-top: 7px;
+    border-top: 1px solid alpha(@ink, .08);
+}
+window.glass-window.control-center-window button.quick-utility {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 6px 7px;
+    border-radius: 12px;
+    border-color: alpha(@ink, .1);
+    color: @muted;
+    background: alpha(@ink, .025);
+    box-shadow: none;
+    font-size: .82em;
+}
+window.glass-window.control-center-window button.quick-utility:hover {
+    color: @ink;
+    border-color: alpha(@cyan, .35);
+    background: alpha(@cyan, .1);
+}
+window.glass-window.control-center-window button.quick-utility.power-button {
+    color: @danger;
+    border-color: alpha(@danger, .2);
+}
+
+/* Keyboard focus is visible on every interactive target, including icon buttons. */
+window.glass-window.control-center-window button,
+window.glass-window.control-center-window scale slider {
+    transition: background-color 150ms ease-out, border-color 150ms ease-out,
+                color 150ms ease-out, box-shadow 150ms ease-out;
+}
+window.glass-window.control-center-window button:focus,
+window.glass-window.control-center-window combobox:focus button,
+window.glass-window.control-center-window scale:focus trough,
+window.glass-window.control-center-window checkbutton:focus check {
+    outline: 2px solid alpha(@cyan, .9);
+    outline-offset: -2px;
+}
+window.glass-window.control-center-window button.quick-details {
+    min-height: 26px;
+    border-color: transparent;
+    background: transparent;
+    color: @muted;
+    box-shadow: none;
+    padding: 3px 6px;
+}
+window.glass-window.control-center-window button.quick-details:hover,
+window.glass-window.control-center-window button.quick-details:checked {
+    color: @ink;
+    background-color: alpha(@ink, .055);
+}
+popover.control-popover {
+    color: @ink;
+    background-color: @on_accent;
+    border: 1px solid alpha(@ink, .18);
+    border-radius: 15px;
+    box-shadow: 0 8px 24px alpha(black, .2);
+}
+popover.control-popover label { color: @ink; }
+popover.control-popover button {
+    color: @ink;
+    border-color: alpha(@cyan, .3);
+    background: alpha(@cyan, .13);
+}
+window.glass-window.reduce-motion * { transition: none; }
+
+/* Desktop settings: stable navigation, searchable categories, roomy forms. */
+window.glass-window.control-center-window .panel-content { padding: 14px 18px 18px; }
+window.glass-window.control-center-window .settings-sidebar {
+    padding-right: 14px;
+    border-right: 1px solid alpha(@ink, .1);
+}
+window.glass-window.control-center-window .settings-navigation {
+    background: transparent;
+}
+window.glass-window.control-center-window .settings-navigation row {
+    padding: 10px 8px;
+    margin: 2px 0;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: @muted;
+    background: transparent;
+    transition: background-color 140ms ease-out;
+}
+window.glass-window.control-center-window .settings-navigation row:hover {
+    color: @ink;
+    background: alpha(@ink, .065);
+}
+window.glass-window.control-center-window .settings-navigation row:selected {
+    color: @ink;
+    background: alpha(@cyan, .15);
+    border-color: alpha(@cyan, .25);
+}
+window.glass-window.control-center-window .settings-navigation row:focus {
+    outline: 2px solid alpha(@cyan, .8);
+    outline-offset: -2px;
+}
+window.glass-window.control-center-window .settings-navigation label { font-size: .9em; }
+window.glass-window.control-center-window .settings-page-title {
+    color: @ink;
+    font-size: 1.35em;
+    font-weight: 600;
+    padding: 3px 0 8px;
+}
+window.glass-window.control-center-window .card { padding: 14px; }
+window.glass-window.control-center-window scrollbar slider {
+    min-width: 5px;
+    min-height: 28px;
+    border-radius: 5px;
+    background-color: alpha(@ink, .2);
+}

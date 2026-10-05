@@ -1,0 +1,36 @@
+{
+  "positionX": "right",
+  "positionY": "top",
+  "control-center-width": 400,
+  "control-center-margin-top": 12,
+  "control-center-margin-right": 18,
+  "control-center-margin-bottom": 18,
+  "notification-window-width": 400,
+  "timeout": 6,
+  "timeout-low": 3,
+  "timeout-critical": 0,
+  "fit-to-screen": true,
+  "widgets": [
+    "title",
+    "dnd",
+    "mpris",
+    "notifications"
+  ],
+  "widget-config": {
+    "title": {
+      "text": "通知",
+      "clear-all-button": true,
+      "button-text": "清空"
+    },
+    "dnd": {
+      "text": "勿扰"
+    },
+    "mpris": {},
+    "notifications": {
+      "vexpand": true
+    }
+  },
+  "ignore-gtk-theme": true,
+  "layer-shell-cover-screen": false,
+  "text-empty": "暂无通知"
+}

@@ -1,0 +1,14 @@
+// Generated palette overrides. Keep layout preferences in conf/appearance.kdl.
+layout {
+    background-color "#101522"
+    focus-ring {
+        active-gradient from="#94dfff" to="#c4b5fd" angle=125
+        inactive-color "#d6eaff26"
+        urgent-color "#ffb4c4"
+    }
+    tab-indicator {
+        active-gradient from="#94dfff" to="#c4b5fd" angle=125
+        inactive-color "#eef5ff22"
+    }
+}
+overview { backdrop-color "#101522"; }

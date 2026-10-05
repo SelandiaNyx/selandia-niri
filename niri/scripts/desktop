@@ -1,0 +1,186 @@
+#!/usr/bin/env bash
+set -euo pipefail
+base=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
+# A terminal opened from an already-running panel still gets the newly selected
+# user locale. The guard is set only for this exec chain, never globally.
+if [[ "${SELANDIA_LANGUAGE_WRAPPED:-0}" != 1 && -f "$base/shell/language_settings.py" ]]; then
+    export SELANDIA_LANGUAGE_WRAPPED=1
+    exec python3 -B "$base/shell/language_settings.py" exec "$0" "$@"
+fi
+unset SELANDIA_LANGUAGE_WRAPPED
+state=${XDG_STATE_HOME:-$HOME/.local/state}/selandia-niri
+launcher_config=$base/theme/fuzzel.ini
+[[ -f "$launcher_config" ]] || launcher_config=$base/fuzzel/fuzzel.ini
+ui_language=${LC_ALL:-${LC_MESSAGES:-${LANG:-en_US}}}
+if [[ -f "$base/shell/i18n.py" ]]; then
+    ui_language=$(python3 -B "$base/shell/i18n.py" language)
+fi
+tr() { if [[ "$ui_language" == zh* ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
+
+notify() { notify-send -a 'Selandia Niri' "$@" || true; }
+# dmenu modes must never show the application placeholder: each gets a neutral
+# single-language hint next to its own action prompt.
+menu() { fuzzel --config "$launcher_config" --dmenu "$@" --placeholder "$(tr 'Type to filter' '输入以筛选')"; }
+confirm() {
+    local answer
+    answer=$(printf '%s\n' "$(tr 'Cancel' '取消')" "$(tr 'Confirm' '确认')" | menu --prompt "$1  ›  ") || return 1
+    [[ "$answer" == "$(tr 'Confirm' '确认')" ]]
+}
+first_app() {
+    local app
+    for app in "$@"; do
+        if command -v "$app" >/dev/null 2>&1; then exec "$app"; fi
+    done
+    notify "$(tr 'Application not installed' '应用未安装')" "$(tr 'Available choices:' '可选：') $*"
+    return 1
+}
+
+case "${1:-}" in
+    control|quick|system|appearance|sound|displays|input|desktop|network|hardware|applications|language|power-settings|time|startup|services|security|shortcuts|ai)
+        panel_mode=$1
+        [[ "$panel_mode" != power-settings ]] || panel_mode=power
+        exec python3 -B "$base/shell/panel.py" "$panel_mode"
+        ;;
+    install-tool)
+        case "${2:-}" in
+            system-config-printer|gnome-disk-utility|fcitx5-configtool|firewall-config|seahorse|network-manager-applet|blueman) ;;
+            *) exit 2 ;;
+        esac
+        exec kitty --config "$base/kitty/kitty.conf" --class selandia-settings --hold \
+            sudo pacman -Syu --needed -- "$2"
+        ;;
+    password) exec kitty --config "$base/kitty/kitty.conf" --class selandia-settings --hold passwd ;;
+    updates|repair|status|check)
+        operation=$1
+        [[ "$operation" != updates ]] || operation=update
+        controller=$base/../control.sh
+        [[ -x "$controller" ]] || { notify "$(tr 'Controller missing' '控制脚本缺失')" "$controller"; exit 1; }
+        exec kitty --config "$base/kitty/kitty.conf" --class selandia-settings \
+            --title "$(tr 'Desktop maintenance' '桌面维护') — $operation" --hold "$controller" "$operation"
+        ;;
+    system-monitor)
+        for monitor in btop htop top; do
+            if command -v "$monitor" >/dev/null; then
+                exec kitty --config "$base/kitty/kitty.conf" --class selandia-monitor \
+                    --title "$(tr 'System monitor' '系统监控')" "$monitor"
+            fi
+        done
+        notify "$(tr 'System monitor unavailable' '系统监控不可用')" "$(tr 'Install btop, htop or procps-ng' '请安装 btop、htop 或 procps-ng')"
+        exit 1
+        ;;
+    codex)
+        command -v codex >/dev/null || { notify "$(tr 'Codex is not installed' '未安装 Codex')" "$(tr 'Install Codex CLI first, then sign in' '请先安装 Codex CLI 并登录')"; exit 1; }
+        exec kitty --config "$base/kitty/kitty.conf" --class selandia-ai --title "$(tr 'Codex · AI Workspace' 'Codex · AI 工作区')" codex
+        ;;
+    chatgpt) exec xdg-open 'https://chatgpt.com/' ;;
+    launcher)
+        # Override at launch time so a language switch applies immediately,
+        # without regenerating the theme. Never the bilingual template text.
+        exec fuzzel --config "$launcher_config" --placeholder "$(tr 'Search applications' '搜索应用')"
+        ;;
+    launch)
+        case "${2:-}" in
+            terminal)
+                if command -v kitty >/dev/null; then exec kitty --config "$base/kitty/kitty.conf"; fi
+                first_app foot alacritty konsole
+                ;;
+            files) first_app dolphin nautilus thunar ;;
+            browser) first_app google-chrome-stable firefox chromium ;;
+            editor) first_app code codium kate ;;
+            audio) first_app pavucontrol-qt pavucontrol ;;
+            network) first_app nm-connection-editor ;;
+            bluetooth) first_app blueman-manager ;;
+            input) first_app fcitx5-configtool ;;
+            *) exit 2 ;;
+        esac
+        ;;
+    clipboard)
+        selection=$(cliphist list | menu --prompt "$(tr 'Clipboard' '剪贴板')  ›  ") || exit 0
+        [[ -n "$selection" ]] || exit 0
+        printf '%s\n' "$selection" | cliphist decode | wl-copy
+        ;;
+    clipboard-clear)
+        confirm "$(tr 'Clear clipboard?' '清空剪贴板？')" || exit 0
+        cliphist wipe
+        wl-copy --clear
+        notify "$(tr 'Clipboard history cleared' '剪贴板历史已清空')"
+        ;;
+    lock)
+        exec python3 -B "$base/shell/lock_session.py"
+        ;;
+    power)
+        lock_label=$(tr 'Lock' '锁屏')
+        sleep_label=$(tr 'Suspend' '睡眠')
+        if python3 -B "$base/shell/power_actions.py" blocked >/dev/null 2>&1; then
+            sleep_label="$sleep_label · $(tr 'Stay awake blocks sleep' '保持唤醒已阻止睡眠')"
+        fi
+        selection=$(printf '%s\n' "$lock_label" "$sleep_label" "$(tr 'Log out of Niri' '注销 Niri')" "$(tr 'Restart' '重启')" "$(tr 'Shut down' '关机')" | menu --prompt "$(tr 'Power' '电源')  ›  ") || exit 0
+        case "$selection" in
+            "$lock_label") exec "$0" lock ;;
+            "$sleep_label") exec "$0" sleep ;;
+            "$(tr 'Log out of Niri' '注销 Niri')") confirm "$(tr 'Log out of Niri?' '注销 Niri？')" && niri msg action quit --skip-confirmation ;;
+            "$(tr 'Restart' '重启')") confirm "$(tr 'Restart computer?' '重启电脑？')" && systemctl reboot ;;
+            "$(tr 'Shut down' '关机')") confirm "$(tr 'Shut down computer?' '关闭电脑？')" && systemctl poweroff ;;
+        esac
+        ;;
+    sleep)
+        # The same entry point the automatic timer uses. It refuses before
+        # locking when this project blocks sleep, and reports every failure.
+        if ! message=$(python3 -B "$base/shell/power_actions.py" suspend 2>&1); then
+            notify "$(tr 'Sleep not started' '未进入睡眠')" "$message"
+            exit 1
+        fi
+        ;;
+    volume)
+        case "${2:-}" in
+            up) wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+ ;;
+            down) wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%- ;;
+            mute) wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle ;;
+            mic) wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle ;;
+            *) exit 2 ;;
+        esac
+        device=@DEFAULT_AUDIO_SINK@
+        [[ "$2" == mic ]] && device=@DEFAULT_AUDIO_SOURCE@
+        value=$(wpctl get-volume "$device")
+        notify -h string:x-canonical-private-synchronous:volume -t 1200 "$(tr 'Volume' '音量')" "$value"
+        ;;
+    brightness)
+        [[ "${2:-}" == up || "${2:-}" == down ]] || exit 2
+        if ! value=$(python3 -B "$base/shell/brightness.py" step "$2" 2>&1); then
+            notify "$(tr 'Brightness unavailable' '无法调节亮度')" "$value"
+            exit 1
+        fi
+        notify -h string:x-canonical-private-synchronous:brightness -t 1200 "$(tr 'Brightness' '亮度')" "$value"
+        ;;
+    idle-toggle)
+        if ! result=$(python3 -B "$base/shell/sleep_guard.py" toggle 2>&1); then
+            notify "$(tr 'Power setting failed' '电源设置失败')" "$result"
+            exit 1
+        fi
+        notify "$(tr 'Power settings updated' '电源设置已更新')" "$result"
+        ;;
+    idle-status)
+        exec python3 -B "$base/shell/sleep_guard.py" waybar
+        ;;
+    wallpaper)
+        path=${2:-}
+        if [[ -z "$path" ]]; then
+            path=$(zenity --file-selection --title="$(tr 'Choose Niri wallpaper' '选择 Niri 壁纸')" --file-filter="$(tr 'Images' '图片') | *.png *.jpg *.jpeg *.webp *.svg") || exit 0
+        fi
+        [[ -f "$path" && "$path" != *$'\n'* ]] || { notify "$(tr 'Image is missing or its path contains a newline' '图片不存在或路径含换行')"; exit 1; }
+        mkdir -p "$state"
+        realpath -- "$path" > "$state/wallpaper"
+        systemctl --user restart selandia-niri@wallpaper.service
+        ;;
+    reload)
+        niri validate -c "$base/config.kdl"
+        python3 -B "$base/shell/reload_components.py" all
+        notify "$(tr 'Desktop reloaded' '界面已重载')" "$(tr 'Niri configuration is applied automatically when saved.' 'Niri 配置在保存时自动加载。')"
+        ;;
+    theme-reload)
+        niri validate -c "$base/config.kdl"
+        exec python3 -B "$base/shell/reload_components.py" theme
+        ;;
+    bar-toggle) systemctl --user kill --kill-whom=main --signal=SIGUSR1 selandia-niri@waybar.service ;;
+    *) printf '%s\n' "$(tr 'Usage' '用法'): desktop {control|quick|system|appearance|sound|displays|input|desktop|network|hardware|applications|language|power-settings|time|startup|services|security|shortcuts|ai|codex|chatgpt|updates|repair|status|check|system-monitor|launcher|launch APP|install-tool PACKAGE|password|clipboard|clipboard-clear|lock|sleep|power|volume up/down/mute/mic|brightness up/down|idle-toggle|idle-status|wallpaper [IMAGE]|reload|theme-reload|bar-toggle}"; exit 2 ;;
+esac

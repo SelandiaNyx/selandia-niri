@@ -1,0 +1,179 @@
+
+配置校验
+2026-10-05T02:03:56.779728Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/config.kdl"
+2026-10-05T02:03:56.779763Z  INFO niri: config is valid
+2026-10-05T02:03:56.789284Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl"
+2026-10-05T02:03:56.789308Z  INFO niri: config is valid
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+JSON 校验通过： niri/swaync/config.json
+JSON 校验通过： niri/theme/swaync.json
+JSON 校验通过： niri/theme/waybar.jsonc
+JSON 校验通过： niri/waybar/config.jsonc
+Shell 语法检查通过：6 个文件
+Python 语法检查通过：73 个文件
+GTK 3、GtkLayerShell 及 SVG 壁纸依赖正常
+GTK 3 与 GTK 4 主题样式校验通过
+
+运行依赖
+  正常  niri
+  正常  xwayland-satellite
+  正常  waybar
+  正常  fuzzel
+  正常  swaync
+  正常  swaync-client
+  正常  swaybg
+  正常  swayidle
+  正常  swaylock
+  正常  kitty
+  正常  wl-copy
+  正常  wl-paste
+  正常  cliphist
+  正常  notify-send
+  正常  brightnessctl
+  正常  ddcutil
+  正常  playerctl
+  正常  wpctl
+  正常  pactl
+  正常  nmcli
+  正常  nm-applet
+  正常  nm-connection-editor
+  正常  blueman-manager
+  正常  fcitx5
+  正常  zenity
+  正常  gdbus
+  正常  flock
+  正常  xdg-open
+  正常  systemd-inhibit
+  正常  qt6ct
+  正常  音频混音器
+xdg-desktop-portal-gnome 50.0-1
+xdg-desktop-portal-gtk 1.15.3-1
+polkit-kde-agent 6.7.5-1
+gnome-keyring 1:50.0-1
+fcitx5-gtk 5.1.7-1
+fcitx5-qt 5.1.16-1
+  可选硬件电源模式不可用（power-profiles-daemon）。
+  AI：在侧栏配置服务，不自动安装账号或模型。
+
+当前 Niri 会话
+Output "Hubei Century Joint Innovation Technology Co.Ltd P275MV PLUS 0000000000000" (DP-6)
+  Current mode: 3840x2160 @ 160.000 Hz
+  Variable refresh rate: supported, disabled
+  Physical size: 600x340 mm
+  Logical position: 0, 0
+  Logical size: 3840x2160
+  Scale: 1
+  Transform: normal
+  Available modes:
+    3840x2160@60.000 (preferred)
+    3840x2160@160.000 (current)
+    3840x2160@144.000
+    3840x2160@120.000
+    3840x2160@119.880
+    3840x2160@60.000
+    3840x2160@59.940
+    3840x2160@50.000
+    3840x2160@30.000
+    3840x2160@29.970
+    2560x1440@120.000
+    2560x1440@60.000
+    1920x1080@120.000
+    1920x1080@119.880
+    1920x1080@60.000
+    1920x1080@60.000
+    1920x1080@59.940
+    1920x1080@50.000
+    1568x1080@160.000
+    1600x900@60.000
+    1280x1024@75.025
+    1280x1024@60.020
+    1290x886@160.003
+    1280x720@60.000
+    1280x720@60.000
+    1280x720@59.940
+    1280x720@50.000
+    1024x768@75.029
+    1024x768@60.004
+    800x600@75.000
+    800x600@60.317
+    720x576@50.000
+    720x576@50.000
+    720x480@60.000
+    720x480@60.000
+    720x480@59.940
+    720x480@59.940
+    640x480@75.000
+    640x480@60.000
+    640x480@59.940
+    640x480@59.940
+    720x400@70.082
+
+Failed to connect to user scope bus via local transport: 没有可用的数据
+Failed to connect to user scope bus via local transport: 没有可用的数据
+Failed to connect to user scope bus via local transport: 没有可用的数据
+组件未运行：waybar (journalctl --user -u selandia-niri@waybar.service)
+Failed to connect to user scope bus via local transport: 没有可用的数据
+Failed to connect to user scope bus via local transport: 没有可用的数据
+组件未运行：notifications (journalctl --user -u selandia-niri@notifications.service)
+Failed to connect to user scope bus via local transport: 没有可用的数据
+组件未运行：wallpaper (journalctl --user -u selandia-niri@wallpaper.service)
+Failed to connect to user scope bus via local transport: 没有可用的数据
+组件未运行：sleep-lock (journalctl --user -u selandia-niri@sleep-lock.service)
+Failed to connect to user scope bus via local transport: 没有可用的数据
+Failed to connect to user scope bus via local transport: 没有可用的数据
+组件未运行：clipboard-text (journalctl --user -u selandia-niri@clipboard-text.service)
+Failed to connect to user scope bus via local transport: 没有可用的数据
+Failed to connect to user scope bus via local transport: 没有可用的数据
+组件未运行：clipboard-image (journalctl --user -u selandia-niri@clipboard-image.service)
+Failed to connect to user scope bus via local transport: 没有可用的数据
+组件未运行：polkit (journalctl --user -u selandia-niri@polkit.service)
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+  File "/home/SelandiaNyx/Selandia's Niri/niri/shell/sleep_guard.py", line 63, in status
+    timer, guard = _unit("idle"), _unit("awake")
+                   ~~~~~^^^^^^^^
+  File "/home/SelandiaNyx/Selandia's Niri/niri/shell/sleep_guard.py", line 35, in _unit
+    output = _run(["systemctl", "--user", "show", f"selandia-niri@{component}.service",
+                   "--property=ActiveState,LoadState,MainPID"])
+  File "/home/SelandiaNyx/Selandia's Niri/niri/shell/sleep_guard.py", line 26, in _run
+    raise RuntimeError((result.stderr or result.stdout).strip() or "systemctl failed")
+RuntimeError: Failed to connect to user scope bus via local transport: 没有可用的数据

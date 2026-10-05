@@ -1,0 +1,12 @@
+
+Configuration validation / 配置校验
+2026-10-03T00:59:21.852218Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/config.kdl"
+2026-10-03T00:59:21.852248Z  INFO niri: config is valid
+2026-10-03T00:59:21.861631Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl"
+2026-10-03T00:59:21.861663Z  INFO niri: config is valid
+JSON OK: niri/swaync/config.json
+JSON OK: niri/waybar/config.jsonc
+Shell syntax OK: 6 files
+Python syntax OK: 35 files
+GTK 3 + GtkLayerShell + SVG support OK / 原生面板及 SVG 壁纸依赖正常
+Theme CSS OK: GTK 3 + GTK 4 / 主题样式校验通过

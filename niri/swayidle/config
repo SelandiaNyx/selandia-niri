@@ -1,0 +1,6 @@
+# 自动锁屏和息屏，可通过状态栏临时暂停。
+timeout 300 '"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop" lock'
+timeout 600 'niri msg action power-off-monitors' resume 'niri msg action power-on-monitors'
+# 需要自动睡眠时取消下行注释（默认只锁屏、息屏）。
+# 与控制中心电源菜单共用同一入口：保持唤醒阻止睡眠时不会先锁屏。
+# timeout 1800 '"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop" sleep'

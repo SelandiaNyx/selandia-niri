@@ -1,0 +1,17 @@
+[Unit]
+Description=Selandia Niri screen lock (%i)
+After=graphical-session.target
+# The lock belongs to the session, never to the desktop component target:
+# restarting idle, sleep-lock or the control center must not end it.
+PartOf=graphical-session.target
+# A failed lock must always be retryable; never rate-limit locking.
+StartLimitIntervalSec=0
+
+[Service]
+# The client sends READY=1 only after the locker confirmed readiness on this
+# display, and the caller still verifies the published identity record.
+Type=notify
+NotifyAccess=main
+ExecStart=@PYTHON@ -B @LOCKCLIENT@ %i
+TimeoutStartSec=30
+Restart=no

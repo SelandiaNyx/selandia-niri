@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.pyo
+# Evidence images are snapshots: already-tracked ones stay tracked, new ones are
+# added deliberately with `git add -f`.
+.validation/*.png
+.validation/fix-summary.err

@@ -1,0 +1,84 @@
+// Selandia Glass · pearl / cyan / violet · 珍珠白 / 冰蓝 / 淡紫
+// Native wallpaper blur requires Niri 26.04+. Xray caches the blurred wallpaper.
+// 原生背景模糊；xray 复用壁纸缓存，保持文字清晰并降低渲染开销。
+blur {
+    passes 3
+    offset 3.0
+    noise 0.02
+    saturation 1.25
+}
+layout {
+    gaps 16
+    center-focused-column "on-overflow"
+    always-center-single-column
+    background-color "#101522"
+    default-column-width { proportion 0.5; }
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+        proportion 1.0
+    }
+    focus-ring {
+        width 2
+        active-gradient from="#94dfff" to="#c4b5fd" angle=125
+        inactive-color "#d6eaff26"
+        urgent-color "#ffb4c4"
+    }
+    border { off; }
+    shadow {
+        on
+        softness 36
+        spread 3
+        offset x=0 y=10
+        color "#060a1466"
+    }
+    tab-indicator {
+        position "top"
+        gaps-between-tabs 6
+        corner-radius 8
+        active-gradient from="#94dfff" to="#c4b5fd" angle=125
+        inactive-color "#eef5ff22"
+    }
+}
+animations {
+    workspace-switch { spring damping-ratio=1.0 stiffness=700 epsilon=0.0001; }
+    horizontal-view-movement { spring damping-ratio=1.0 stiffness=700 epsilon=0.0001; }
+    window-movement { spring damping-ratio=1.0 stiffness=700 epsilon=0.0001; }
+    window-open { duration-ms 220; curve "ease-out-expo"; }
+    window-close { duration-ms 160; curve "ease-out-quad"; }
+}
+overview {
+    zoom 0.4
+    backdrop-color "#101522"
+}
+
+layer-rule {
+    // SwayNC includes invisible margins in its surfaces; keep its glass CSS only.
+    // 通知组件的透明边距属于窗口表面，不强制模糊，避免边缘出现矩形色块。
+    match namespace="^(waybar|launcher|selandia-.*)$"
+    // Niri 26.04 also uses this radius for the compositor's blur geometry.
+    // 与面板外框保持一致，避免圆角外露出矩形模糊区域。
+    geometry-corner-radius 24
+    background-effect {
+        blur true
+        xray true
+        saturation 1.25
+        noise 0.02
+    }
+}
+layer-rule {
+    match namespace="^waybar$"
+    geometry-corner-radius 18
+}
+layer-rule {
+    match namespace="^launcher$"
+    geometry-corner-radius 24
+    shadow {
+        on
+        softness 40
+        spread 4
+        offset x=0 y=12
+        color "#060a1466"
+    }
+}

@@ -1,0 +1,196 @@
+...../usr/lib/python3.14/site-packages/gi/overrides/__init__.py:159: PyGIDeprecationWarning: GLib.unix_signal_add_full is deprecated; use GLibUnix.signal_add_full instead
+  value = getattr(proxy, attr)
+.........................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 190 tests in 3.656s
+
+OK
+Back up and install / 备份后安装：/tmp/niri deploy's us9_etda/config/niri ← /home/SelandiaNyx/Selandia's Niri/niri
+Install new / 新建配置：/tmp/niri deploy's us9_etda/config/systemd/user/selandia-niri.target ← /home/SelandiaNyx/Selandia's Niri/systemd/selandia-niri.target
+Install new / 新建配置：/tmp/niri deploy's us9_etda/config/systemd/user/selandia-niri@.service ← generated systemd service / 生成的 systemd 服务
+Install new / 新建配置：/tmp/niri deploy's us9_etda/config/xdg-desktop-portal/niri-portals.conf ← /home/SelandiaNyx/Selandia's Niri/portals/niri-portals.conf
+Backup and restore record / 备份及回退记录：/tmp/niri deploy's us9_etda/state/install.json
+Install / 安装：/tmp/niri deploy's 5ji7n2l3/config/niri
+Install / 安装：/tmp/niri deploy's 5ji7n2l3/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 5ji7n2l3/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 5ji7n2l3/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 5ji7n2l3/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's tcchxbe3/config/niri
+Install / 安装：/tmp/niri deploy's tcchxbe3/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's rpmimc50/config/niri
+Install / 安装：/tmp/niri deploy's rpmimc50/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's rpmimc50/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's rpmimc50/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's rpmimc50/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's rpmimc50/config/xdg-desktop-portal/niri-portals.conf
+Install / 安装：/tmp/niri deploy's b03lpl3q/config/niri
+Install / 安装：/tmp/niri deploy's b03lpl3q/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's b03lpl3q/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's b03lpl3q/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's b03lpl3q/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's b03lpl3q/config/niri
+Restore / 回退：/tmp/niri deploy's b03lpl3q/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's b03lpl3q/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's b03lpl3q/config/niri
+Restore / 回退：/tmp/niri deploy's b03lpl3q/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's b03lpl3q/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's b03lpl3q/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's b03lpl3q/state/removed-jpar_sci
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's 9ppwxaor/config/niri
+Install / 安装：/tmp/niri deploy's 9ppwxaor/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 9ppwxaor/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 9ppwxaor/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 9ppwxaor/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's 9ppwxaor/config/niri
+Restore / 回退：/tmp/niri deploy's 9ppwxaor/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's 9ppwxaor/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's 9ppwxaor/config/niri
+Restore / 回退：/tmp/niri deploy's 9ppwxaor/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's 9ppwxaor/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's 9ppwxaor/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's 9ppwxaor/state/removed-qtp0u49a
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's 7rijv_f9/config/niri
+Install / 安装：/tmp/niri deploy's 7rijv_f9/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 7rijv_f9/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 7rijv_f9/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 7rijv_f9/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's 09lfvztr/config/niri
+Install / 安装：/tmp/niri deploy's 09lfvztr/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 09lfvztr/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 09lfvztr/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 09lfvztr/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Deployment preflight passed / 部署预检查通过。
+Install / 安装：/tmp/niri deploy's u4rcvkmd/config/niri
+Install / 安装：/tmp/niri deploy's u4rcvkmd/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's u4rcvkmd/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's u4rcvkmd/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's u4rcvkmd/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's _0_9rjex/config/niri
+Install / 安装：/tmp/niri deploy's _0_9rjex/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's _0_9rjex/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's _0_9rjex/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's _0_9rjex/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's _0_9rjex/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's _0_9rjex/config/niri
+Restore / 回退：/tmp/niri deploy's _0_9rjex/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's _0_9rjex/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's _0_9rjex/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's _0_9rjex/state/removed-cmbpu9ee
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's 3x8hjuum/config/niri
+Install / 安装：/tmp/niri deploy's 3x8hjuum/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 3x8hjuum/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 3x8hjuum/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 3x8hjuum/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's 3x8hjuum/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 3x8hjuum/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's 3x8hjuum/config/niri
+Restore / 回退：/tmp/niri deploy's 3x8hjuum/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's 3x8hjuum/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's 3x8hjuum/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's 3x8hjuum/state/removed-48lt_gkr
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's 1edmz8jm/config/niri
+Install / 安装：/tmp/niri deploy's 1edmz8jm/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 1edmz8jm/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 1edmz8jm/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 1edmz8jm/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's 1edmz8jm/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 1edmz8jm/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's 1edmz8jm/config/niri
+Restore / 回退：/tmp/niri deploy's 1edmz8jm/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's 1edmz8jm/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's 1edmz8jm/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's 1edmz8jm/state/removed-v3x7f__y
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's 5viza0zw/config/niri
+Install / 安装：/tmp/niri deploy's 5viza0zw/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 5viza0zw/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 5viza0zw/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 5viza0zw/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's 5viza0zw/config/systemd/user/selandia-niri@.service
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 5viza0zw/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's 5viza0zw/config/niri
+Restore / 回退：/tmp/niri deploy's 5viza0zw/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's 5viza0zw/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's 5viza0zw/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's 5viza0zw/state/removed-xgswgphv
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's p9qarw3f/config/niri
+Install / 安装：/tmp/niri deploy's p9qarw3f/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's p9qarw3f/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's p9qarw3f/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's p9qarw3f/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Not installed / 尚未安装本项目的配置。
+Install / 安装：/tmp/niri deploy's jlisqvnz/config/niri
+Install / 安装：/tmp/niri deploy's jlisqvnz/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's jlisqvnz/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's jlisqvnz/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's jlisqvnz/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Ready / 正常：/tmp/niri deploy's jlisqvnz/config/niri
+Ready / 正常：/tmp/niri deploy's jlisqvnz/config/systemd/user/selandia-niri.target
+Ready / 正常：/tmp/niri deploy's jlisqvnz/config/systemd/user/selandia-niri@.service
+Ready / 正常：/tmp/niri deploy's jlisqvnz/config/xdg-desktop-portal/niri-portals.conf
+Install / 安装：/tmp/niri deploy's ci95gkki/config/niri
+Install / 安装：/tmp/niri deploy's ci95gkki/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's ci95gkki/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's ci95gkki/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's ci95gkki/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Would stop this desktop's user services / 将停止本项目的用户服务。
+Archive managed / 归档托管配置：/tmp/niri deploy's ci95gkki/config/niri
+Restore original / 恢复原配置：/tmp/niri deploy's ci95gkki/config/niri ← /tmp/niri deploy's ci95gkki/state/backup-f6ykivqh/niri
+Archive managed / 归档托管配置：/tmp/niri deploy's ci95gkki/config/systemd/user/selandia-niri.target
+Archive managed / 归档托管配置：/tmp/niri deploy's ci95gkki/config/systemd/user/selandia-niri@.service
+Archive managed / 归档托管配置：/tmp/niri deploy's ci95gkki/config/xdg-desktop-portal/niri-portals.conf
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Restore / 回退：/tmp/niri deploy's ci95gkki/config/niri
+Restore / 回退：/tmp/niri deploy's ci95gkki/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's ci95gkki/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's ci95gkki/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's ci95gkki/state/removed-6zou55tm
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's lh3hemd4/config/niri
+Install / 安装：/tmp/niri deploy's lh3hemd4/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's lh3hemd4/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's lh3hemd4/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's lh3hemd4/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Nothing to restore / 没有本项目的安装记录，无需回退。
+Install / 安装：/tmp/niri deploy's pi4pcctn/config/niri
+Install / 安装：/tmp/niri deploy's pi4pcctn/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's pi4pcctn/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's pi4pcctn/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's pi4pcctn/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's pi4pcctn/config/niri
+Restore / 回退：/tmp/niri deploy's pi4pcctn/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's pi4pcctn/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's pi4pcctn/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's pi4pcctn/state/removed-bus95ig3
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's o6bec1qk/config/niri
+Install / 安装：/tmp/niri deploy's o6bec1qk/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's o6bec1qk/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's o6bec1qk/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's o6bec1qk/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。

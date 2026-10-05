@@ -1,0 +1,50 @@
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activating service name='org.freedesktop.portal.Desktop' requested by ':1.1' (uid=1000 pid=57335 comm="python3 -B /tmp/selandia_audit_visual.py")
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activating service name='org.freedesktop.impl.portal.PermissionStore' requested by ':1.2' (uid=1000 pid=57343 comm="/usr/lib/xdg-desktop-portal")
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.PermissionStore'
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activating service name='org.freedesktop.portal.Documents' requested by ':1.2' (uid=1000 pid=57343 comm="/usr/lib/xdg-desktop-portal")
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Successfully activated service 'org.freedesktop.portal.Documents'
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activating service name='org.freedesktop.impl.portal.desktop.gnome' requested by ':1.2' (uid=1000 pid=57343 comm="/usr/lib/xdg-desktop-portal")
+
+** (xdg-desktop-portal-gnome:57365): WARNING **: 19:08:43.196: Failed to open service channel Wayland connection, portals dialogs may missbehave (无法调用方法；代理名称为常见的无所有者的名称 org.gnome.Mutter.ServiceChannel，且代理使用 G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START 标记构建).
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activating service name='org.gtk.vfs.Daemon' requested by ':1.5' (uid=1000 pid=57365 comm="/usr/lib/xdg-desktop-portal-gnome")
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Successfully activated service 'org.gtk.vfs.Daemon'
+fusermount3: failed to access mountpoint /run/user/1000/gvfs: Permission denied
+
+(xdg-desktop-portal-gnome:57365): Adwaita-WARNING **: 19:08:43.212: Using GtkSettings:gtk-application-prefer-dark-theme with libadwaita is unsupported. Please use AdwStyleManager:color-scheme instead.
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.desktop.gnome'
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.2' (uid=1000 pid=57343 comm="/usr/lib/xdg-desktop-portal")
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.8' (uid=1000 pid=57387 comm="/usr/lib/xdg-desktop-portal-gtk")
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Successfully activated service 'org.a11y.Bus'
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.10' (uid=1000 pid=57401 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha")
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.10' (uid=1000 pid=57401 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha")
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.desktop.gtk'
+
+** (xdg-desktop-portal-gtk:57387): WARNING **: 19:08:43.267: AT-SPI: Could not obtain desktop path or name
+
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.10' (uid=1000 pid=57401 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha")
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+
+** (xdg-desktop-portal-gtk:57387): WARNING **: 19:08:43.268: atk-bridge: GetRegisteredEvents returned message with unknown signature
+
+** (xdg-desktop-portal-gtk:57387): WARNING **: 19:08:43.268: atk-bridge: get_device_events_reply: unknown signature
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activating service name='org.freedesktop.secrets' requested by ':1.2' (uid=1000 pid=57343 comm="/usr/lib/xdg-desktop-portal")
+discover_other_daemon: 1GNOME_KEYRING_CONTROL=/run/user/1000/keyring
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Successfully activated service 'org.freedesktop.portal.Desktop'
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Activating service name='org.gtk.vfs.Metadata' requested by ':1.1' (uid=1000 pid=57335 comm="python3 -B /tmp/selandia_audit_visual.py")
+dbus-daemon[57309]: [session uid=1000 pid=57309 pidfd=5] Successfully activated service 'org.gtk.vfs.Metadata'
+
+(selandia_audit_visual.py:57335): Gdk-CRITICAL **: 19:08:46.530: gdk_wayland_display_get_monitor_at_window: assertion 'GDK_IS_WAYLAND_WINDOW (window)' failed
+
+(selandia_audit_visual.py:57335): Gdk-CRITICAL **: 19:08:46.530: gdk_window_get_origin: assertion 'GDK_IS_WINDOW (window)' failed
+
+(selandia_audit_visual.py:57335): Gdk-CRITICAL **: 19:08:59.603: gdk_wayland_display_get_monitor_at_window: assertion 'GDK_IS_WAYLAND_WINDOW (window)' failed
+
+(selandia_audit_visual.py:57335): Gdk-CRITICAL **: 19:08:59.603: gdk_window_get_origin: assertion 'GDK_IS_WINDOW (window)' failed
+PASS audit rendering completed 64 page/scenario measurements
+Gdk-Message: 19:09:00.896: Error reading events from display: 断开的管道
+Gdk-Message: 19:09:00.896: Lost connection to Wayland compositor.
+
+(/usr/lib/xdg-desktop-portal:57343): xdg-desktop-portal-WARNING **: 19:09:00.916: Failed to create secret proxy: 为 org.freedesktop.secrets 调用 StartServiceByName 时出错：连接已关闭
+A connection to the bus can't be made

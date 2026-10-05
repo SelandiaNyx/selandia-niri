@@ -1,0 +1,10 @@
+// Managed by the native display panel. Edit monitor.kdl for manual defaults.
+// 原生屏幕面板管理；手动默认配置保留在 monitor.kdl。
+
+
+output "DP-6" {
+    mode "3840x2160@160"
+    scale 1
+    transform "normal"
+    position x=0 y=0
+}

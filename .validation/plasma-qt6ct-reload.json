@@ -1,0 +1,21 @@
+{
+  "before": {
+    "disabled_text": "#a1a9b1",
+    "font": "Inter",
+    "font_size": 12,
+    "font_value_type": "QString",
+    "font_weight": 400,
+    "icons": "breeze-dark",
+    "palette_path": "/tmp/selandia-qt6ct-live-d7vv_kgl/config/qt6ct/colors/selandia.conf",
+    "qt_roles": 22,
+    "style": "qt6ct-style",
+    "text": "#fcfcfc",
+    "window": "#202326"
+  },
+  "after_without_restart": {
+    "font_size": 14,
+    "icons": "breeze",
+    "window": "#eff0f1"
+  },
+  "stderr": ""
+}

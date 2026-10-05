@@ -1,0 +1,54 @@
+
+配置校验
+2026-10-05T02:06:02.143234Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/config.kdl"
+2026-10-05T02:06:02.143264Z  INFO niri: config is valid
+2026-10-05T02:06:02.152623Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl"
+2026-10-05T02:06:02.152650Z  INFO niri: config is valid
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.541: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.542: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.542: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(-:2421): dconf-CRITICAL **: 10:06:02.542: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+JSON 校验通过： niri/swaync/config.json
+JSON 校验通过： niri/theme/swaync.json
+JSON 校验通过： niri/theme/waybar.jsonc
+JSON 校验通过： niri/waybar/config.jsonc
+Shell 语法检查通过：6 个文件
+Python 语法检查通过：73 个文件
+GTK 3、GtkLayerShell 及 SVG 壁纸依赖正常
+GTK 3 与 GTK 4 主题样式校验通过

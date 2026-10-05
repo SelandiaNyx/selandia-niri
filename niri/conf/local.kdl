@@ -1,0 +1,5 @@
+// 个人覆盖项。可以在这里设置 layout、binds、environment。
+// outputs 请直接修改 outputs.kdl，避免同名屏幕重复定义。
+// 示例：
+// layout { gaps 8; }
+// binds { Mod+Return { spawn "kitty"; } }

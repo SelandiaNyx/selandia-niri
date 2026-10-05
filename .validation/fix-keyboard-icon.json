@@ -1,0 +1,67 @@
+{
+  "system_theme": "breeze-dark",
+  "icons": {
+    "input-keyboard-symbolic": {
+      "100%": {
+        "before": {
+          "transparent": 375,
+          "partial": 8,
+          "opaque": 101,
+          "width": 22,
+          "height": 22,
+          "solid": false
+        },
+        "before_file": "/usr/share/icons/breeze-dark/devices/22/input-keyboard-symbolic.svg",
+        "after": {
+          "transparent": 168,
+          "partial": 48,
+          "opaque": 108,
+          "width": 18,
+          "height": 18,
+          "solid": false
+        },
+        "after_file": "/tmp/selandia-icon-probe-3zhvdwa0/selandia-icons-1000/selandia-symbolic/scalable/input-keyboard-symbolic.svg"
+      },
+      "150%": {
+        "before": {
+          "transparent": 0,
+          "partial": 0,
+          "opaque": 1936,
+          "width": 44,
+          "height": 44,
+          "solid": true
+        },
+        "before_file": "/usr/share/icons/breeze-dark/devices/32/input-keyboard-symbolic.svg",
+        "after": {
+          "transparent": 712,
+          "partial": 92,
+          "opaque": 492,
+          "width": 36,
+          "height": 36,
+          "solid": false
+        },
+        "after_file": "/tmp/selandia-icon-probe-3zhvdwa0/selandia-icons-1000/selandia-symbolic/scalable/input-keyboard-symbolic.svg"
+      },
+      "200%": {
+        "before": {
+          "transparent": 3389,
+          "partial": 32,
+          "opaque": 935,
+          "width": 66,
+          "height": 66,
+          "solid": false
+        },
+        "before_file": "/usr/share/icons/breeze-dark/devices/22@2x/input-keyboard-symbolic.svg",
+        "after": {
+          "transparent": 1628,
+          "partial": 144,
+          "opaque": 1144,
+          "width": 54,
+          "height": 54,
+          "solid": false
+        },
+        "after_file": "/tmp/selandia-icon-probe-3zhvdwa0/selandia-icons-1000/selandia-symbolic/scalable/input-keyboard-symbolic.svg"
+      }
+    }
+  }
+}

@@ -1,0 +1,100 @@
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activating service name='org.freedesktop.portal.Desktop' requested by ':1.1' (uid=1000 pid=66655 comm="python3 -B /home/SelandiaNyx/Selandia's Niri/tools")
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activating service name='org.freedesktop.impl.portal.PermissionStore' requested by ':1.2' (uid=1000 pid=66663 comm="/usr/lib/xdg-desktop-portal")
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.PermissionStore'
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activating service name='org.freedesktop.portal.Documents' requested by ':1.2' (uid=1000 pid=66663 comm="/usr/lib/xdg-desktop-portal")
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Successfully activated service 'org.freedesktop.portal.Documents'
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activating service name='org.freedesktop.impl.portal.desktop.gnome' requested by ':1.2' (uid=1000 pid=66663 comm="/usr/lib/xdg-desktop-portal")
+
+** (xdg-desktop-portal-gnome:66685): WARNING **: 12:33:27.054: Failed to open service channel Wayland connection, portals dialogs may missbehave (Cannot invoke method; proxy is for the well-known name org.gnome.Mutter.ServiceChannel without an owner, and proxy was constructed with the G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START flag).
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activating service name='org.gtk.vfs.Daemon' requested by ':1.5' (uid=1000 pid=66685 comm="/usr/lib/xdg-desktop-portal-gnome")
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Successfully activated service 'org.gtk.vfs.Daemon'
+fusermount3: failed to access mountpoint /run/user/1000/gvfs: Permission denied
+
+(xdg-desktop-portal-gnome:66685): Adwaita-WARNING **: 12:33:27.070: Using GtkSettings:gtk-application-prefer-dark-theme with libadwaita is unsupported. Please use AdwStyleManager:color-scheme instead.
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.desktop.gnome'
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.2' (uid=1000 pid=66663 comm="/usr/lib/xdg-desktop-portal")
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.8' (uid=1000 pid=66708 comm="/usr/lib/xdg-desktop-portal-gtk")
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Successfully activated service 'org.a11y.Bus'
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.10' (uid=1000 pid=66722 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha")
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.10' (uid=1000 pid=66722 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha")
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.desktop.gtk'
+
+** (xdg-desktop-portal-gtk:66708): WARNING **: 12:33:27.125: AT-SPI: Could not obtain desktop path or name
+
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.10' (uid=1000 pid=66722 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha")
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+
+** (xdg-desktop-portal-gtk:66708): WARNING **: 12:33:27.125: atk-bridge: GetRegisteredEvents returned message with unknown signature
+
+** (xdg-desktop-portal-gtk:66708): WARNING **: 12:33:27.125: atk-bridge: get_device_events_reply: unknown signature
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activating service name='org.freedesktop.secrets' requested by ':1.2' (uid=1000 pid=66663 comm="/usr/lib/xdg-desktop-portal")
+discover_other_daemon: 1GNOME_KEYRING_CONTROL=/run/user/1000/keyring
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Successfully activated service 'org.freedesktop.portal.Desktop'
+test_animation_has_intermediate_frames_and_finishes_close (__main__.PanelInteractionTests.test_animation_has_intermediate_frames_and_finishes_close) ... dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Activating service name='org.gtk.vfs.Metadata' requested by ':1.1' (uid=1000 pid=66655 comm="python3 -B /home/SelandiaNyx/Selandia's Niri/tools")
+dbus-daemon[66629]: [session uid=1000 pid=66629 pidfd=5] Successfully activated service 'org.gtk.vfs.Metadata'
+ok
+test_appearance_apply_runs_off_main_thread_and_reset (__main__.PanelInteractionTests.test_appearance_apply_runs_off_main_thread_and_reset) ... ok
+test_appearance_failed_save_keeps_edit_and_enables_retry (__main__.PanelInteractionTests.test_appearance_failed_save_keeps_edit_and_enables_retry) ... ok
+test_async_reply_history_busy_guard_and_clear (__main__.PanelInteractionTests.test_async_reply_history_busy_guard_and_clear) ... ok
+test_audio_advanced_channels_request_is_read_only (__main__.PanelInteractionTests.test_audio_advanced_channels_request_is_read_only) ... ok
+test_audio_poll_retains_model_selection_and_focus (__main__.PanelInteractionTests.test_audio_poll_retains_model_selection_and_focus) ... ok
+test_audio_profile_requires_explicit_apply_and_survives_refresh (__main__.PanelInteractionTests.test_audio_profile_requires_explicit_apply_and_survives_refresh) ... ok
+test_audio_refresh_never_mutates_and_device_selection_sets_default (__main__.PanelInteractionTests.test_audio_refresh_never_mutates_and_device_selection_sets_default) ... ok
+test_audio_volume_port_and_existing_app_routing (__main__.PanelInteractionTests.test_audio_volume_port_and_existing_app_routing) ... ok
+test_bluetooth_boot_policy_applies_only_explicitly_and_recovers_from_error (__main__.PanelInteractionTests.test_bluetooth_boot_policy_applies_only_explicitly_and_recovers_from_error) ... ok
+test_brightness_device_selection_and_unavailable_state (__main__.PanelInteractionTests.test_brightness_device_selection_and_unavailable_state) ... ok
+test_brightness_drag_is_coalesced_and_runs_off_main_thread (__main__.PanelInteractionTests.test_brightness_drag_is_coalesced_and_runs_off_main_thread) ... ok
+test_chinese_navigation_uses_one_language_and_preserves_app_names (__main__.PanelInteractionTests.test_chinese_navigation_uses_one_language_and_preserves_app_names) ... ok
+test_control_focus_is_on_demand (__main__.PanelInteractionTests.test_control_focus_is_on_demand) ... ok
+test_control_tabs_metrics_and_unavailable_readings (__main__.PanelInteractionTests.test_control_tabs_metrics_and_unavailable_readings) ... ok
+test_display_summary_uses_niri_mode_and_scale (__main__.PanelInteractionTests.test_display_summary_uses_niri_mode_and_scale) ... ok
+test_dynamic_combo_entry_is_protected_before_default_scroll_handler (__main__.PanelInteractionTests.test_dynamic_combo_entry_is_protected_before_default_scroll_handler) ... ok
+test_existing_control_window_switches_tab_then_toggles (__main__.PanelInteractionTests.test_existing_control_window_switches_tab_then_toggles) ... ok
+test_explicit_player_source_survives_refresh_and_targets_that_player (__main__.PanelInteractionTests.test_explicit_player_source_survives_refresh_and_targets_that_player) ... ok
+test_failed_reply_keeps_a_new_draft (__main__.PanelInteractionTests.test_failed_reply_keeps_a_new_draft) ... ok
+test_failed_reply_restores_input_without_polluting_history (__main__.PanelInteractionTests.test_failed_reply_restores_input_without_polluting_history) ... ok
+test_ime_can_consume_enter_before_chat_submission (__main__.PanelInteractionTests.test_ime_can_consume_enter_before_chat_submission) ... ok
+test_interface_language_rebuilds_window_on_same_page_without_quitting (__main__.PanelInteractionTests.test_interface_language_rebuilds_window_on_same_page_without_quitting) ... ok
+test_keyboard_pages_and_escape_return_before_closing (__main__.PanelInteractionTests.test_keyboard_pages_and_escape_return_before_closing) ... ok
+test_language_scopes_require_separate_apply_actions (__main__.PanelInteractionTests.test_language_scopes_require_separate_apply_actions) ... ok
+test_light_mode_renders_readable_controls (__main__.PanelInteractionTests.test_light_mode_renders_readable_controls) ... /home/SelandiaNyx/Selandia's Niri/tools/panel_probe.py:427: DeprecationWarning: Gtk.StyleContext.get_background_color is deprecated
+  surface = window.surface.get_style_context().get_background_color(Gtk.StateFlags.NORMAL)
+ok
+test_media_action_failure_preserves_track_and_enables_retry (__main__.PanelInteractionTests.test_media_action_failure_preserves_track_and_enables_retry) ... ok
+test_missing_saved_font_selects_an_installed_fallback (__main__.PanelInteractionTests.test_missing_saved_font_selects_an_installed_fallback) ... ok
+test_model_discovery_populates_selectable_models (__main__.PanelInteractionTests.test_model_discovery_populates_selectable_models) ... ok
+test_native_display_apply_and_visible_confirmation (__main__.PanelInteractionTests.test_native_display_apply_and_visible_confirmation) ... ok
+test_native_display_timeout_and_failed_apply (__main__.PanelInteractionTests.test_native_display_timeout_and_failed_apply) ... ok
+test_native_input_and_window_drafts_apply_only_the_selected_group (__main__.PanelInteractionTests.test_native_input_and_window_drafts_apply_only_the_selected_group) ... ok
+test_navigation_search_both_languages_and_keyboard_focus (__main__.PanelInteractionTests.test_navigation_search_both_languages_and_keyboard_focus) ... ok
+test_overview_primary_controls_fit_with_sidebar_at_960_by_820 (__main__.PanelInteractionTests.test_overview_primary_controls_fit_with_sidebar_at_960_by_820) ... ok
+test_overview_requires_confirmed_inhibitor_to_show_stay_awake (__main__.PanelInteractionTests.test_overview_requires_confirmed_inhibitor_to_show_stay_awake) ... ok
+test_paused_track_play_button_sends_explicit_play (__main__.PanelInteractionTests.test_paused_track_play_button_sends_explicit_play) ... ok
+test_power_page_keeps_settings_visible_if_runtime_read_fails (__main__.PanelInteractionTests.test_power_page_keeps_settings_visible_if_runtime_read_fails) ... ok
+test_power_page_reports_actual_status_and_does_not_discard_drafts_on_refresh (__main__.PanelInteractionTests.test_power_page_reports_actual_status_and_does_not_discard_drafts_on_refresh) ... ok
+test_power_page_warns_when_effective_config_differs_from_saved_values (__main__.PanelInteractionTests.test_power_page_warns_when_effective_config_differs_from_saved_values) ... ok
+test_power_timeouts_apply_only_on_confirmation_and_expose_backend_failure (__main__.PanelInteractionTests.test_power_timeouts_apply_only_on_confirmation_and_expose_backend_failure) ... ok
+test_provider_change_clears_prior_provider_history (__main__.PanelInteractionTests.test_provider_change_clears_prior_provider_history) ... ok
+test_reduce_motion_closes_immediately (__main__.PanelInteractionTests.test_reduce_motion_closes_immediately) ... ok
+test_scroll_over_combo_does_not_change_selection (__main__.PanelInteractionTests.test_scroll_over_combo_does_not_change_selection) ... ok
+test_shortcut_search_english_chinese_and_no_results (__main__.PanelInteractionTests.test_shortcut_search_english_chinese_and_no_results) ... ok
+test_single_track_can_pause_without_previous_or_next (__main__.PanelInteractionTests.test_single_track_can_pause_without_previous_or_next) ... ok
+test_stale_media_poll_cannot_override_new_source (__main__.PanelInteractionTests.test_stale_media_poll_cannot_override_new_source) ... ok
+test_stale_model_lookup_cannot_replace_current_provider_models (__main__.PanelInteractionTests.test_stale_model_lookup_cannot_replace_current_provider_models) ... ok
+test_system_pages_do_not_apply_on_selection_or_population (__main__.PanelInteractionTests.test_system_pages_do_not_apply_on_selection_or_population) ... ok
+test_tile_poll_does_not_send_actions_and_click_exposes_toggle_state (__main__.PanelInteractionTests.test_tile_poll_does_not_send_actions_and_click_exposes_toggle_state) ... ok
+test_unavailable_audio_disables_controls_without_affecting_other_tabs (__main__.PanelInteractionTests.test_unavailable_audio_disables_controls_without_affecting_other_tabs) ... ok
+test_wheel_on_focused_spin_and_scale_preserves_values (__main__.PanelInteractionTests.test_wheel_on_focused_spin_and_scale_preserves_values) ... ok
+test_wheel_on_nested_combo_button_scrolls_page_without_selecting (__main__.PanelInteractionTests.test_wheel_on_nested_combo_button_scrolls_page_without_selecting) ... ok
+
+----------------------------------------------------------------------
+Ran 52 tests in 8.777s
+
+OK
+Gdk-Message: 12:33:35.880: Lost connection to Wayland compositor.
+Gdk-Message: 12:33:35.880: Error reading events from display: Broken pipe
+
+(/usr/lib/xdg-desktop-portal:66663): xdg-desktop-portal-WARNING **: 12:33:35.891: Failed to create secret proxy: Error calling StartServiceByName for org.freedesktop.secrets: The connection is closed
+A connection to the bus can't be made

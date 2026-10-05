@@ -1,0 +1,120 @@
+// Mod 在正常会话中为 Super，在嵌套窗口中为 Alt。
+// 保留 End-4 的主要按键，避免把 Super+L 改成向右聚焦。
+binds {
+    Mod+Return hotkey-overlay-title="终端 · Kitty" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launch terminal"; }
+    Mod+T repeat=false hotkey-overlay-title=null { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launch terminal"; }
+    Ctrl+Alt+T repeat=false hotkey-overlay-title=null { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launch terminal"; }
+    Mod+E hotkey-overlay-title="文件管理器" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launch files"; }
+    Mod+W hotkey-overlay-title="浏览器" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launch browser"; }
+    Mod+C hotkey-overlay-title="代码编辑器" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launch editor"; }
+    Mod+Space hotkey-overlay-title="应用启动器" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launcher"; }
+    Mod+V hotkey-overlay-title="剪贴板历史" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" clipboard"; }
+    Mod+Shift+V repeat=false hotkey-overlay-title=null { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" clipboard-clear"; }
+    Mod+L hotkey-overlay-title="锁屏" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" lock"; }
+    Ctrl+Alt+Delete hotkey-overlay-title="电源菜单" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" power"; }
+    Mod+Ctrl+T hotkey-overlay-title="更换壁纸" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" wallpaper"; }
+    Mod+Ctrl+R hotkey-overlay-title="重启状态栏与通知" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" reload"; }
+    Mod+J repeat=false hotkey-overlay-title=null { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" bar-toggle"; }
+    Mod+Ctrl+I hotkey-overlay-title="保持唤醒" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" idle-toggle"; }
+    // 已运行的系统黑屏时主动亮屏；不请求系统睡眠或关机。
+    XF86PowerOff allow-when-locked=true repeat=false hotkey-overlay-title="亮屏" { spawn "niri" "msg" "action" "power-on-monitors"; }
+    Mod+Ctrl+F12 allow-when-locked=true repeat=false hotkey-overlay-title="恢复显示输出" { spawn "niri" "msg" "action" "power-on-monitors"; }
+    Mod+N hotkey-overlay-title="通知中心" repeat=false { spawn "swaync-client" "-t"; }
+    Mod+Shift+N hotkey-overlay-title=null { spawn "playerctl" "next"; }
+    Mod+Shift+B hotkey-overlay-title=null { spawn "playerctl" "previous"; }
+    Mod+Shift+P hotkey-overlay-title=null { spawn "playerctl" "play-pause"; }
+    Mod+Slash hotkey-overlay-title="Shortcut library · 快捷键指南" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" shortcuts"; }
+    Mod+Shift+Slash hotkey-overlay-title="Native shortcuts · 原生快捷键提示" repeat=false { show-hotkey-overlay; }
+    Mod+I hotkey-overlay-title="Control Center · 控制中心" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" control"; }
+    Mod+A hotkey-overlay-title="AI sidebar · AI 侧栏" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" ai"; }
+    Mod+Shift+A hotkey-overlay-title="Codex terminal · Codex 终端侧栏" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" codex"; }
+    Mod+Tab hotkey-overlay-title="工作区总览" repeat=false { toggle-overview; }
+    Mod+Q hotkey-overlay-title="关闭窗口" repeat=false { close-window; }
+    Mod+F hotkey-overlay-title="全屏" repeat=false { fullscreen-window; }
+    Mod+D hotkey-overlay-title="最大化列" repeat=false { maximize-column; }
+    Mod+Alt+Space hotkey-overlay-title="平铺 / 浮动" repeat=false { toggle-window-floating; }
+    Mod+Shift+Space hotkey-overlay-title=null { switch-focus-between-floating-and-tiling; }
+    Mod+R hotkey-overlay-title="切换列宽 1/3、1/2、2/3、整屏" { switch-preset-column-width; }
+    Mod+Shift+R hotkey-overlay-title=null { switch-preset-column-width-back; }
+    Mod+Ctrl+Shift+R hotkey-overlay-title=null { switch-preset-window-height; }
+    Mod+Semicolon hotkey-overlay-title=null { set-column-width "-5%"; }
+    Mod+Apostrophe hotkey-overlay-title=null { set-column-width "+5%"; }
+    Mod+Shift+Semicolon hotkey-overlay-title=null { set-window-height "-5%"; }
+    Mod+Shift+Apostrophe hotkey-overlay-title=null { set-window-height "+5%"; }
+    Mod+Ctrl+C hotkey-overlay-title=null { center-column; }
+    Mod+BracketLeft hotkey-overlay-title="向左合并 / 拆出窗口" { consume-or-expel-window-left; }
+    Mod+BracketRight hotkey-overlay-title="向右合并 / 拆出窗口" { consume-or-expel-window-right; }
+    Mod+Ctrl+Tab hotkey-overlay-title="列的堆叠 / 标签页模式" repeat=false { toggle-column-tabbed-display; }
+    Alt+Tab hotkey-overlay-title=null { focus-window-previous; }
+    Mod+Left hotkey-overlay-title=null { focus-column-left; }
+    Mod+Shift+Left hotkey-overlay-title=null { move-column-left; }
+    Mod+Alt+Left hotkey-overlay-title=null { focus-monitor-left; }
+    Mod+Alt+Shift+Left hotkey-overlay-title=null { move-window-to-monitor-left; }
+    Mod+Right hotkey-overlay-title=null { focus-column-right; }
+    Mod+Shift+Right hotkey-overlay-title=null { move-column-right; }
+    Mod+Alt+Right hotkey-overlay-title=null { focus-monitor-right; }
+    Mod+Alt+Shift+Right hotkey-overlay-title=null { move-window-to-monitor-right; }
+    Mod+Up hotkey-overlay-title=null { focus-window-up; }
+    Mod+Shift+Up hotkey-overlay-title=null { move-window-up; }
+    Mod+Alt+Up hotkey-overlay-title=null { focus-monitor-up; }
+    Mod+Alt+Shift+Up hotkey-overlay-title=null { move-window-to-monitor-up; }
+    Mod+Down hotkey-overlay-title=null { focus-window-down; }
+    Mod+Shift+Down hotkey-overlay-title=null { move-window-down; }
+    Mod+Alt+Down hotkey-overlay-title=null { focus-monitor-down; }
+    Mod+Alt+Shift+Down hotkey-overlay-title=null { move-window-to-monitor-down; }
+    Mod+Page_Up hotkey-overlay-title=null { focus-workspace-up; }
+    Mod+Shift+Page_Up hotkey-overlay-title=null { move-window-to-workspace-up; }
+    Mod+Page_Down hotkey-overlay-title=null { focus-workspace-down; }
+    Mod+Shift+Page_Down hotkey-overlay-title=null { move-window-to-workspace-down; }
+    Mod+Ctrl+Up hotkey-overlay-title=null { focus-workspace-up; }
+    Mod+Ctrl+Down hotkey-overlay-title=null { focus-workspace-down; }
+    Mod+WheelScrollUp cooldown-ms=180 hotkey-overlay-title=null { focus-workspace-up; }
+    Mod+WheelScrollDown cooldown-ms=180 hotkey-overlay-title=null { focus-workspace-down; }
+    Mod+1 hotkey-overlay-title=null { focus-workspace "1"; }
+    Mod+Alt+1 hotkey-overlay-title=null { move-window-to-workspace focus=false "1"; }
+    Mod+Shift+1 hotkey-overlay-title=null { move-window-to-workspace "1"; }
+    Mod+2 hotkey-overlay-title=null { focus-workspace "2"; }
+    Mod+Alt+2 hotkey-overlay-title=null { move-window-to-workspace focus=false "2"; }
+    Mod+Shift+2 hotkey-overlay-title=null { move-window-to-workspace "2"; }
+    Mod+3 hotkey-overlay-title=null { focus-workspace "3"; }
+    Mod+Alt+3 hotkey-overlay-title=null { move-window-to-workspace focus=false "3"; }
+    Mod+Shift+3 hotkey-overlay-title=null { move-window-to-workspace "3"; }
+    Mod+4 hotkey-overlay-title=null { focus-workspace "4"; }
+    Mod+Alt+4 hotkey-overlay-title=null { move-window-to-workspace focus=false "4"; }
+    Mod+Shift+4 hotkey-overlay-title=null { move-window-to-workspace "4"; }
+    Mod+5 hotkey-overlay-title=null { focus-workspace "5"; }
+    Mod+Alt+5 hotkey-overlay-title=null { move-window-to-workspace focus=false "5"; }
+    Mod+Shift+5 hotkey-overlay-title=null { move-window-to-workspace "5"; }
+    Mod+6 hotkey-overlay-title=null { focus-workspace "6"; }
+    Mod+Alt+6 hotkey-overlay-title=null { move-window-to-workspace focus=false "6"; }
+    Mod+Shift+6 hotkey-overlay-title=null { move-window-to-workspace "6"; }
+    Mod+7 hotkey-overlay-title=null { focus-workspace "7"; }
+    Mod+Alt+7 hotkey-overlay-title=null { move-window-to-workspace focus=false "7"; }
+    Mod+Shift+7 hotkey-overlay-title=null { move-window-to-workspace "7"; }
+    Mod+8 hotkey-overlay-title=null { focus-workspace "8"; }
+    Mod+Alt+8 hotkey-overlay-title=null { move-window-to-workspace focus=false "8"; }
+    Mod+Shift+8 hotkey-overlay-title=null { move-window-to-workspace "8"; }
+    Mod+9 hotkey-overlay-title=null { focus-workspace "9"; }
+    Mod+Alt+9 hotkey-overlay-title=null { move-window-to-workspace focus=false "9"; }
+    Mod+Shift+9 hotkey-overlay-title=null { move-window-to-workspace "9"; }
+    Mod+0 hotkey-overlay-title=null { focus-workspace "10"; }
+    Mod+Alt+0 hotkey-overlay-title=null { move-window-to-workspace focus=false "10"; }
+    Mod+Shift+0 hotkey-overlay-title=null { move-window-to-workspace "10"; }
+    Print repeat=false hotkey-overlay-title=null { screenshot-screen write-to-disk=false show-pointer=false; }
+    Ctrl+Print repeat=false hotkey-overlay-title=null { screenshot-screen show-pointer=false; }
+    Alt+Print repeat=false hotkey-overlay-title=null { screenshot-window; }
+    Mod+Shift+S hotkey-overlay-title="交互截图（选区 / 窗口 / 屏幕）" repeat=false { screenshot; }
+    XF86AudioRaiseVolume allow-when-locked=true hotkey-overlay-title=null { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" volume up"; }
+    XF86AudioLowerVolume allow-when-locked=true hotkey-overlay-title=null { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" volume down"; }
+    XF86AudioMute allow-when-locked=true hotkey-overlay-title=null { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" volume mute"; }
+    XF86AudioMicMute allow-when-locked=true hotkey-overlay-title=null { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" volume mic"; }
+    XF86MonBrightnessUp allow-when-locked=true hotkey-overlay-title=null { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" brightness up"; }
+    XF86MonBrightnessDown allow-when-locked=true hotkey-overlay-title=null { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" brightness down"; }
+    XF86AudioPlay allow-when-locked=true hotkey-overlay-title=null { spawn "playerctl" "play-pause"; }
+    XF86AudioPause allow-when-locked=true hotkey-overlay-title=null { spawn "playerctl" "play-pause"; }
+    XF86AudioNext allow-when-locked=true hotkey-overlay-title=null { spawn "playerctl" "next"; }
+    XF86AudioPrev allow-when-locked=true hotkey-overlay-title=null { spawn "playerctl" "previous"; }
+    XF86AudioStop allow-when-locked=true hotkey-overlay-title=null { spawn "playerctl" "stop"; }
+    Mod+Escape allow-inhibiting=false hotkey-overlay-title=null { toggle-keyboard-shortcuts-inhibit; }
+    Mod+Shift+Escape hotkey-overlay-title="退出 Niri（确认对话框）" repeat=false { quit; }
+}

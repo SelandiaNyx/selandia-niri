@@ -1,0 +1,11 @@
+// 从现有 Hyprland 配置迁移。首次登录用 niri msg outputs 核对名称。
+// 只指定分辨率：在屏幕报告的 4K 模式中选择最高刷新率，避免 160.000 的舍入差异。
+output "Hubei Century Joint Innovation Technology Co.Ltd P275MV PLUS 0000000000000" {
+    mode "3840x2160"
+    scale 1.5
+    focus-at-startup
+    // 自动排列，避免沿用旧配置的 x=2560 在单屏时留下空隙。
+    // 多屏时可设置 position x=2560 y=0，并为左屏添加相邻位置。
+    // 如需限制链路位深：max-bpc 10
+    // 确认屏幕与驱动兼容后可启用：variable-refresh-rate on-demand=true
+}

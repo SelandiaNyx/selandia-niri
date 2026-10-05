@@ -1,0 +1,194 @@
+............................
+----------------------------------------------------------------------
+Ran 28 tests in 0.034s
+
+OK
+Back up and install: /tmp/niri deploy's ekkjcd3j/config/niri ← /home/SelandiaNyx/Selandia's Niri/niri
+Install new: /tmp/niri deploy's ekkjcd3j/config/systemd/user/selandia-niri.target ← /home/SelandiaNyx/Selandia's Niri/systemd/selandia-niri.target
+Install new: /tmp/niri deploy's ekkjcd3j/config/systemd/user/selandia-niri@.service ← generated systemd service
+Install new: /tmp/niri deploy's ekkjcd3j/config/xdg-desktop-portal/niri-portals.conf ← /home/SelandiaNyx/Selandia's Niri/portals/niri-portals.conf
+Backup and restore record: /tmp/niri deploy's ekkjcd3j/state/install.json
+Install: /tmp/niri deploy's mbw5jqnu/config/niri
+Install: /tmp/niri deploy's mbw5jqnu/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's mbw5jqnu/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's mbw5jqnu/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's mbw5jqnu/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's yd0nab1n/config/niri
+Install: /tmp/niri deploy's yd0nab1n/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's yks4cp8v/config/niri
+Install: /tmp/niri deploy's yks4cp8v/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's yks4cp8v/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's yks4cp8v/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's yks4cp8v/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's yks4cp8v/config/xdg-desktop-portal/niri-portals.conf
+Install: /tmp/niri deploy's nt5nniku/config/niri
+Install: /tmp/niri deploy's nt5nniku/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's nt5nniku/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's nt5nniku/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's nt5nniku/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's nt5nniku/config/niri
+Restore: /tmp/niri deploy's nt5nniku/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's nt5nniku/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's nt5nniku/config/niri
+Restore: /tmp/niri deploy's nt5nniku/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's nt5nniku/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's nt5nniku/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's nt5nniku/state/removed-fumx8v6x
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's whjvcau2/config/niri
+Install: /tmp/niri deploy's whjvcau2/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's whjvcau2/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's whjvcau2/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's whjvcau2/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's whjvcau2/config/niri
+Restore: /tmp/niri deploy's whjvcau2/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's whjvcau2/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's whjvcau2/config/niri
+Restore: /tmp/niri deploy's whjvcau2/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's whjvcau2/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's whjvcau2/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's whjvcau2/state/removed-lt02ybao
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's ne7a5kgs/config/niri
+Install: /tmp/niri deploy's ne7a5kgs/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's ne7a5kgs/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's ne7a5kgs/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's ne7a5kgs/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's h7xgxwcz/config/niri
+Install: /tmp/niri deploy's h7xgxwcz/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's h7xgxwcz/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's h7xgxwcz/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's h7xgxwcz/state/install.json
+Log out when ready, then select Niri at login.
+Deployment preflight passed.
+Install: /tmp/niri deploy's 7ry5lyrt/config/niri
+Install: /tmp/niri deploy's 7ry5lyrt/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's 7ry5lyrt/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's 7ry5lyrt/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's 7ry5lyrt/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's r_ucisim/config/niri
+Install: /tmp/niri deploy's r_ucisim/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's r_ucisim/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's r_ucisim/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's r_ucisim/state/install.json
+Log out when ready, then select Niri at login.
+Configuration ready; backup record: /tmp/niri deploy's r_ucisim/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's r_ucisim/config/niri
+Restore: /tmp/niri deploy's r_ucisim/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's r_ucisim/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's r_ucisim/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's r_ucisim/state/removed-qyn9qxi8
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's soq51yx1/config/niri
+Install: /tmp/niri deploy's soq51yx1/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's soq51yx1/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's soq51yx1/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's soq51yx1/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's soq51yx1/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's soq51yx1/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's soq51yx1/config/niri
+Restore: /tmp/niri deploy's soq51yx1/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's soq51yx1/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's soq51yx1/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's soq51yx1/state/removed-7p6fws7j
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's wa9jhxni/config/niri
+Install: /tmp/niri deploy's wa9jhxni/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's wa9jhxni/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's wa9jhxni/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's wa9jhxni/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's wa9jhxni/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's wa9jhxni/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's wa9jhxni/config/niri
+Restore: /tmp/niri deploy's wa9jhxni/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's wa9jhxni/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's wa9jhxni/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's wa9jhxni/state/removed-0gvglinr
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's 1pro_jhr/config/niri
+Install: /tmp/niri deploy's 1pro_jhr/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's 1pro_jhr/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's 1pro_jhr/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's 1pro_jhr/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's 1pro_jhr/config/systemd/user/selandia-niri@.service
+Configuration ready; backup record: /tmp/niri deploy's 1pro_jhr/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's 1pro_jhr/config/niri
+Restore: /tmp/niri deploy's 1pro_jhr/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's 1pro_jhr/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's 1pro_jhr/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's 1pro_jhr/state/removed-ik7_hl53
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's yndrco6z/config/niri
+Install: /tmp/niri deploy's yndrco6z/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's yndrco6z/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's yndrco6z/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's yndrco6z/state/install.json
+Log out when ready, then select Niri at login.
+Not installed.
+Install: /tmp/niri deploy's i44bomik/config/niri
+Install: /tmp/niri deploy's i44bomik/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's i44bomik/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's i44bomik/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's i44bomik/state/install.json
+Log out when ready, then select Niri at login.
+Ready: /tmp/niri deploy's i44bomik/config/niri
+Ready: /tmp/niri deploy's i44bomik/config/systemd/user/selandia-niri.target
+Ready: /tmp/niri deploy's i44bomik/config/systemd/user/selandia-niri@.service
+Ready: /tmp/niri deploy's i44bomik/config/xdg-desktop-portal/niri-portals.conf
+Install: /tmp/niri deploy's 9dk7rr12/config/niri
+Install: /tmp/niri deploy's 9dk7rr12/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's 9dk7rr12/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's 9dk7rr12/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's 9dk7rr12/state/install.json
+Log out when ready, then select Niri at login.
+Would stop this desktop's user services.
+Archive managed: /tmp/niri deploy's 9dk7rr12/config/niri
+Restore original: /tmp/niri deploy's 9dk7rr12/config/niri ← /tmp/niri deploy's 9dk7rr12/state/backup-gd24v6pz/niri
+Archive managed: /tmp/niri deploy's 9dk7rr12/config/systemd/user/selandia-niri.target
+Archive managed: /tmp/niri deploy's 9dk7rr12/config/systemd/user/selandia-niri@.service
+Archive managed: /tmp/niri deploy's 9dk7rr12/config/xdg-desktop-portal/niri-portals.conf
+Packages, wallpaper choice and clipboard data preserved.
+Restore: /tmp/niri deploy's 9dk7rr12/config/niri
+Restore: /tmp/niri deploy's 9dk7rr12/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's 9dk7rr12/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's 9dk7rr12/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's 9dk7rr12/state/removed-wwanz1a3
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's h4bjy1cz/config/niri
+Install: /tmp/niri deploy's h4bjy1cz/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's h4bjy1cz/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's h4bjy1cz/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's h4bjy1cz/state/install.json
+Log out when ready, then select Niri at login.
+Nothing to restore.
+Install: /tmp/niri deploy's x7hvv6ys/config/niri
+Install: /tmp/niri deploy's x7hvv6ys/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's x7hvv6ys/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's x7hvv6ys/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's x7hvv6ys/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's x7hvv6ys/config/niri
+Restore: /tmp/niri deploy's x7hvv6ys/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's x7hvv6ys/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's x7hvv6ys/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's x7hvv6ys/state/removed-j1523kcp
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's l735ofvp/config/niri
+Install: /tmp/niri deploy's l735ofvp/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's l735ofvp/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's l735ofvp/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's l735ofvp/state/install.json
+Log out when ready, then select Niri at login.

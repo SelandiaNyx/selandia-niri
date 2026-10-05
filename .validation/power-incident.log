@@ -1,0 +1,66 @@
+# Power incident: read-only journal evidence, Asia/Shanghai timestamps
+# Collected 2026-10-04. No suspend, display power, lock or hardware action was performed.
+
+## Suspected incident boot: c165447737f34f658ca1181eac7094a4
+2026-10-03T01:29:41+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:29:41.651837Z DEBUG niri::backend::tty: connecting connector: DP-6
+2026-10-03T01:29:41+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:29:41.651848Z DEBUG niri::backend::tty: picking mode: Mode { name: "3840x2160", clock: 1411200, size: (3840, 2160), hsync: (3888, 3920, 4000), vsync: (2163, 2168, 2205), hskew: 0, vscan: 0, vrefresh: 160, mode_type: ModeTypeFlags(DRIVER) }
+2026-10-03T01:30:17+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:17.535695Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:20+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:20.877821Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:20+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:20.884111Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:20+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:20.890359Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.040499Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.046821Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.059301Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.065546Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.071909Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.084332Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.109357Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.115578Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.422165Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.428423Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.440944Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.459762Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.497233Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.503525Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:21+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:21.509790Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:26+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:26.588605Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:26+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:26.650945Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:26+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:26.657189Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:26+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:26.669733Z  WARN niri::backend::tty: error queueing frame: The underlying drm surface encountered an error: DRM access error: Page flip commit failed on device `Some("/dev/dri/card0")` (Device or resource busy (os error 16))
+2026-10-03T01:30:49+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:49.359861Z DEBUG niri::backend::tty: disconnecting connector: "DP-6"
+2026-10-03T01:30:49+08:00 archbyselandianyx niri[1110]: 2026-10-02T17:30:49.568198Z ERROR niri::backend::tty: missing surface in vblank callback for crtc crtc::Handle(151)
+2026-10-03T08:38:54+08:00 archbyselandianyx niri[1110]: 2026-10-03T00:38:54.133010Z DEBUG niri::backend::tty: connecting connector: DP-6
+2026-10-03T08:38:54+08:00 archbyselandianyx niri[1110]: 2026-10-03T00:38:54.133018Z DEBUG niri::backend::tty: picking mode: Mode { name: "3840x2160", clock: 1411200, size: (3840, 2160), hsync: (3888, 3920, 4000), vsync: (2163, 2168, 2205), hskew: 0, vscan: 0, vrefresh: 160, mode_type: ModeTypeFlags(DRIVER) }
+
+## Power-button events and lack of orderly shutdown
+2026-10-03T08:40:48+08:00 archbyselandianyx systemd-logind[788]: Power key pressed short.
+2026-10-03T08:42:40+08:00 archbyselandianyx systemd-logind[788]: Power key pressed short.
+2026-10-03T08:43:09+08:00 archbyselandianyx systemd-logind[788]: Power key pressed short.
+
+## Explicit sleep-entry events, all available boots from October 2 onward
+-- Boot 412f5d3d7581446793131925346f4526 --
+-- Boot 8300554fc03144158b515e400bd6a1b1 --
+-- Boot c165447737f34f658ca1181eac7094a4 --
+-- Boot 7513a7aefe5b40648a1f6f06012afafd --
+-- Boot 7da3b74ded2d4d19a4f375b4ce17b6a2 --
+-- Boot 8ca20f4841504053888ad82783895fcd --
+-- Boot 710b74a9bd5e44c08b7625884e1a7534 --
+-- Boot 27504b4e1191427089067a3d670ba31e --
+-- No entries --
+
+## Graphics device associated with card0
+2026-10-03T01:29:33+08:00 archlinux kernel: xe 0000:03:00.0: [drm] Found battlemage (device ID e20b) discrete display version 14.01 stepping B0
+2026-10-03T01:29:34+08:00 archlinux kernel: [drm] Initialized xe 1.1.0 for 0000:03:00.0 on minor 0
+
+## Continuous background activity (statistics only, not the unrelated service contents)
+29564 journal entries from 2026-10-03T01:31:00 to 2026-10-03T08:43:09.
+Maximum consecutive realtime gap: 5.242 seconds (2026-10-03T06:59:44 -> 2026-10-03T06:59:49).
+
+## Most recent previous boot: orderly reboot, distinct from suspected incident
+2026-10-03T22:16:17+08:00 archbyselandianyx systemd-logind[798]: reboot requested from client PID 247860 ('systemctl') (unit user@1000.service)...
+2026-10-03T22:16:17+08:00 archbyselandianyx systemd-logind[798]: System is rebooting.
+2026-10-03T22:16:17+08:00 archbyselandianyx systemd-logind[798]: The system will reboot now!
+2026-10-03T21:50:23+08:00 archlinux systemd-journald[295]: Journal stopped
+2026-10-03T22:16:27+08:00 archbyselandianyx systemd[1]: Finished System Reboot.
+2026-10-03T22:16:27+08:00 archbyselandianyx systemd[1]: Reached target System Reboot.
+2026-10-03T22:16:27+08:00 archbyselandianyx systemd-journald[529]: Journal stopped

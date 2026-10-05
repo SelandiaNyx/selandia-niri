@@ -1,0 +1,11 @@
+dbus-daemon[3902]: [session uid=1000 pid=3902 pidfd=5] Activating service name='org.gtk.vfs.Daemon' requested by ':1.1' (uid=1000 pid=3928 comm="python3 -B /home/SelandiaNyx/Selandia's Niri/tools")
+dbus-daemon[3902]: [session uid=1000 pid=3902 pidfd=5] Successfully activated service 'org.gtk.vfs.Daemon'
+fusermount3: failed to access mountpoint /run/user/1000/gvfs: Permission denied
+dbus-daemon[3902]: [session uid=1000 pid=3902 pidfd=5] Activating service name='org.gtk.vfs.Metadata' requested by ':1.1' (uid=1000 pid=3928 comm="python3 -B /home/SelandiaNyx/Selandia's Niri/tools")
+dbus-daemon[3902]: [session uid=1000 pid=3902 pidfd=5] Successfully activated service 'org.gtk.vfs.Metadata'
+Font chooser CSS: dialog ['background', 'csd', 'tiled', 'tiled-top', 'tiled-right', 'tiled-bottom', 'tiled-left'] dialog:backdrop:dir-ltr.background.csd.tiled.tiled-top.tiled-right.tiled-bottom.tiled-left
+/home/SelandiaNyx/Selandia's Niri/tools/font_dialog_probe.py:61: DeprecationWarning: Gtk.StyleContext.get_background_color is deprecated
+  background = context.get_background_color(state)
+dbus-daemon[3902]: [session uid=1000 pid=3902 pidfd=5] Activating service name='org.freedesktop.Notifications' requested by ':1.4' (uid=1000 pid=3904 comm="niri --config /home/SelandiaNyx/Selandia's Niri/ni")
+PASS native font chooser: visible action labels, solid surfaces, text contrast >=4.5:1, selection roundtrip
+A connection to the bus can't be made

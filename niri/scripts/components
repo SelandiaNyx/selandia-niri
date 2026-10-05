@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+base=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
+bar_style=$base/theme/waybar.css
+notification_style=$base/theme/swaync.css
+bar_config=$base/waybar/config.jsonc
+notification_config=$base/swaync/config.json
+[[ ! -f "$base/theme/waybar.jsonc" ]] || bar_config=$base/theme/waybar.jsonc
+[[ ! -f "$base/theme/swaync.json" ]] || notification_config=$base/theme/swaync.json
+[[ -f "$bar_style" ]] || bar_style=$base/waybar/style.css
+[[ -f "$notification_style" ]] || notification_style=$base/swaync/style.css
+case "${1:-}" in
+    waybar)
+        # Pick the layout for the current output before the bar reads its config.
+        python3 -B "$base/shell/bar_layout.py" apply >/dev/null 2>&1 || true
+        exec waybar -c "$bar_config" -s "$bar_style"
+        ;;
+    notification-stream)
+        # Only the notification module waits; a failed daemon must not hide the
+        # entire bar. Waiting for its bus name does not D-Bus-autostart it.
+        gdbus wait --session --timeout 15 org.erikreider.swaync.cc
+        exec swaync-client --skip-wait --subscribe-waybar
+        ;;
+    notifications) exec swaync -c "$notification_config" -s "$notification_style" ;;
+    wallpaper)
+        wallpaper=$(python3 - "$base" <<'PY'
+import os, pathlib, sys
+state = pathlib.Path(os.environ.get('XDG_STATE_HOME', pathlib.Path.home()/'.local/state'))
+chosen = state/'selandia-niri/wallpaper'
+if chosen.is_file():
+    path = pathlib.Path(chosen.read_text().rstrip('\n'))
+    if path.is_file():
+        print(path)
+        sys.exit()
+path = pathlib.Path(sys.argv[1])/'assets/selandia-glass.svg'
+if path.is_file():
+    print(path)
+PY
+)
+        if [[ -n "$wallpaper" ]]; then
+            exec swaybg -i "$wallpaper" -m fill -c '#101522'
+        fi
+        exec swaybg -c '#101522'
+        ;;
+    idle)
+        idle_config=$base/swayidle/config
+        [[ ! -f "$base/swayidle/managed.conf" ]] || idle_config=$base/swayidle/managed.conf
+        exec swayidle -w -C "$idle_config"
+        ;;
+    sleep-lock) exec swayidle -w -C "$base/swayidle/sleep.conf" ;;
+    awake)
+        # This instance is started explicitly, never by the desktop target.
+        # It stops with the Niri session through the template's PartOf= setting.
+        exec systemd-inhibit --what=idle:sleep --mode=block --who='Selandia Niri' \
+            --why='Niri Stay awake: pause idle handling and prevent sleep' /usr/bin/sleep infinity
+        ;;
+    lock-*)
+        # One instance per Wayland display. It runs in its own unit cgroup, so
+        # stopping or restarting idle, sleep-lock or the control center cannot
+        # end a lock this service already confirmed.
+        exec python3 -B "$base/shell/lock_client.py" "${1#lock-}"
+        ;;
+    clipboard-text) exec wl-paste --type text --watch cliphist store ;;
+    clipboard-image) exec wl-paste --type image --watch cliphist store ;;
+    polkit)
+        for agent in /usr/lib/polkit-kde-authentication-agent-1 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1; do
+            if [[ -x "$agent" ]]; then
+                exec "$agent"
+            fi
+        done
+        printf '%s\n' '找不到 Polkit 验证代理，请安装 polkit-kde-agent。' >&2
+        exit 1
+        ;;
+    *) printf '未知组件：%s\n' "${1:-}" >&2; exit 2 ;;
+esac

@@ -1,0 +1,155 @@
+test_dry_run_does_not_create_state (test_deploy.DeploymentTests.test_dry_run_does_not_create_state) ... ok
+test_dry_run_reports_missing_portal_repair_without_writes (test_deploy.DeploymentTests.test_dry_run_reports_missing_portal_repair_without_writes) ... ok
+test_failed_install_restores_previous_config (test_deploy.DeploymentTests.test_failed_install_restores_previous_config) ... ok
+test_failed_repair_restores_missing_portal_and_preserves_manifest (test_deploy.DeploymentTests.test_failed_repair_restores_missing_portal_and_preserves_manifest) ... ok
+test_failed_uninstall_restores_the_installed_state (test_deploy.DeploymentTests.test_failed_uninstall_restores_the_installed_state) ... ok
+test_malformed_manifest_is_rejected_without_changes (test_deploy.DeploymentTests.test_malformed_manifest_is_rejected_without_changes) ... ok
+test_missing_original_backup_refuses_reinstall_and_uninstall (test_deploy.DeploymentTests.test_missing_original_backup_refuses_reinstall_and_uninstall) ... ok
+test_quote_systemd_path (test_deploy.DeploymentTests.test_quote_systemd_path) ... ok
+test_refuse_foreign_modification_before_uninstall (test_deploy.DeploymentTests.test_refuse_foreign_modification_before_uninstall) ... ok
+test_reinstall_and_restore_directory_and_dangling_link (test_deploy.DeploymentTests.test_reinstall_and_restore_directory_and_dangling_link) ... ok
+test_reinstall_repairs_missing_portal_preserving_original_backup (test_deploy.DeploymentTests.test_reinstall_repairs_missing_portal_preserving_original_backup) ... ok
+test_reinstall_repairs_missing_portal_without_inventing_original (test_deploy.DeploymentTests.test_reinstall_repairs_missing_portal_without_inventing_original) ... ok
+test_reinstall_updates_generated_unit_preserving_first_backup (test_deploy.DeploymentTests.test_reinstall_updates_generated_unit_preserving_first_backup) ... ok
+test_repair_refuses_modified_portal_and_foreign_dangling_symlink (test_deploy.DeploymentTests.test_repair_refuses_modified_portal_and_foreign_dangling_symlink) ... ok
+test_root_refused_before_any_config_or_state_write (test_deploy.DeploymentTests.test_root_refused_before_any_config_or_state_write) ... ok
+test_simultaneous_deployment_is_refused (test_deploy.DeploymentTests.test_simultaneous_deployment_is_refused) ... ok
+test_conflicting_flags_are_rejected_before_any_action (test_deploy.SetupScriptTests.test_conflicting_flags_are_rejected_before_any_action) ... ok
+test_existing_qt_mixer_satisfies_audio_requirement (test_deploy.SetupScriptTests.test_existing_qt_mixer_satisfies_audio_requirement) ... ok
+test_failed_validation_does_not_deploy (test_deploy.SetupScriptTests.test_failed_validation_does_not_deploy) ... ok
+test_missing_package_uses_full_upgrade_then_validates_and_deploys (test_deploy.SetupScriptTests.test_missing_package_uses_full_upgrade_then_validates_and_deploys) ... ok
+test_no_packages_skips_package_manager (test_deploy.SetupScriptTests.test_no_packages_skips_package_manager) ... ok
+test_package_failure_does_not_deploy (test_deploy.SetupScriptTests.test_package_failure_does_not_deploy) ... ok
+test_preview_never_installs_packages_or_validates_live_session (test_deploy.SetupScriptTests.test_preview_never_installs_packages_or_validates_live_session) ... ok
+test_satisfied_packages_never_run_sudo_or_system_update (test_deploy.SetupScriptTests.test_satisfied_packages_never_run_sudo_or_system_update) ... ok
+test_uninstall_skips_package_manager_and_validation (test_deploy.SetupScriptTests.test_uninstall_skips_package_manager_and_validation) ... ok
+test_bad_and_empty_provider_responses (test_shell_data.ChatTests.test_bad_and_empty_provider_responses) ... ok
+test_compatible_chat_uses_environment_key_and_v1_base (test_shell_data.ChatTests.test_compatible_chat_uses_environment_key_and_v1_base) ... ok
+test_invalid_endpoint_rejected_before_network (test_shell_data.ChatTests.test_invalid_endpoint_rejected_before_network) ... ok
+test_malformed_credential_never_appears_in_error (test_shell_data.ChatTests.test_malformed_credential_never_appears_in_error) ... ok
+test_missing_key_and_model_are_actionable (test_shell_data.ChatTests.test_missing_key_and_model_are_actionable) ... ok
+test_model_discovery (test_shell_data.ChatTests.test_model_discovery) ... ok
+test_network_errors_and_redirects (test_shell_data.ChatTests.test_network_errors_and_redirects) ... ok
+test_ollama_chat_sends_only_supplied_messages (test_shell_data.ChatTests.test_ollama_chat_sends_only_supplied_messages) ... ok
+test_provider_error_does_not_echo_sensitive_body (test_shell_data.ChatTests.test_provider_error_does_not_echo_sensitive_body) ... ok
+test_settings_store_no_key_and_use_private_file (test_shell_data.ChatTests.test_settings_store_no_key_and_use_private_file) ... ok
+test_every_real_binding_has_a_searchable_entry (test_shell_data.ShortcutTests.test_every_real_binding_has_a_searchable_entry) ... ok
+test_local_override_and_hidden_alias_remain_discoverable (test_shell_data.ShortcutTests.test_local_override_and_hidden_alias_remain_discoverable) ... ok
+test_unmodified_keys_and_comments (test_shell_data.ShortcutTests.test_unmodified_keys_and_comments) ... ok
+
+----------------------------------------------------------------------
+Ran 38 tests in 0.108s
+
+OK
+/tmp/niri deploy's o4ipcc6f/config/niri ← /home/SelandiaNyx/Selandia's Niri/niri
+/tmp/niri deploy's o4ipcc6f/config/systemd/user/selandia-niri.target ← /home/SelandiaNyx/Selandia's Niri/systemd/selandia-niri.target
+/tmp/niri deploy's o4ipcc6f/config/systemd/user/selandia-niri@.service ← generated systemd service / 生成的 systemd 服务
+/tmp/niri deploy's o4ipcc6f/config/xdg-desktop-portal/niri-portals.conf ← /home/SelandiaNyx/Selandia's Niri/portals/niri-portals.conf
+Backup and restore record / 备份及回退记录：/tmp/niri deploy's o4ipcc6f/state/install.json
+Install / 安装：/tmp/niri deploy's 0dvor4oa/config/niri
+Install / 安装：/tmp/niri deploy's 0dvor4oa/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 0dvor4oa/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 0dvor4oa/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 0dvor4oa/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's nwj3lntc/config/niri
+Install / 安装：/tmp/niri deploy's nwj3lntc/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's dgsbhwqi/config/niri
+Install / 安装：/tmp/niri deploy's dgsbhwqi/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's dgsbhwqi/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's dgsbhwqi/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's dgsbhwqi/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's dgsbhwqi/config/xdg-desktop-portal/niri-portals.conf
+Install / 安装：/tmp/niri deploy's kec84sej/config/niri
+Install / 安装：/tmp/niri deploy's kec84sej/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's kec84sej/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's kec84sej/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's kec84sej/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's kec84sej/config/niri
+Restore / 回退：/tmp/niri deploy's kec84sej/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's kec84sej/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's kec84sej/config/niri
+Restore / 回退：/tmp/niri deploy's kec84sej/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's kec84sej/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's kec84sej/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's kec84sej/state/removed-uwq53se2
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's zn6f88oe/config/niri
+Install / 安装：/tmp/niri deploy's zn6f88oe/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's zn6f88oe/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's zn6f88oe/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's zn6f88oe/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's n7mtw4jo/config/niri
+Install / 安装：/tmp/niri deploy's n7mtw4jo/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's n7mtw4jo/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's n7mtw4jo/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's n7mtw4jo/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's vuzdvon1/config/niri
+Install / 安装：/tmp/niri deploy's vuzdvon1/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's vuzdvon1/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's vuzdvon1/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's vuzdvon1/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's vuzdvon1/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's vuzdvon1/config/niri
+Restore / 回退：/tmp/niri deploy's vuzdvon1/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's vuzdvon1/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's vuzdvon1/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's vuzdvon1/state/removed-yrkmebvs
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's 0bnadq2g/config/niri
+Install / 安装：/tmp/niri deploy's 0bnadq2g/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's 0bnadq2g/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's 0bnadq2g/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 0bnadq2g/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's 0bnadq2g/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's 0bnadq2g/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's 0bnadq2g/config/niri
+Restore / 回退：/tmp/niri deploy's 0bnadq2g/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's 0bnadq2g/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's 0bnadq2g/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's 0bnadq2g/state/removed-84vtx2o9
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's w5pws6co/config/niri
+Install / 安装：/tmp/niri deploy's w5pws6co/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's w5pws6co/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's w5pws6co/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's w5pws6co/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's w5pws6co/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's w5pws6co/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's w5pws6co/config/niri
+Restore / 回退：/tmp/niri deploy's w5pws6co/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's w5pws6co/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's w5pws6co/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's w5pws6co/state/removed-cv9n0ms5
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's smtvc35i/config/niri
+Install / 安装：/tmp/niri deploy's smtvc35i/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's smtvc35i/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's smtvc35i/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's smtvc35i/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Install / 安装：/tmp/niri deploy's smtvc35i/config/systemd/user/selandia-niri@.service
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's smtvc35i/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
+Restore / 回退：/tmp/niri deploy's smtvc35i/config/niri
+Restore / 回退：/tmp/niri deploy's smtvc35i/config/systemd/user/selandia-niri.target
+Restore / 回退：/tmp/niri deploy's smtvc35i/config/systemd/user/selandia-niri@.service
+Restore / 回退：/tmp/niri deploy's smtvc35i/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files / 已恢复原配置，移除的配置保留在：/tmp/niri deploy's smtvc35i/state/removed-b_nmgkli
+Packages, wallpaper choice and clipboard data preserved. / 保留软件包、壁纸选择和剪贴板数据。
+Install / 安装：/tmp/niri deploy's a2t9hy0d/config/niri
+Install / 安装：/tmp/niri deploy's a2t9hy0d/config/systemd/user/selandia-niri.target
+Install / 安装：/tmp/niri deploy's a2t9hy0d/config/systemd/user/selandia-niri@.service
+Install / 安装：/tmp/niri deploy's a2t9hy0d/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record / 配置已就绪，备份记录：/tmp/niri deploy's a2t9hy0d/state/install.json
+Log out when ready, then select Niri at login. / 保存工作后注销，在登录界面选择 Niri。
