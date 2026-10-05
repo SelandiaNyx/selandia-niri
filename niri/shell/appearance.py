@@ -266,6 +266,14 @@ tooltip {{ color: {ink}; background: {rgba(bg, .97)}; border-color: {rgba(border
 #custom-ai:hover {{ background: {rgba(secondary, .25)}; }}
 #custom-control:hover {{ background: {ink}; }}
 """
+    # Module font sizes are design steps relative to the same 12px base the panel
+    # uses. An #id rule beats the generated `*` rule, so without this the
+    # interface size would never reach the bar's smaller modules.
+    for selectors, pixels in (("#custom-launcher", 20),
+                              ("#custom-shortcuts, #custom-notification", 16),
+                              ("#window, #pulseaudio, #battery", 11),
+                              ("#network, #custom-system", 10)):
+        waybar += f"{selectors} {{ font-size: {pixels * size / 12:g}px; }}\n"
     import bar_layout
     waybar += bar_layout.css(layout or bar_layout.current_layout(base=base) or "wide", size)
     swaync = '@import "../swaync/style.css";\n' + css_header + f"""@define-color cc-bg {rgba(bg, opacity)};

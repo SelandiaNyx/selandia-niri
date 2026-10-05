@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "niri/shell"))
 sys.path.insert(0, str(ROOT / "tools"))
 
+import bar_fit
 import bar_layout
 import font_scale
 import i18n
@@ -75,7 +76,7 @@ report["A5"] = {
 }
 
 report["A3"] = {
-    "wide_font_widths": bar_layout.WIDE_FONT_WIDTHS,
+    "measured_requirement": {layout: bar_fit.required(layout, 16) for layout in bar_layout.LAYOUTS},
     "reported_narrow_output": {"logical_width": 1067, "font_size": 16,
                                "layout": bar_layout.select(width=1067, size=16)},
     "acceptance": {f"{size}px": {name: bar_layout.select(width=width, size=size)

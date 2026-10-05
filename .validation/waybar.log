@@ -1,7 +1,63 @@
-[2026-10-05 10:27:34.309] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
-[2026-10-05 10:27:34.311] [info] Discovered appearance 'dark'
-[2026-10-05 10:27:34.312] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
-[2026-10-05 10:27:34.315] [info] Niri IPC starting
-[2026-10-05 10:27:34.318] [warning] No batteries.
-[2026-10-05 10:27:34.374] [info] Bar configured (width: 1031, height: 46) for output: winit
-[2026-10-05 10:27:34.374] [info] Bar configured (width: 1121, height: 46) for output: winit
+[2026-10-05 10:43:42.003] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:43:42.006] [info] Discovered appearance 'dark'
+[2026-10-05 10:43:42.006] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:43:42.008] [info] Niri IPC starting
+[2026-10-05 10:43:42.011] [warning] No batteries.
+[2026-10-05 10:43:42.061] [info] Bar configured (width: 1031, height: 46) for output: winit
+[2026-10-05 10:44:45.870] [info] Reloading...
+
+** (waybar:491634): CRITICAL **: 10:44:45.872: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+
+** (waybar:491638): CRITICAL **: 10:44:45.875: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:44:45.876] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:44:45.876] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:44:45.893] [warning] No batteries.
+[2026-10-05 10:44:45.921] [info] Bar configured (width: 1031, height: 46) for output: winit
+[2026-10-05 10:44:45.960] [info] Bar configured (width: 1087, height: 46) for output: winit
+[2026-10-05 10:44:45.985] [info] Bar configured (width: 1121, height: 46) for output: winit
+[2026-10-05 10:44:46.185] [info] Reloading...
+
+** (waybar:491725): CRITICAL **: 10:44:46.187: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+
+** (waybar:491726): CRITICAL **: 10:44:46.190: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:44:46.191] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:44:46.191] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:44:46.200] [warning] No batteries.
+[2026-10-05 10:44:46.212] [info] Bar configured (width: 1031, height: 46) for output: winit
+[2026-10-05 10:44:46.260] [info] Bar configured (width: 1121, height: 46) for output: winit
+[2026-10-05 10:44:46.493] [info] Reloading...
+
+** (waybar:491860): CRITICAL **: 10:44:46.495: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+
+** (waybar:491862): CRITICAL **: 10:44:46.497: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:44:46.499] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:44:46.499] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:44:46.505] [warning] No batteries.
+[2026-10-05 10:44:46.518] [info] Bar configured (width: 1031, height: 46) for output: winit
+[2026-10-05 10:44:46.801] [info] Reloading...
+
+** (waybar:492022): CRITICAL **: 10:44:46.803: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:44:46.804] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:44:46.804] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:44:46.818] [warning] No batteries.
+[2026-10-05 10:44:46.831] [info] Bar configured (width: 1031, height: 46) for output: winit
+[2026-10-05 10:44:46.879] [info] Bar configured (width: 1087, height: 46) for output: winit
+[2026-10-05 10:44:46.904] [info] Bar configured (width: 1121, height: 46) for output: winit
+[2026-10-05 10:44:47.105] [info] Reloading...
+
+** (waybar:492186): CRITICAL **: 10:44:47.107: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+
+** (waybar:492188): CRITICAL **: 10:44:47.110: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:44:47.111] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:44:47.111] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:44:47.115] [warning] No batteries.
+[2026-10-05 10:44:47.125] [info] Bar configured (width: 1031, height: 46) for output: winit
+[2026-10-05 10:44:47.408] [info] Reloading...
+
+** (waybar:492323): CRITICAL **: 10:44:47.410: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+
+** (waybar:492325): CRITICAL **: 10:44:47.413: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed
+[2026-10-05 10:44:47.414] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc
+[2026-10-05 10:44:47.414] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css
+[2026-10-05 10:44:47.417] [warning] No batteries.
+[2026-10-05 10:44:47.431] [info] Bar configured (width: 1031, height: 46) for output: winit

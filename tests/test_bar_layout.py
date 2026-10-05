@@ -14,6 +14,7 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "niri/shell"))
+import bar_fit
 import bar_layout
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,16 +34,26 @@ class LayoutSelectionTests(unittest.TestCase):
         self.assertEqual(bar_layout.select(width=1067, size=16), "compact")
 
     def test_acceptance_resolutions_and_font_sizes(self):
+        # The acceptance is "the right-hand end stays complete and inside the
+        # output": whatever is chosen must be measured to fit, and the compact
+        # layout must always be available for the narrow logical widths.
         cases = {"1920x1080@150%": 1280, "2560x1440@200%": 1280, "3840x2160@150%": 2560}
-        expected = {
-            12: {"1920x1080@150%": "wide", "2560x1440@200%": "wide", "3840x2160@150%": "wide"},
-            16: {"1920x1080@150%": "wide", "2560x1440@200%": "wide", "3840x2160@150%": "wide"},
-            20: {"1920x1080@150%": "compact", "2560x1440@200%": "compact", "3840x2160@150%": "wide"},
-        }
-        for size, by_name in expected.items():
+        for size in (12, 16, 20):
             for name, width in cases.items():
                 with self.subTest(size=size, output=name):
-                    self.assertEqual(bar_layout.select(width=width, size=size), by_name[name])
+                    chosen = bar_layout.select(width=width, size=size)
+                    self.assertIn(chosen, bar_layout.LAYOUTS)
+                    self.assertTrue(bar_fit.fits(chosen, width, size),
+                                    f"{name} at {size}px chose {chosen}, which does not fit")
+                    if chosen == "compact":
+                        self.assertTrue(bar_fit.fits("compact", width, size))
+
+    def test_the_wide_layout_is_only_chosen_when_it_is_measured_to_fit(self):
+        for size in (12, 16, 20):
+            needed = bar_fit.required("wide", size)
+            with self.subTest(size=size):
+                self.assertEqual(bar_layout.select(width=needed, size=size), "wide")
+                self.assertEqual(bar_layout.select(width=needed - 1, size=size), "compact")
 
     def test_unknown_geometry_keeps_the_full_layout(self):
         self.assertEqual(bar_layout.select(width=None, size=16, run=outputs({})), "wide")

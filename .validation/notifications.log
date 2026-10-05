@@ -1,10 +1,22 @@
 Starting SwayNotificationCenter version swaync 0.12.6
-** Message: 10:27:34.091: configModel.vala:513: Loading Config: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.json"
+** Message: 10:43:41.640: configModel.vala:513: Loading Config: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.json"
 
-(process:306055): Adwaita-WARNING **: 10:27:34.100: Using GtkSettings:gtk-application-prefer-dark-theme with libadwaita is unsupported. Please use AdwStyleManager:color-scheme instead.
-** Message: 10:27:34.185: functions.vala:104: Loading CSS: "/etc/xdg/swaync/style.css"
-** Message: 10:27:34.185: functions.vala:117: Loading CSS: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.css"
-** Message: 10:27:34.187: factory.vala:55: Loading widget: title
-** Message: 10:27:34.187: factory.vala:55: Loading widget: dnd
-** Message: 10:27:34.189: factory.vala:55: Loading widget: mpris
-** Message: 10:27:34.189: factory.vala:17: Loading widget: widget-notifications
+(process:430605): Adwaita-WARNING **: 10:43:41.649: Using GtkSettings:gtk-application-prefer-dark-theme with libadwaita is unsupported. Please use AdwStyleManager:color-scheme instead.
+** Message: 10:43:41.732: functions.vala:104: Loading CSS: "/etc/xdg/swaync/style.css"
+** Message: 10:43:41.733: functions.vala:117: Loading CSS: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.css"
+** Message: 10:43:41.735: factory.vala:55: Loading widget: title
+** Message: 10:43:41.735: factory.vala:55: Loading widget: dnd
+** Message: 10:43:41.737: factory.vala:55: Loading widget: mpris
+** Message: 10:43:41.737: factory.vala:17: Loading widget: widget-notifications
+** Message: 10:44:45.874: functions.vala:104: Loading CSS: "/etc/xdg/swaync/style.css"
+** Message: 10:44:45.876: functions.vala:117: Loading CSS: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.css"
+** Message: 10:44:46.188: functions.vala:104: Loading CSS: "/etc/xdg/swaync/style.css"
+** Message: 10:44:46.189: functions.vala:117: Loading CSS: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.css"
+** Message: 10:44:46.496: functions.vala:104: Loading CSS: "/etc/xdg/swaync/style.css"
+** Message: 10:44:46.496: functions.vala:117: Loading CSS: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.css"
+** Message: 10:44:46.803: functions.vala:104: Loading CSS: "/etc/xdg/swaync/style.css"
+** Message: 10:44:46.804: functions.vala:117: Loading CSS: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.css"
+** Message: 10:44:47.107: functions.vala:104: Loading CSS: "/etc/xdg/swaync/style.css"
+** Message: 10:44:47.107: functions.vala:117: Loading CSS: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.css"
+** Message: 10:44:47.411: functions.vala:104: Loading CSS: "/etc/xdg/swaync/style.css"
+** Message: 10:44:47.412: functions.vala:117: Loading CSS: "/home/SelandiaNyx/Selandia's Niri/niri/theme/swaync.css"

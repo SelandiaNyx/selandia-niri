@@ -116,7 +116,7 @@ class AppearanceTests(unittest.TestCase):
         shutil.copyfile(ROOT / "niri/shell/i18n.py", self.base / "shell/i18n.py")
         # The bar stylesheet is layout-aware and the fonts are unit-converted,
         # so those helpers belong in the copied tree as well.
-        for helper in ("bar_layout.py", "font_scale.py"):
+        for helper in ("bar_layout.py", "bar_fit.py", "font_scale.py"):
             shutil.copyfile(ROOT / "niri/shell" / helper, self.base / "shell" / helper)
         state_home = self.directory / "cli-state"
         saved = state_home / "selandia-niri/appearance.json"

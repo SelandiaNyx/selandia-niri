@@ -18,13 +18,10 @@ import subprocess
 import sys
 import time
 
+import bar_fit
 from i18n import tr
 
 BASE = Path(__file__).resolve().parent.parent
-# A layout must fit the narrowest connected output. These are the interface-font
-# pixels of logical width each layout needs, measured on the real bar.
-WIDE_FONT_WIDTHS = 68
-COMPACT_FONT_WIDTHS = 40
 WIDE_MODULES_LEFT = ("custom/launcher", "niri/workspaces", "niri/window")
 COMPACT_MODULES_LEFT = ("custom/launcher", "niri/workspaces")
 WIDE_MODULES_RIGHT = ("custom/layout", "custom/ai", "custom/shortcuts", "custom/system", "pulseaudio",
@@ -76,15 +73,18 @@ def font_size(*, base=BASE):
 
 
 def select(*, width=None, size=None, base=BASE, run=subprocess.run):
-    """Return the layout that fits the narrowest output."""
+    """Return the layout that fits the narrowest output, by measurement."""
     if size is None:
         size = font_size(base=base)
     if width is None:
         widths = output_widths(run=run)
         width = min(widths) if widths else None
-    if not width:
-        return "wide"  # unknown geometry must not silently degrade the bar
-    return "wide" if width >= WIDE_FONT_WIDTHS * float(size) else "compact"
+    return bar_fit.choose(width, size)
+
+
+def requirement(layout, size, *, measurer=None):
+    """Logical pixels the layout needs, for diagnostics and tests."""
+    return bar_fit.required(layout, size, measurer=measurer)
 
 
 def build(config, layout):
@@ -180,8 +180,11 @@ def main(argv=None):
     arguments = parser.parse_args(sys.argv[1:] if argv is None else argv)
     try:
         if arguments.mode == "status":
+            size = arguments.font_size if arguments.font_size else font_size()
             print(json.dumps({"layout": select(width=arguments.width, size=arguments.font_size),
-                              "current": current_layout()}, ensure_ascii=False))
+                              "current": current_layout(),
+                              "required": {name: requirement(name, size) for name in LAYOUTS}},
+                             ensure_ascii=False))
             return 0
         layout = apply(width=arguments.width, size=arguments.font_size, notify=arguments.mode == "ensure")
         if arguments.mode == "ensure":
