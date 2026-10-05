@@ -114,9 +114,11 @@
 
 - **通知中心截图**：`tools/smoke.py` 的截图函数新增 `hide_notifications` 开关；通知中心现在在**不隐藏**的情况下截取为唯一的 `notifications-center.png`；桌面总览改名为 `desktop-overview.png`，不再被“窗口与工作区”设置页覆盖。
 - **waybar 日志归因**：新增 `tools/bar_log.py`，把每条 CRITICAL/ERROR/WARNING 与最近的模块/子进程标记及上下文一起报告；只有**直接点名本项目**的记录才会让运行失败，上游 GLib 噪声会被记录（`waybar-log-report.json`）并显式打印，而不是被过滤掉。烟雾测试重载循环后新增“右侧末端仍是控制中心按钮 + 网速宽度受约束”的布局检查。测试见 `tests/test_bar_log.py`（9 项）。
-  对现有 [waybar.log](waybar.log) 的实际归因结果（[waybar-log-report.json](waybar-log-report.json)）：3 条 CRITICAL 全部是 waybar 进程自身的 `Glib::DispatchNotifier::unreference_instance` 断言失败，记录里没有任何本项目的模块或子进程名字（`project_findings` 为 0），随后 waybar 以新 PID 重启；7 条 WARNING 是 `No batteries`。因此现有证据指向上游 waybar/glibmm 而非本项目代码，这与审计“当前没有足够证据直接归因于项目代码或某个上游版本”的结论一致，但现在有了可复核的上下文而不是被过滤。
+  对现有 [waybar.log](waybar.log) 的实际归因结果（[waybar-log-report.json](waybar-log-report.json)）：CRITICAL 全部是 waybar 进程自身的 `Glib::DispatchNotifier::unreference_instance` 断言失败，记录里没有任何本项目的模块或子进程名字（`project_findings` 为 0），随后 waybar 以新 PID 重启；WARNING 是 `No batteries`。
+  第二轮用**对照实验定位了触发者**（每例 6 次 `SIGUSR2` 重载，原始日志 `waybar-reload-full.log` / `waybar-reload-min.log` / `waybar-reload-only-system.log` / `waybar-reload-only-notification.log`）：完整配置 8 条 CRITICAL → 去掉三个 `restart-interval` 子进程模块后 **0 条**；只留 `custom/system`（每 3 秒退出一次的子进程）→ 3 条；只留 `custom/notification`（`swaync-client --subscribe-waybar` 长连接流）→ 1 条。结论：条数随**带子进程的 `custom/*` 模块个数**变化，属上游 waybar/glibmm 在重载时销毁 custom 模块子进程流的实现问题，不是本项目代码，也不是某一个特定模块。可选规避是把长连接流换成定期轮询（代价是通知计数延迟），本轮**未**改动，以免为一个无功能影响的上游日志噪声破坏已验证的通知路径。
 - **界面文案语言矩阵**：新增 `tests/test_ui_language_matrix.py`（6 项），用 AST 解析 `niri/shell/*.py` 中 200+ 条 `tr()` 文案，断言英文不含中文、中文不含“英文短语 / 中文”并列、中文不重复整句英文、不存在把中文复制到两种语言的漏改，并覆盖全部 117 条快捷键。
-- **仍未覆盖（需要合成器）**：明/暗 × 中/英 × 100%/150%/200% 的截图矩阵，以及展开菜单、错误、空内容、禁用、长文字等控件状态的视觉验证。这需要嵌套合成器，本沙箱无法运行。
+- **现已由嵌套会话覆盖**：16 个设置页 + 快捷键 + AI 侧栏的截图、52 项 GTK 交互测试、媒体/显示/字体探针、连续 6 次状态栏重载、真实 swaylock 就绪与复用、通知中心独立截图，以及 A3 的像素级栏宽验收（见 [bar-measurements.json](bar-measurements.json)）。
+- **仍需合成器/硬件才能覆盖**：明/暗 × 中/英 × 100%/150%/200% 的完整截图矩阵，以及展开菜单、错误、空内容、禁用、长文字等控件状态的视觉验证；真实硬件睡眠、整夜息屏、PAM 解锁。
 - **用户自定义 GTK CSS**：`~/.config/gtk-3.0/gtk.css`、`gtk-4.0/gtk.css` 含 `@import 'colors.css'`（Breeze 暗色变量），可能覆盖外观设置。本轮**未删除、未修改**这些文件；浅色整机一致性仍需在私有配置副本中单独核验，不能凭面板截图判断。
 
 ## 部署说明
