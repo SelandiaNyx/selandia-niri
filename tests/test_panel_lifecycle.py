@@ -182,3 +182,75 @@ class PanelLifecycleTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PanelMonitorTests(unittest.TestCase):
+    """A layer surface opens on the focused output, not on Wayland's "primary"."""
+
+    class Monitor:
+        def __init__(self, name):
+            self.name = name
+
+        def get_geometry(self):
+            return SimpleNamespace(width=1920, height=1080)
+
+    def display(self, *, pointer=None, primary="primary", at_point=None, seat=True):
+        class Seat:
+            def get_pointer(self):
+                return pointer
+
+        class Display:
+            def get_default_seat(self):
+                return Seat() if seat else None
+
+            def get_monitor_at_point(self, x, y):
+                return at_point
+
+            def get_primary_monitor(self):
+                return self.monitors.get(primary)
+
+            def get_monitor(self, index):
+                return self.monitors.get("first")
+
+        display = Display()
+        display.monitors = {"primary": self.Monitor("primary"), "first": self.Monitor("first"),
+                            "pointer": self.Monitor("pointer"), "at": at_point}
+        display.at_point = at_point
+        return display
+
+    def test_the_pointer_monitor_wins_when_it_is_known(self):
+        # Gdk.Device.get_position() returns (screen, x, y) in GTK 3.
+        pointer = SimpleNamespace(get_position=lambda: (None, 10, 20))
+        pointer_monitor = self.Monitor("pointer")
+        display = self.display(pointer=pointer, at_point=pointer_monitor)
+        self.assertIs(panel.panel_monitor(display), pointer_monitor)
+
+    def test_a_missing_monitor_at_the_pointer_falls_back_to_primary(self):
+        pointer = SimpleNamespace(get_position=lambda: (None, 10, 20))
+        display = self.display(pointer=pointer, at_point=None)
+        self.assertEqual(panel.panel_monitor(display).name, "primary")
+
+    def test_a_missing_pointer_falls_back_to_primary(self):
+        display = self.display(pointer=None, at_point=self.Monitor("at"))
+        self.assertEqual(panel.panel_monitor(display).name, "primary")
+
+    def test_a_broken_seat_never_breaks_the_panel(self):
+        display = self.display(seat=False)
+        self.assertEqual(panel.panel_monitor(display).name, "primary")
+
+    def test_primary_absent_falls_back_to_the_first_monitor(self):
+        display = self.display(pointer=None, primary="absent")
+        self.assertEqual(panel.panel_monitor(display).name, "first")
+
+    def test_a_two_element_position_is_tolerated(self):
+        pointer = SimpleNamespace(get_position=lambda: (10, 20))
+        display = self.display(pointer=pointer, at_point=self.Monitor("at"))
+        self.assertEqual(panel.panel_monitor(display).name, "primary")
+
+    def test_a_pointer_without_coordinates_falls_back_to_primary(self):
+        class Broken:
+            def get_position(self):
+                raise TypeError("no coordinates")
+
+        display = self.display(pointer=Broken(), at_point=self.Monitor("at"))
+        self.assertEqual(panel.panel_monitor(display).name, "primary")

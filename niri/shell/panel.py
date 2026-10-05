@@ -82,6 +82,27 @@ def set_bluetooth(path, powered):
                   None, Gio.DBusCallFlags.NONE, 10000, None)
 
 
+def panel_monitor(display):
+    """The output this panel should size itself for.
+
+    Niri opens a new layer surface on the focused output, so the monitor under
+    the pointer is a better guess than Wayland's "primary" (which GTK resolves to
+    the first monitor). Everything falls back to the previous behaviour when the
+    seat or the point lookup is unavailable.
+    """
+    try:
+        seat = display.get_default_seat()
+        pointer = seat.get_pointer() if seat is not None else None
+        if pointer is not None:
+            _, x, y = pointer.get_position()
+            monitor = display.get_monitor_at_point(x, y)
+            if monitor is not None:
+                return monitor
+    except (AttributeError, TypeError, ValueError):
+        pass
+    return display.get_primary_monitor() or display.get_monitor(0)
+
+
 def label(text, css=None, wrap=False, *, localize=True):
     widget = Gtk.Label(label=tr_legacy(text) if localize else text, xalign=0)
     if css:
@@ -197,7 +218,7 @@ class Panel(Gtk.ApplicationWindow):
         if mode == "control":
             self.get_style_context().add_class("control-center-window")
         display = Gdk.Display.get_default()
-        monitor = display.get_primary_monitor() or display.get_monitor(0)
+        monitor = panel_monitor(display)
         geometry = monitor.get_geometry()
         width = min(860 if mode == "shortcuts" else (960 if mode == "control" else 440), max(300, geometry.width - 32))
         height = min(820, max(360, geometry.height - 104))
