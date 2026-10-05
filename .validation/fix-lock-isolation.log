@@ -1,0 +1,9 @@
+test_another_display_gets_its_own_unit_and_never_disturbs_the_first (tests.test_lock_isolation.LockIsolationTests.test_another_display_gets_its_own_unit_and_never_disturbs_the_first) ... ok
+test_the_lock_is_not_inside_a_component_cgroup (tests.test_lock_isolation.LockIsolationTests.test_the_lock_is_not_inside_a_component_cgroup)
+A component restart must not be able to reach the locker's cgroup. ... ok
+test_two_trigger_services_reuse_and_never_own_the_lock (tests.test_lock_isolation.LockIsolationTests.test_two_trigger_services_reuse_and_never_own_the_lock) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.466s
+
+OK

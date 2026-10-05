@@ -137,12 +137,22 @@ def _systemctl(*arguments, timeout=10):
     return subprocess.run(["systemctl", "--user", *arguments], capture_output=True, text=True, timeout=timeout)
 
 
-def unit_loaded(unit):
+def unit_loaded(unit, *, run=None):
+    """True when this user manager can start ``unit``, template or instance.
+
+    ``systemctl show`` rejects a bare template name ("neither a valid invocation
+    ID nor unit name"), so probing a template with it always answers "missing".
+    ``systemctl cat`` answers for templates and instances alike, and a masked
+    unit is reported as unavailable because starting it could not work.
+    """
+    run = run or _systemctl
     try:
-        result = _systemctl("show", unit, "--property=LoadState", "--value", timeout=8)
+        if run("cat", unit, timeout=8).returncode:
+            return False
+        enabled = run("is-enabled", unit, timeout=8)
     except (OSError, subprocess.SubprocessError):
         return False
-    return result.returncode == 0 and result.stdout.strip() == "loaded"
+    return enabled.stdout.strip() not in ("masked", "masked-runtime")
 
 
 def systemd_launcher(unit_template):

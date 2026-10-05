@@ -254,6 +254,44 @@ class IsolationSelectionTests(unittest.TestCase):
         self.assertEqual(arguments[-1], "abc123")
         self.assertFalse(failed())
 
+    def test_template_availability_is_probed_with_cat_not_show(self):
+        """`systemctl show <template>` answers "missing" for a deployed template.
+
+        This is the regression that made the real desktop refuse to lock inside a
+        service while silently preferring the unisolated path elsewhere.
+        """
+        calls = []
+
+        def available(verb, unit, **options):
+            calls.append((verb, unit))
+            return subprocess.CompletedProcess([verb], 0, "static", "")
+
+        self.assertTrue(locker.unit_loaded("selandia-lock@.service", run=available))
+        self.assertEqual([verb for verb, _ in calls], ["cat", "is-enabled"])
+
+    def test_missing_or_masked_template_is_unavailable(self):
+        def missing(verb, unit, **options):
+            return subprocess.CompletedProcess([verb], 1, "", "neither a valid invocation ID nor unit name")
+
+        def masked(verb, unit, **options):
+            return subprocess.CompletedProcess([verb], 0, "masked" if verb == "is-enabled" else "", "")
+
+        self.assertFalse(locker.unit_loaded("selandia-lock@.service", run=missing))
+        self.assertFalse(locker.unit_loaded("selandia-lock@.service", run=masked))
+
+    def test_an_unreachable_manager_reports_no_unit(self):
+        def broken(verb, unit, **options):
+            raise OSError("Failed to connect to user scope bus")
+
+        self.assertFalse(locker.unit_loaded("selandia-lock@.service", run=broken))
+
+    def test_select_launcher_uses_the_available_dedicated_unit(self):
+        start = locker.select_launcher("/tmp", loaded=lambda unit: unit == "selandia-lock@.service", inside=True)
+        with patch.object(locker, "_systemctl") as systemctl:
+            systemctl.return_value = subprocess.CompletedProcess([], 0, "", "")
+            start("abc123", 10)
+        self.assertEqual(systemctl.call_args_list[-1].args[1], "selandia-lock@abc123.service")
+
     def test_start_failure_is_reported_and_never_treated_as_a_lock(self):
         with patch.object(locker, "_systemctl") as systemctl:
             systemctl.return_value = subprocess.CompletedProcess([], 1, "", "Unit not found.")
