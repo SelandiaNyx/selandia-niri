@@ -2,11 +2,21 @@
 
 Arch Linux · Niri 26.04 (8ed0da4).
 
+## 2026-10-05：A1–A8 自检问题整改（第二轮：真实环境实测）
+
+获得完整权限后，真实用户 systemd 与嵌套合成器均可用，上一轮"未验证"的项目已逐项实测，并发现 3 个只在真实环境暴露的缺陷（锁屏单元探测永远失败、渲染函数调用子进程、退出请求粘性）。逐项结果与实测数据见 [.validation/FIXES.md](.validation/FIXES.md) 与 [.validation/bar-measurements.json](.validation/bar-measurements.json)。
+
+- **`./check.sh` 完整通过（exit 0）**：[日志](.validation/fix-check-full.log)。现在包含单元测试（521 项）与实时会话组件检查。
+- **锁屏 cgroup 隔离在真实用户管理器上 3/3 通过**：[日志](.validation/fix-lock-isolation.log)。用测试专用瞬态单元模拟 idle/sleep-lock，未触碰真实桌面锁屏。
+- **完整嵌套会话冒烟通过**：[日志](.validation/fix-smoke.log)，含 52 项 GTK 交互测试、媒体/显示/字体探针、连续 6 次重载、真实 swaylock 就绪与复用。
+- **A3 像素级验收实测**：1066 逻辑像素 → compact（边距 18/17 保留，不裁切）；3840 逻辑像素 → wide（18/18）。compact 阈值 773 逻辑像素 @16px。见 [bar-measurements.json](.validation/bar-measurements.json) 与 [bar-measure-before/after 截图](.validation/bar-measure-after.png)。
+- 未验证：浅色整机一致性、真实硬件睡眠/整夜息屏/PAM 解锁。
+
 ## 2026-10-05：A1–A8 自检问题整改
 
 按 [.validation/PROJECT_AUDIT.md](.validation/PROJECT_AUDIT.md) 的交接要求完成 A1–A8 与测试覆盖缺口，逐项实现、测试与未验证项见 [.validation/FIXES.md](.validation/FIXES.md)，本轮实测数据见 [.validation/fix-summary.json](.validation/fix-summary.json)。
 
-- **490 项单元测试通过**（1 项按设计跳过）：[完整日志](.validation/fix-unit.log)。新增或重写的覆盖包括锁屏就绪协议与启动器选择、面板提交任务生命周期、读取期间冻结草稿、统一睡眠入口、快捷键单语言与 Fuzzel placeholder、符号图标在 100%/150%/200% 的透明渲染、状态栏宽/紧凑布局与合法 GTK CSS、界面字号 px→pt 换算、界面文案语言矩阵、状态栏日志归因。
+- **521 项单元测试通过**（1 项按设计跳过）：[完整日志](.validation/fix-unit.log)。新增或重写的覆盖包括锁屏就绪协议与启动器选择、面板提交任务生命周期、读取期间冻结草稿、统一睡眠入口、快捷键单语言与 Fuzzel placeholder、符号图标在 100%/150%/200% 的透明渲染、状态栏宽/紧凑布局与合法 GTK CSS、界面字号 px→pt 换算、界面文案语言矩阵、状态栏日志归因。
 - **`./check.sh --config` 通过**：[日志](.validation/fix-check.log)（Niri 配置、Fuzzel 配置、JSON、Shell/Python 语法、GTK 3/4 样式）。
 - **完整 `./check.sh` 在本沙箱不可用**：[日志](.validation/fix-check-full.log)。唯一失败原因是无法连接用户 systemd（`Failed to connect to user scope bus via local transport`），因此组件状态、`selandia-lock@.service` 的真实 cgroup 生命周期以及嵌套 Niri 冒烟测试（本沙箱嵌套 Niri 启动即 `PermissionDenied`）均**未在本环境验证**，已在 FIXES.md 与 fix-summary.json 的 `verification_limits` 中明确列出。
 - 未执行真实睡眠、未杀主桌面锁屏、未改动音频枚举、三个真实输出设备或用户偏好；未修改 `/usr/share/icons`。用户自定义 GTK CSS（含 `@import 'colors.css'`）保持原样，浅色整机一致性仍需在私有配置副本中单独核验。

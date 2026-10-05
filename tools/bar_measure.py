@@ -31,8 +31,17 @@ ARTIFACTS = ROOT / ".validation"
 BAR_MARGIN = 18
 
 
-def niri(*arguments, timeout=10):
-    return subprocess.run(["niri", "msg", *arguments], capture_output=True, text=True, timeout=timeout)
+def niri(*arguments, socket=None, timeout=10):
+    """Talk to the nested session, or to the host when a socket is given.
+
+    The host session is only ever used to resize this probe's own compositor
+    window; every screenshot and layout decision stays inside the private one.
+    """
+    environment = dict(os.environ)
+    if socket:
+        environment["NIRI_SOCKET"] = socket
+    return subprocess.run(["niri", "msg", *arguments], capture_output=True, text=True,
+                          timeout=timeout, env=environment)
 
 
 def outputs():
@@ -50,23 +59,25 @@ def connected_output():
     raise RuntimeError("no connected output in this session")
 
 
-def resize_host_window(pid, width, height=1000):
+def resize_host_window(pid, width, host_socket, height=1000):
     """Resize the nested compositor's window in the host session, if reachable."""
-    if not pid:
+    if not pid or not host_socket:
         return False
     for _ in range(40):
+        result = niri("--json", "windows", socket=host_socket)
+        if result.returncode:
+            return False
         try:
-            windows = json.loads(subprocess.check_output(["niri", "msg", "--json", "windows"],
-                                                         text=True, timeout=3))
-        except (subprocess.SubprocessError, ValueError, OSError):
+            windows = json.loads(result.stdout)
+        except ValueError:
             return False
         window = next((item for item in windows if item.get("pid") == pid), None)
         if window:
             identifier = str(window["id"])
             if not window.get("is_floating"):
-                niri("action", "toggle-window-floating", "--id", identifier)
-            niri("action", "set-window-width", "--id", identifier, str(width))
-            niri("action", "set-window-height", "--id", identifier, str(height))
+                niri("action", "toggle-window-floating", "--id", identifier, socket=host_socket)
+            niri("action", "set-window-width", "--id", identifier, str(width), socket=host_socket)
+            niri("action", "set-window-height", "--id", identifier, str(height), socket=host_socket)
             return True
         time.sleep(.1)
     return False
@@ -112,17 +123,35 @@ def diff_box(before, after, tolerance=6):
     return {"x": left, "y": top, "width": right - left + 1, "height": bottom - top + 1}
 
 
+def wait_for_layer(present, timeout=15):
+    """Wait until the bar's layer surface is present (or gone).
+
+    Repeated measurements in one session need this: a stale layer from the
+    previous run makes the next one take its "before" screenshot with a bar
+    already on screen, which silently measures nothing.
+    """
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        layers = niri("layers")
+        if layers.returncode == 0 and ("waybar" in layers.stdout) == present:
+            return True
+        time.sleep(.1)
+    return False
+
+
 def start_bar(environment):
+    if not wait_for_layer(False, timeout=5):
+        raise RuntimeError("a waybar layer was already running in this session; "
+                           "measure in a private session without a bar")
     log = (ARTIFACTS / "bar-measure-waybar.log").open("w")
     process = subprocess.Popen([str(ROOT / "niri/scripts/components"), "waybar"], env=environment,
                                stdout=log, stderr=subprocess.STDOUT)
-    for _ in range(100):
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
         if process.poll() is not None:
             raise RuntimeError("waybar exited; see .validation/bar-measure-waybar.log")
-        layers = niri("layers")
-        if layers.returncode == 0 and "waybar" in layers.stdout:
+        if wait_for_layer(True, timeout=1):
             return process, log
-        time.sleep(.1)
     raise RuntimeError("waybar layer did not appear")
 
 
@@ -131,14 +160,24 @@ def main():
     parser.add_argument("--pid", type=int, default=None, help="nested compositor pid for the host-side resize")
     parser.add_argument("--width", type=int, default=None, help="requested logical width of the nested output")
     parser.add_argument("--font-size", type=float, default=None)
+    parser.add_argument("--host-socket", default=None,
+                        help="host NIRI_SOCKET, used only to resize this probe's own window")
+    parser.add_argument("--summary", action="store_true", help="print one machine-readable line")
+    parser.add_argument("--layout", choices=bar_layout.LAYOUTS, default=None,
+                        help="force a layout instead of selecting one, to measure its real requirement")
     arguments = parser.parse_args()
 
     ARTIFACTS.mkdir(exist_ok=True)
-    resized = resize_host_window(arguments.pid, arguments.width) if arguments.width else False
+    resized = resize_host_window(arguments.pid, arguments.width, arguments.host_socket) if arguments.width else False
     if arguments.width:
         time.sleep(1.0)
     name, logical_width, scale = connected_output()
-    layout = bar_layout.apply(width=logical_width, size=arguments.font_size)
+    if arguments.layout:
+        from ui_assets import write
+        write(layout=arguments.layout)
+        layout = arguments.layout
+    else:
+        layout = bar_layout.apply(width=logical_width, size=arguments.font_size)
 
     before = screenshot(ARTIFACTS / "bar-measure-before.png")
     process, log = start_bar(dict(os.environ))
@@ -150,6 +189,7 @@ def main():
     except subprocess.TimeoutExpired:
         process.kill()
     log.close()
+    wait_for_layer(False, timeout=5)
 
     box = diff_box(before, after)
     report = {
@@ -173,7 +213,12 @@ def main():
         report["keeps_margins"] = (report["left_margin_logical"] >= BAR_MARGIN - 2
                                    and report["right_margin_logical"] >= BAR_MARGIN - 2)
         report["fits"] = report["keeps_margins"]
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+    if arguments.summary:
+        print("bar-measure " + " ".join(f"{key}={report.get(key)}" for key in
+                                        ("logical_width", "scale", "layout", "measured_bar_width",
+                                         "left_margin_logical", "right_margin_logical", "keeps_margins")), flush=True)
+    else:
+        print(json.dumps(report, ensure_ascii=False, indent=2))
     (ARTIFACTS / "bar-measure.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     if not box:
         print("FAIL: no bar pixels were detected", file=sys.stderr)

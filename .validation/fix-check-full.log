@@ -1,55 +1,15 @@
 
 配置校验
-2026-10-05T02:03:56.779728Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/config.kdl"
-2026-10-05T02:03:56.779763Z  INFO niri: config is valid
-2026-10-05T02:03:56.789284Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl"
-2026-10-05T02:03:56.789308Z  INFO niri: config is valid
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.180: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
-
-(-:2453): dconf-CRITICAL **: 10:03:57.181: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+2026-10-05T02:56:02.137905Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/config.kdl"
+2026-10-05T02:56:02.137936Z  INFO niri: config is valid
+2026-10-05T02:56:02.147565Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl"
+2026-10-05T02:56:02.147592Z  INFO niri: config is valid
 JSON 校验通过： niri/swaync/config.json
 JSON 校验通过： niri/theme/swaync.json
 JSON 校验通过： niri/theme/waybar.jsonc
 JSON 校验通过： niri/waybar/config.jsonc
 Shell 语法检查通过：6 个文件
-Python 语法检查通过：73 个文件
+Python 语法检查通过：77 个文件
 GTK 3、GtkLayerShell 及 SVG 壁纸依赖正常
 GTK 3 与 GTK 4 主题样式校验通过
 
@@ -93,6 +53,248 @@ fcitx5-gtk 5.1.7-1
 fcitx5-qt 5.1.16-1
   可选硬件电源模式不可用（power-profiles-daemon）。
   AI：在侧栏配置服务，不自动安装账号或模型。
+
+单元测试
+
+(python3 -m unittest:500687): dbind-WARNING **: 10:56:02.834: Couldn't connect to accessibility bus: Failed to connect to socket /run/user/1000/at-spi/bus_1: 连接被拒绝
+....................................................................................................................................................................................................................................................xkbcommon: ERROR: [XKB-338] Couldn't find file "symbols/selandia_nonexistent_layout" in include paths
+xkbcommon: ERROR: [XKB-338] 1 include paths searched:
+xkbcommon: ERROR: [XKB-338] 	/usr/share/xkeyboard-config-2
+xkbcommon: ERROR: [XKB-338] 3 include paths could not be added:
+xkbcommon: ERROR: [XKB-338] 	/home/SelandiaNyx/.config/xkb
+xkbcommon: ERROR: [XKB-338] 	/home/SelandiaNyx/.xkb
+xkbcommon: ERROR: [XKB-338] 	/etc/xkb
+xkbcommon: ERROR: [XKB-661] Couldn't process include statement for 'selandia_nonexistent_layout'
+xkbcommon: ERROR: [XKB-769] Abandoning symbols file "(unnamed map)"
+xkbcommon: ERROR: Failed to compile xkb_symbols
+xkbcommon: ERROR: [XKB-822] Failed to compile keymap
+.......................................................................................................................................................................................blocked by Stay awake
+.Usage: power_actions.py {suspend|blocked|state}
+.............................................................................................
+----------------------------------------------------------------------
+Ran 521 tests in 22.468s
+
+OK
+Back up and install: /tmp/niri deploy's 4w1pl6k3/config/niri ← /home/SelandiaNyx/Selandia's Niri/niri
+Install new: /tmp/niri deploy's 4w1pl6k3/config/systemd/user/selandia-niri.target ← /home/SelandiaNyx/Selandia's Niri/systemd/selandia-niri.target
+Install new: /tmp/niri deploy's 4w1pl6k3/config/systemd/user/selandia-niri@.service ← generated systemd service
+Install new: /tmp/niri deploy's 4w1pl6k3/config/systemd/user/selandia-lock@.service ← generated systemd service
+Install new: /tmp/niri deploy's 4w1pl6k3/config/xdg-desktop-portal/niri-portals.conf ← /home/SelandiaNyx/Selandia's Niri/portals/niri-portals.conf
+Backup and restore record: /tmp/niri deploy's 4w1pl6k3/state/install.json
+Install: /tmp/niri deploy's _2ydi9og/config/niri
+Install: /tmp/niri deploy's _2ydi9og/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's _2ydi9og/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's _2ydi9og/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's _2ydi9og/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's _2ydi9og/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's 9rhhkx7f/config/niri
+Install: /tmp/niri deploy's 9rhhkx7f/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's zjx_351d/config/niri
+Install: /tmp/niri deploy's zjx_351d/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's zjx_351d/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's zjx_351d/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's zjx_351d/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's zjx_351d/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's zjx_351d/config/xdg-desktop-portal/niri-portals.conf
+Install: /tmp/niri deploy's b5sac8v9/config/niri
+Install: /tmp/niri deploy's b5sac8v9/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's b5sac8v9/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's b5sac8v9/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's b5sac8v9/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's b5sac8v9/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's b5sac8v9/config/niri
+Restore: /tmp/niri deploy's b5sac8v9/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's b5sac8v9/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's b5sac8v9/config/systemd/user/selandia-lock@.service
+Restore: /tmp/niri deploy's b5sac8v9/config/niri
+Restore: /tmp/niri deploy's b5sac8v9/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's b5sac8v9/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's b5sac8v9/config/systemd/user/selandia-lock@.service
+Restore: /tmp/niri deploy's b5sac8v9/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's b5sac8v9/state/removed-ss9ghb5x
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's jtabkn70/config/niri
+Install: /tmp/niri deploy's jtabkn70/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's jtabkn70/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's jtabkn70/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's jtabkn70/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's jtabkn70/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's jtabkn70/config/niri
+Restore: /tmp/niri deploy's jtabkn70/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's jtabkn70/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's jtabkn70/config/systemd/user/selandia-lock@.service
+Restore: /tmp/niri deploy's jtabkn70/config/niri
+Restore: /tmp/niri deploy's jtabkn70/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's jtabkn70/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's jtabkn70/config/systemd/user/selandia-lock@.service
+Restore: /tmp/niri deploy's jtabkn70/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's jtabkn70/state/removed-ag_w2zrr
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's o2epz0tw/config/niri
+Install: /tmp/niri deploy's o2epz0tw/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's o2epz0tw/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's o2epz0tw/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's o2epz0tw/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's o2epz0tw/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's wuatd8j7/config/niri
+Install: /tmp/niri deploy's wuatd8j7/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's wuatd8j7/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's wuatd8j7/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's wuatd8j7/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's wuatd8j7/state/install.json
+Log out when ready, then select Niri at login.
+Deployment preflight passed.
+Install: /tmp/niri deploy's pj3u_2d0/config/niri
+Install: /tmp/niri deploy's pj3u_2d0/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's pj3u_2d0/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's pj3u_2d0/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's pj3u_2d0/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's pj3u_2d0/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's 9n53l5yk/config/niri
+Install: /tmp/niri deploy's 9n53l5yk/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's 9n53l5yk/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's 9n53l5yk/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's 9n53l5yk/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's 9n53l5yk/state/install.json
+Log out when ready, then select Niri at login.
+Configuration ready; backup record: /tmp/niri deploy's 9n53l5yk/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's 9n53l5yk/config/niri
+Restore: /tmp/niri deploy's 9n53l5yk/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's 9n53l5yk/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's 9n53l5yk/config/systemd/user/selandia-lock@.service
+Restore: /tmp/niri deploy's 9n53l5yk/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's 9n53l5yk/state/removed-53jza5_d
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's uasp9yu0/config/niri
+Install: /tmp/niri deploy's uasp9yu0/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's uasp9yu0/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's uasp9yu0/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's uasp9yu0/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's uasp9yu0/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's uasp9yu0/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's uasp9yu0/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's uasp9yu0/config/niri
+Restore: /tmp/niri deploy's uasp9yu0/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's uasp9yu0/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's uasp9yu0/config/systemd/user/selandia-lock@.service
+Restore: /tmp/niri deploy's uasp9yu0/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's uasp9yu0/state/removed-fba3v217
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's sj02bs3u/config/niri
+Install: /tmp/niri deploy's sj02bs3u/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's sj02bs3u/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's sj02bs3u/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's sj02bs3u/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's sj02bs3u/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's sj02bs3u/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's sj02bs3u/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's sj02bs3u/config/niri
+Restore: /tmp/niri deploy's sj02bs3u/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's sj02bs3u/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's sj02bs3u/config/systemd/user/selandia-lock@.service
+Restore: /tmp/niri deploy's sj02bs3u/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's sj02bs3u/state/removed-r_8ayzf0
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's qpm8lbbu/config/niri
+Install: /tmp/niri deploy's qpm8lbbu/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's qpm8lbbu/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's qpm8lbbu/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's qpm8lbbu/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's qpm8lbbu/state/install.json
+Log out when ready, then select Niri at login.
+Install: /tmp/niri deploy's qpm8lbbu/config/systemd/user/selandia-niri@.service
+Configuration ready; backup record: /tmp/niri deploy's qpm8lbbu/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's qpm8lbbu/config/niri
+Restore: /tmp/niri deploy's qpm8lbbu/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's qpm8lbbu/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's qpm8lbbu/config/systemd/user/selandia-lock@.service
+Restore: /tmp/niri deploy's qpm8lbbu/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's qpm8lbbu/state/removed-kl5th_b0
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's 27m6c1o7/config/niri
+Install: /tmp/niri deploy's 27m6c1o7/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's 27m6c1o7/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's 27m6c1o7/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's 27m6c1o7/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's 27m6c1o7/state/install.json
+Log out when ready, then select Niri at login.
+Not installed.
+Install: /tmp/niri deploy's r8yb9ll8/config/niri
+Install: /tmp/niri deploy's r8yb9ll8/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's r8yb9ll8/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's r8yb9ll8/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's r8yb9ll8/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's r8yb9ll8/state/install.json
+Log out when ready, then select Niri at login.
+Ready: /tmp/niri deploy's r8yb9ll8/config/niri
+Ready: /tmp/niri deploy's r8yb9ll8/config/systemd/user/selandia-niri.target
+Ready: /tmp/niri deploy's r8yb9ll8/config/systemd/user/selandia-niri@.service
+Ready: /tmp/niri deploy's r8yb9ll8/config/systemd/user/selandia-lock@.service
+Ready: /tmp/niri deploy's r8yb9ll8/config/xdg-desktop-portal/niri-portals.conf
+Install: /tmp/niri deploy's 2m9kwtvn/config/niri
+Install: /tmp/niri deploy's 2m9kwtvn/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's 2m9kwtvn/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's 2m9kwtvn/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's 2m9kwtvn/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's 2m9kwtvn/state/install.json
+Log out when ready, then select Niri at login.
+Would stop this desktop's user services.
+Archive managed: /tmp/niri deploy's 2m9kwtvn/config/niri
+Restore original: /tmp/niri deploy's 2m9kwtvn/config/niri ← /tmp/niri deploy's 2m9kwtvn/state/backup-kllignc2/niri
+Archive managed: /tmp/niri deploy's 2m9kwtvn/config/systemd/user/selandia-niri.target
+Archive managed: /tmp/niri deploy's 2m9kwtvn/config/systemd/user/selandia-niri@.service
+Archive managed: /tmp/niri deploy's 2m9kwtvn/config/systemd/user/selandia-lock@.service
+Archive managed: /tmp/niri deploy's 2m9kwtvn/config/xdg-desktop-portal/niri-portals.conf
+Packages, wallpaper choice and clipboard data preserved.
+Restore: /tmp/niri deploy's 2m9kwtvn/config/niri
+Restore: /tmp/niri deploy's 2m9kwtvn/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's 2m9kwtvn/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's 2m9kwtvn/config/systemd/user/selandia-lock@.service
+Restore: /tmp/niri deploy's 2m9kwtvn/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's 2m9kwtvn/state/removed-_ikxr65i
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's tljj6g3a/config/niri
+Install: /tmp/niri deploy's tljj6g3a/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's tljj6g3a/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's tljj6g3a/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's tljj6g3a/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's tljj6g3a/state/install.json
+Log out when ready, then select Niri at login.
+Nothing to restore.
+Install: /tmp/niri deploy's t8tyfbv4/config/niri
+Install: /tmp/niri deploy's t8tyfbv4/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's t8tyfbv4/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's t8tyfbv4/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's t8tyfbv4/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's t8tyfbv4/state/install.json
+Log out when ready, then select Niri at login.
+Restore: /tmp/niri deploy's t8tyfbv4/config/niri
+Restore: /tmp/niri deploy's t8tyfbv4/config/systemd/user/selandia-niri.target
+Restore: /tmp/niri deploy's t8tyfbv4/config/systemd/user/selandia-niri@.service
+Restore: /tmp/niri deploy's t8tyfbv4/config/systemd/user/selandia-lock@.service
+Restore: /tmp/niri deploy's t8tyfbv4/config/xdg-desktop-portal/niri-portals.conf
+Original configuration restored; removed files: /tmp/niri deploy's t8tyfbv4/state/removed-3i442kf_
+Packages, wallpaper choice and clipboard data preserved.
+Install: /tmp/niri deploy's q01erq12/config/niri
+Install: /tmp/niri deploy's q01erq12/config/systemd/user/selandia-niri.target
+Install: /tmp/niri deploy's q01erq12/config/systemd/user/selandia-niri@.service
+Install: /tmp/niri deploy's q01erq12/config/systemd/user/selandia-lock@.service
+Install: /tmp/niri deploy's q01erq12/config/xdg-desktop-portal/niri-portals.conf
+Configuration ready; backup record: /tmp/niri deploy's q01erq12/state/install.json
+Log out when ready, then select Niri at login.
+blocked
 
 当前 Niri 会话
 Output "Hubei Century Joint Innovation Technology Co.Ltd P275MV PLUS 0000000000000" (DP-6)
@@ -147,33 +349,10 @@ Output "Hubei Century Joint Innovation Technology Co.Ltd P275MV PLUS 00000000000
     640x480@59.940
     720x400@70.082
 
-Failed to connect to user scope bus via local transport: 没有可用的数据
-Failed to connect to user scope bus via local transport: 没有可用的数据
-Failed to connect to user scope bus via local transport: 没有可用的数据
-组件未运行：waybar (journalctl --user -u selandia-niri@waybar.service)
-Failed to connect to user scope bus via local transport: 没有可用的数据
-Failed to connect to user scope bus via local transport: 没有可用的数据
-组件未运行：notifications (journalctl --user -u selandia-niri@notifications.service)
-Failed to connect to user scope bus via local transport: 没有可用的数据
-组件未运行：wallpaper (journalctl --user -u selandia-niri@wallpaper.service)
-Failed to connect to user scope bus via local transport: 没有可用的数据
-组件未运行：sleep-lock (journalctl --user -u selandia-niri@sleep-lock.service)
-Failed to connect to user scope bus via local transport: 没有可用的数据
-Failed to connect to user scope bus via local transport: 没有可用的数据
-组件未运行：clipboard-text (journalctl --user -u selandia-niri@clipboard-text.service)
-Failed to connect to user scope bus via local transport: 没有可用的数据
-Failed to connect to user scope bus via local transport: 没有可用的数据
-组件未运行：clipboard-image (journalctl --user -u selandia-niri@clipboard-image.service)
-Failed to connect to user scope bus via local transport: 没有可用的数据
-组件未运行：polkit (journalctl --user -u selandia-niri@polkit.service)
-Traceback (most recent call last):
-  File "<stdin>", line 5, in <module>
-  File "/home/SelandiaNyx/Selandia's Niri/niri/shell/sleep_guard.py", line 63, in status
-    timer, guard = _unit("idle"), _unit("awake")
-                   ~~~~~^^^^^^^^
-  File "/home/SelandiaNyx/Selandia's Niri/niri/shell/sleep_guard.py", line 35, in _unit
-    output = _run(["systemctl", "--user", "show", f"selandia-niri@{component}.service",
-                   "--property=ActiveState,LoadState,MainPID"])
-  File "/home/SelandiaNyx/Selandia's Niri/niri/shell/sleep_guard.py", line 26, in _run
-    raise RuntimeError((result.stderr or result.stdout).strip() or "systemctl failed")
-RuntimeError: Failed to connect to user scope bus via local transport: 没有可用的数据
+● selandia-niri.target - Selandia's Niri desktop
+     Loaded: loaded (/home/SelandiaNyx/.config/systemd/user/selandia-niri.target; linked; preset: enabled)
+     Active: active since Mon 2026-10-05 10:09:37 CST; 46min ago
+ Invocation: ea698dc475db4de5b9ee76795cf9529a
+
+10月 05 10:09:37 archbyselandianyx systemd[1101]: Reached target Selandia's Niri desktop.
+计时已关闭: Niri 未设置自动锁屏、息屏或睡眠计时。其他程序仍可请求睡眠；开启保持唤醒可阻止这些请求。

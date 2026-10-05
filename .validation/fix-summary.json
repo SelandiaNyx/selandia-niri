@@ -1,12 +1,12 @@
 {
   "A1": {
     "launcher_selection": {
-      "dedicated_unit_preferred": false,
-      "component_unit_available": false,
+      "dedicated_unit_preferred": true,
+      "component_unit_available": true,
       "inside_service_unit": false
     },
     "cgroup_lifecycle_verified": false,
-    "note": "skipped: no reachable user systemd manager in this environment (Failed to connect to user scope bus via local transport: 没有可用的数据); tests/test_lock_isolation.py asserts this on a real session"
+    "note": "skipped: no reachable user systemd manager in this environment (Failed to get properties: Unit name selandia-niri@.service is neither a valid invocation ID nor unit name.); tests/test_lock_isolation.py asserts this on a real session"
   },
   "A5": {
     "shortcuts": 117,
@@ -24,7 +24,10 @@
     }
   },
   "A3": {
-    "wide_font_widths": 68,
+    "measured_requirement": {
+      "wide": 2315,
+      "compact": 833
+    },
     "reported_narrow_output": {
       "logical_width": 1067,
       "font_size": 16,
@@ -32,19 +35,19 @@
     },
     "acceptance": {
       "12px": {
-        "1920x1080@150%": "wide",
-        "2560x1440@200%": "wide",
+        "1920x1080@150%": "compact",
+        "2560x1440@200%": "compact",
         "3840x2160@150%": "wide"
       },
       "16px": {
-        "1920x1080@150%": "wide",
-        "2560x1440@200%": "wide",
+        "1920x1080@150%": "compact",
+        "2560x1440@200%": "compact",
         "3840x2160@150%": "wide"
       },
       "20px": {
         "1920x1080@150%": "compact",
         "2560x1440@200%": "compact",
-        "3840x2160@150%": "wide"
+        "3840x2160@150%": "compact"
       }
     },
     "compact_right": [
@@ -91,7 +94,7 @@
           "opaque": 108,
           "solid": false
         },
-        "after_file": "/tmp/selandia-fix-summary-383myo9e/selandia-icons-1000/selandia-symbolic/scalable/input-keyboard-symbolic.svg"
+        "after_file": "/tmp/selandia-fix-summary-_0iw1_pk/selandia-icons-1000/selandia-symbolic/scalable/input-keyboard-symbolic.svg"
       },
       "150%": {
         "before": {
@@ -107,7 +110,7 @@
           "opaque": 492,
           "solid": false
         },
-        "after_file": "/tmp/selandia-fix-summary-383myo9e/selandia-icons-1000/selandia-symbolic/scalable/input-keyboard-symbolic.svg"
+        "after_file": "/tmp/selandia-fix-summary-_0iw1_pk/selandia-icons-1000/selandia-symbolic/scalable/input-keyboard-symbolic.svg"
       },
       "200%": {
         "before": {
@@ -123,7 +126,7 @@
           "opaque": 1144,
           "solid": false
         },
-        "after_file": "/tmp/selandia-fix-summary-383myo9e/selandia-icons-1000/selandia-symbolic/scalable/input-keyboard-symbolic.svg"
+        "after_file": "/tmp/selandia-fix-summary-_0iw1_pk/selandia-icons-1000/selandia-symbolic/scalable/input-keyboard-symbolic.svg"
       }
     }
   },

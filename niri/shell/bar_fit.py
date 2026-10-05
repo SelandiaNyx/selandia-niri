@@ -21,6 +21,12 @@ MODULE_SPACING = 2
 # Measurement headroom: glyph fallbacks, tray icons and rounding.
 HEADROOM = 1.08
 HEADROOM_PADDING = 8
+# Horizontal overhead per module that the stylesheet does not express (GTK box
+# borders, internal spacing and the module's own padding). Calibrated against a
+# real bar measured by tools/bar_measure.py: without it the compact layout was
+# predicted to fit at 733 logical pixels where it is visibly clipped
+# (.validation/bar-measurements.json).
+MODULE_OVERHEAD = 15.0
 # Used only when Pango cannot be loaded; they are the values this module
 # replaced, so the bar still selects a sane layout in a broken environment.
 FALLBACK_WIDE = 68.0
@@ -132,10 +138,11 @@ def required(layout, interface_size, *, measurer=None):
             return None
         total = BAR_MARGIN
         count = 0
+        overhead = MODULE_OVERHEAD * float(interface_size) / DESIGN_BASE
         for group in LAYOUTS[layout]:
             for _module, text, design_size, padding, extra in group:
                 total += measurer.width(text, scale(design_size, interface_size))
-                total += padding + extra + MODULE_SPACING
+                total += padding + extra + MODULE_SPACING + overhead
                 count += 1
         # Workspaces: ten buttons, ten labels, empty ones hidden in compact mode.
         if layout == "wide":

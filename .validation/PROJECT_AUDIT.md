@@ -1,6 +1,6 @@
 # Niri 项目自检与交接指令
 
-> **2026-10-05 后续工作**：A1–A8 与文档列出的测试覆盖缺口已按本文要求处理，逐项实现、测试与证据见 [FIXES.md](FIXES.md)，实测数据见 [fix-summary.json](fix-summary.json)。本轮改动后 490 项单元测试与 `./check.sh --config` 通过；A1 的真实 cgroup 生命周期、A3/A4/A5 的合成器截图以及浅色整机一致性仍列为**未验证**（原因见 FIXES.md 与 fix-summary.json 的 `verification_limits`）。以下原文保留，作为整改前的记录。
+> **2026-10-05 后续工作**：A1–A8 与文档列出的测试覆盖缺口已按本文要求处理，逐项实现、测试与证据见 [FIXES.md](FIXES.md)，实测数据见 [fix-summary.json](fix-summary.json)。本轮改动后 521 项单元测试与 `./check.sh --config` 通过；A1 的真实 cgroup 生命周期、A3/A4/A5 的合成器截图以及浅色整机一致性仍列为**未验证**（原因见 FIXES.md 与 fix-summary.json 的 `verification_limits`）。以下原文保留，作为整改前的记录。
 
 检查于 2026-10-04，2026-10-05 整理。结论：**基础功能通过自动检查，但不能认定资源渲染、统一风格和交互细节完全正确。** 以下审查问题没有直接修复；之后为用户卸载 Plasma 所作的 Qt 依赖迁移另行记录。
 

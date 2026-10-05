@@ -66,18 +66,34 @@ class MeasurementTests(unittest.TestCase):
         self.assertTrue(bar_fit.fits("compact", 1067, 16, measurer=self.measurer))
 
     def test_a_wide_output_keeps_the_full_layout(self):
-        for width in (2560, 3840):
-            for size in (12, 16, 20):
-                with self.subTest(width=width, size=size):
-                    self.assertEqual(bar_fit.choose(width, size, measurer=self.measurer), "wide")
+        # 3840 logical pixels keeps the wide layout at every supported size; the
+        # audit's 2560 logical case may legitimately fall back to compact, which
+        # is why only fitting is required there.
+        for size in (12, 16, 20):
+            with self.subTest(width=3840, size=size):
+                self.assertEqual(bar_fit.choose(3840, size, measurer=self.measurer), "wide")
+            with self.subTest(width=2560, size=size):
+                chosen = bar_fit.choose(2560, size, measurer=self.measurer)
+                self.assertTrue(bar_fit.fits(chosen, 2560, size, measurer=self.measurer))
 
-    def test_the_chosen_layout_always_fits_the_output(self):
+    def test_the_chosen_layout_fits_whenever_anything_can(self):
         for width in (900, 1067, 1280, 1600, 1920, 2560, 3840):
             for size in (12, 16, 20):
                 with self.subTest(width=width, size=size):
                     chosen = bar_fit.choose(width, size, measurer=self.measurer)
-                    self.assertTrue(bar_fit.fits(chosen, width, size, measurer=self.measurer),
-                                    f"{chosen} was chosen but does not fit {width}px at {size}px")
+                    if bar_fit.fits("compact", width, size, measurer=self.measurer):
+                        self.assertTrue(bar_fit.fits(chosen, width, size, measurer=self.measurer),
+                                        f"{chosen} was chosen but does not fit {width}px at {size}px")
+                    else:
+                        # Below this width nothing fits; the narrowest layout is
+                        # still the only sensible answer.
+                        self.assertEqual(chosen, "compact")
+
+    def test_an_output_too_small_for_any_layout_is_reported_as_such(self):
+        for size, smallest in ((12, 640), (16, 850), (20, 1100)):
+            with self.subTest(size=size):
+                self.assertTrue(bar_fit.fits("compact", smallest + 200, size, measurer=self.measurer))
+                self.assertFalse(bar_fit.fits("compact", smallest - 200, size, measurer=self.measurer))
 
     def test_the_boundary_is_exact(self):
         for layout in bar_fit.LAYOUTS:
@@ -114,6 +130,60 @@ class FallbackTests(unittest.TestCase):
 
         self.assertIsNone(bar_fit.required("wide", 16, measurer=Broken()))
         self.assertEqual(bar_fit.choose(3840, 16, measurer=Broken()), "wide")
+
+
+class MeasuredCalibrationTests(unittest.TestCase):
+    """The model must be sound against measurements taken on a real bar.
+
+    tools/bar_measure.py diffed screenshots with and without the bar in a private
+    Nested Niri session; the bar loses its right margin exactly when its content
+    does not fit. Those points are the calibration evidence.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.measurer = bar_fit.Measurer()
+        if not cls.measurer.available:
+            raise unittest.SkipTest("no font map available in this environment")
+        import json
+        cls.evidence = json.loads((ROOT / ".validation/bar-measurements.json").read_text())
+
+    def test_the_model_never_claims_a_layout_fits_where_it_was_measured_to_clip(self):
+        clipped = [point for point in self.evidence["points"] if not point["keeps_margins"]]
+        self.assertTrue(clipped, "the calibration evidence lost its failing points")
+        for point in clipped:
+            with self.subTest(layout=point["layout"], width=point["logical_width"]):
+                self.assertFalse(
+                    bar_fit.fits(point["layout"], point["logical_width"], self.evidence["font_size"],
+                                 measurer=self.measurer),
+                    f'{point["layout"]} is claimed to fit {point["logical_width"]}px, where it visibly clips')
+
+    def test_the_model_accepts_every_measured_acceptance_case(self):
+        for case in self.evidence["acceptance"]:
+            with self.subTest(case=case["case"]):
+                self.assertTrue(bar_fit.fits(case["layout"], case["logical_width"],
+                                             self.evidence["font_size"], measurer=self.measurer),
+                                case["case"] + " would be refused by the model")
+
+    def test_the_model_does_not_inflate_the_requirement_far_beyond_reality(self):
+        # A model may refuse a layout that would fit (conservative, and the bar
+        # then falls back to compact), but it must stay near the measurement so
+        # the diagnostics remain believable.
+        thresholds = {}
+        for point in self.evidence["points"]:
+            if not point["keeps_margins"]:
+                continue
+            thresholds.setdefault(point["layout"], point["logical_width"])
+            thresholds[point["layout"]] = min(thresholds[point["layout"]], point["logical_width"])
+        # Only the compact layout is comparable: its content is fixed (no window
+        # title, no extra workspaces, no monitor module), while the wide model is
+        # deliberately a worst case that the measurement did not exercise.
+        measured = thresholds["compact"]
+        required = bar_fit.required("compact", self.evidence["font_size"], measurer=self.measurer)
+        self.assertLessEqual(required, measured * 1.15,
+                             f"compact requirement is far above the measured fit at {measured}px")
+        self.assertGreaterEqual(required, measured,
+                                "the compact requirement must not undercut the measured fit")
 
 
 class StylesheetAgreementTests(unittest.TestCase):

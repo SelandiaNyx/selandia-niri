@@ -1,5 +1,21 @@
 # 修复报告：A1–A8 与测试覆盖缺口
 
+> **第二轮（获得完整权限后）**：真实用户 systemd 与嵌套合成器均可用，因此上一轮列为"未验证"的项目已逐项实测，并因此发现并修复了 3 个**只有真实环境才会暴露的缺陷**。要点：
+>
+> | 项 | 真实环境结果 |
+> | --- | --- |
+> | A1 | 发现 `unit_loaded()` 用 `systemctl show <模板>` 探测，在 systemd 262 下**永远返回 False** → 生产路径会把组件服务里的锁屏拒绝、在终端里静默走不安全直启。改用 `systemctl cat` 后，`tests/test_lock_isolation.py` 在真实用户管理器上**3/3 通过**：两个触发服务各自从 `.service` cgroup 发起锁屏，锁屏落在 `selandia-lock@<key>.service` 自己的 cgroup，第二次复用同一进程，触发单元退出后锁屏存活，不同显示会话互不影响 |
+> | A2 | GTK 交互测试发现 `Tasks.finish_requested` 是**粘性**标志：窗口销毁后不再复位，导致此后每个提交任务结束都调用 `quit()`（探针观察到 4 次误调用）。新增 `Tasks.resume()`，新窗口出现即撤销退出请求 |
+> | A7 | 同轮的 GTK 探针还发现 `appearance.render_files()`（纯渲染函数）会通过 `bar_layout.select()` **调用 `niri msg` 子进程**，在被 mock 的上下文里直接失败。布局改为显式入参/从已生成配置读取，渲染重新变为纯函数 |
+> | A3 | 新增 `tools/bar_measure.py`：在私有嵌套会话里对"有栏/无栏"两张截图做差分取栏面包围盒，用**边距是否保留**判定裁切。实测：compact 阈值 773 逻辑像素（@16px；733/750 被裁切，773/800 正常），wide 在 1700 逻辑像素已放得下；审计报告的 **1066 逻辑像素 → compact，左右边距 18/17 保留**；**3840 逻辑像素 → wide，18/18** | 
+> | A4 | 嵌套会话截图与像素统计：150% 下系统 Breeze 图标 44×44 全不透明 → 项目图标 36×36、透明 712 / 抗锯齿 92 |
+> | A5 | `notifications-center.png` 现在**真的显示通知中心**（通知/清空/勿扰/卡片）。此前 `--hide-all` 先执行会清掉卡片，所以旧顺序永远拍不到要验证的东西——这是审计第 1 条缺口的真正原因。第三方英文 "Now" 已确认是**上游不可配置**（swaync 0.12.6 无 gettext 翻译、无 `.mo`、无 time-format 键） |
+> | A8 | 真实部署文件已验证：`gtk-3.0/settings.ini`、`gtk-4.0/settings.ini`、`kdeglobals`、`qt6ct.conf` 四处界面字号均为 **12pt**（=16px），终端固定字号仍为独立的 **16pt** 未被换算 |
+>
+> 同轮还修好：状态栏 `#network`/`#custom-system`（10px）与 `#window`/`#pulseaudio`/`#battery`（11px）在样式表里是**固定 px**，`#id` 优先级高于生成的 `* { font-size }`，导致界面字号对这些模块完全无效 —— 现按面板同样的 `design × size / 12` 规则缩放。`check.sh` 现在会运行单元测试（`--config` 保持轻量，另有 `--tests`），并新增文档链接守卫与部署源文件漂移守卫。**`./check.sh` 在真实会话中完整通过（exit 0）**，521 项单元测试通过。
+>
+> 仍未验证：浅色整机一致性（用户自定义 GTK CSS 含 `@import 'colors.css'`，未删除未修改）、真实硬件睡眠/整夜息屏/PAM 解锁。
+
 对应 [PROJECT_AUDIT.md](PROJECT_AUDIT.md)。本轮只围绕 Arch + Niri，未改动 `/usr/share/icons`、音频枚举、三个真实输出设备或用户偏好；未执行真实睡眠、未杀主桌面锁屏、未重置用户设置。项目目录当前没有可用的 Git 仓库，因此“每项单独提交”以“每项独立实现 + 独立测试文件 + 独立证据”体现。
 
 工作副本：`/home/SelandiaNyx/Selandia's Niri`（`~/.config/niri` 是本目录的符号链接，源码改动即时生效；需要重新生成的 systemd 单元除外）。
@@ -8,7 +24,7 @@
 
 | 文件 | 内容 |
 | --- | --- |
-| [fix-unit.log](fix-unit.log) | 490 项单元测试全部通过（1 项按设计跳过） |
+| [fix-unit.log](fix-unit.log) | 521 项单元测试全部通过（1 项按设计跳过） |
 | [fix-check.log](fix-check.log) | `./check.sh --config` 退出码 0 |
 | [fix-check-full.log](fix-check-full.log) | `./check.sh` 完整运行：唯一失败来自本沙箱无法连接用户 systemd（`Failed to connect to user scope bus`） |
 | [fix-summary.json](fix-summary.json) | 本轮修复后的实测数据（图标像素统计、布局选择、字号换算、快捷键统计） |
