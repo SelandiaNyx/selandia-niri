@@ -158,6 +158,15 @@ class Tasks:
             self.finish_requested = True
             return not self.active
 
+    def resume(self):
+        """A window exists again, so a pending finish request is withdrawn.
+
+        Without this the flag stays set for the rest of the process and the next
+        completed commit would quit an application that is in use again.
+        """
+        with self.lock:
+            self.finish_requested = False
+
 
 class Panel(Gtk.ApplicationWindow):
     def __init__(self, app, mode):
@@ -166,6 +175,7 @@ class Panel(Gtk.ApplicationWindow):
         super().__init__(application=app, title=f"Selandia · {mode}")
         self.mode = mode
         self.alive = True
+        app.tasks.resume()
         from appearance import load_settings
         preferences = load_settings()
         self.reduced_motion = preferences.get("reduced_motion", False)

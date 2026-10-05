@@ -1,13 +1,9 @@
-2026-10-05T01:46:34.411028Z  INFO niri: starting version 26.04 (8ed0da4)
-2026-10-05T01:46:34.416291Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl"
-MESA-EGL: warning: failed to get driver name for fd -1
-MESA-EGL: warning: MESA-LOADER: failed to retrieve device information
-MESA-EGL: warning: failed to get driver name for fd -1
-MESA: error: ZINK: vkEnumeratePhysicalDevices failed (VK_ERROR_INITIALIZATION_FAILED)
-MESA: error: ZINK: failed to choose pdev
-MESA-EGL: warning: egl: failed to create dri2 screen
-
-thread 'main' (9) panicked at src/niri.rs:2435:67:
-called `Result::unwrap()` on an `Err` value: PermissionDenied
-stack backtrace:
-note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+2026-10-05T02:21:45.392084Z  INFO niri: starting version 26.04 (8ed0da4)
+2026-10-05T02:21:45.397514Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl"
+2026-10-05T02:21:45.453864Z DEBUG niri::niri: putting output winit at x=0 y=0
+2026-10-05T02:21:45.453896Z  INFO niri: listening on Wayland socket: wayland-2
+2026-10-05T02:21:45.453899Z  INFO niri: IPC listening on: /run/user/1000/niri.wayland-2.83679.sock
+2026-10-05T02:21:45.454776Z  INFO niri: listening on X11 socket: :2
+2026-10-05T02:21:45.455544Z  WARN niri::cursor: error loading xcursor default@48: no default icon
+2026-10-05T02:21:54.551955Z  INFO niri::utils::signals::platform: quitting due to receiving signal SIGTERM
+2026-10-05T02:21:54.553710Z DEBUG niri::utils::watcher: exiting watcher thread for Explicit("/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl")

@@ -166,7 +166,7 @@ def apply(*, base=BASE, width=None, size=None, run=subprocess.run, notify=False)
     if current_layout(base=base) == layout:
         return layout
     from ui_assets import write
-    write(base=base)
+    write(base=base, layout=layout)
     if notify:
         reload_bar(run=run)
     return layout

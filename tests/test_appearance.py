@@ -16,6 +16,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 # appearance.py uses its sibling i18n module for single-language output.
 sys.path.insert(0, str(ROOT / "niri/shell"))
+import bar_layout
 SPEC = importlib.util.spec_from_file_location("appearance", ROOT / "niri/shell/appearance.py")
 appearance = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(appearance)
@@ -77,6 +78,29 @@ class AppearanceTests(unittest.TestCase):
                 self.assertTrue(background.lstrip("#") in text or f"rgba({rgb}," in text, name)
                 self.assertNotIn(appearance.PRESETS[preset]["background"], text, name)
             self.assertLess(int(palette["ink"][1:3], 16), int(palette["background"][1:3], 16))
+
+    def test_rendering_never_queries_the_compositor(self):
+        """render_files is pure generation: it must not spawn niri or any process.
+
+        A subprocess here also breaks every caller that mocks the process table.
+        """
+        def forbidden(*arguments, **options):
+            raise AssertionError(f"render_files ran {arguments!r}")
+
+        # Patching the module attribute catches every caller, including the bar
+        # layout helper, which is where the compositor query used to hide.
+        with patch("subprocess.run", forbidden):
+            files = appearance.render_files(dict(appearance.DEFAULTS), base=self.base)
+        self.assertIn("waybar.css", files)
+        self.assertIn("/* Bar layout: ", files["waybar.css"])
+
+    def test_the_layout_comes_from_the_generated_bar_configuration(self):
+        (self.base / "theme").mkdir(exist_ok=True)
+        compact = bar_layout.build(json.loads((ROOT / "niri/waybar/config.jsonc").read_text()), "compact")
+        (self.base / "theme/waybar.jsonc").write_text(json.dumps(compact))
+        rendered = appearance.render_files(dict(appearance.DEFAULTS), base=self.base)
+        self.assertIn("/* Bar layout: compact */", rendered["waybar.css"])
+        self.assertIn("#workspaces button.empty", rendered["waybar.css"])
 
     def test_color_mode_and_motion_values_are_validated(self):
         for values in ({"color_mode": "auto"}, {"color_mode": None}, {"reduced_motion": "false"}, {"reduced_motion": 1}):

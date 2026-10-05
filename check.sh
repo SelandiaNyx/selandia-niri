@@ -7,11 +7,22 @@ if [[ -f "$root/niri/shell/i18n.py" ]] && command -v python3 >/dev/null; then
 fi
 tr() { if [[ "$check_language" == zh* ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
 mode=${1:-all}
-if [[ "$#" -gt 1 || ( "$mode" != all && "$mode" != --config ) ]]; then
-    printf '%s\n' "$(tr 'Usage: ./check.sh [--config]' '用法：./check.sh [--config]')" >&2
+if [[ "$#" -gt 1 || ( "$mode" != all && "$mode" != --config && "$mode" != --tests ) ]]; then
+    printf '%s\n' "$(tr 'Usage: ./check.sh [--config|--tests]' '用法：./check.sh [--config|--tests]')" >&2
     exit 2
 fi
 failed=0
+
+# The project's own test suite is part of the self-check; --config stays fast
+# because the installer and the smoke test call it on every run.
+run_tests() {
+    printf '\n%s\n' "$(tr 'Unit tests' '单元测试')"
+    if ! command -v python3 >/dev/null; then
+        printf '%s\n' "$(tr 'Missing Python 3' '缺少 Python 3')" >&2
+        return 1
+    fi
+    ( cd -- "$root" && python3 -B -m unittest discover -s tests )
+}
 printf '\n%s\n' "$(tr 'Configuration validation' '配置校验')"
 if command -v "${NIRI_BIN:-niri}" >/dev/null; then
     "${NIRI_BIN:-niri}" validate -c "$root/niri/config.kdl" || failed=1
@@ -88,6 +99,10 @@ else
     printf '%s\n' "$(tr 'Missing Python 3' '缺少 Python 3')"
     failed=1
 fi
+if [[ "$mode" == --tests ]]; then
+    run_tests || failed=1
+    exit "$failed"
+fi
 if [[ "$mode" == --config ]]; then
     exit "$failed"
 fi
@@ -116,6 +131,8 @@ if ! command -v powerprofilesctl >/dev/null; then
     printf '  %s\n' "$(tr 'Optional power profiles unavailable (power-profiles-daemon).' '可选硬件电源模式不可用（power-profiles-daemon）。')"
 fi
 printf '  %s\n' "$(tr 'AI: configure a provider in the sidebar; no AI account/model is installed automatically.' 'AI：在侧栏配置服务，不自动安装账号或模型。')"
+
+run_tests || failed=1
 
 printf '\n%s\n' "$(tr 'Current Niri session' '当前 Niri 会话')"
 if [[ -n "${NIRI_SOCKET:-}" ]]; then

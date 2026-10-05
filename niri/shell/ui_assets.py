@@ -9,7 +9,7 @@ from i18n import tr
 from language_settings import available_locales, _locale_key
 
 
-def render(*, base=BASE):
+def render(*, base=BASE, layout=None):
     base = Path(base)
     bar = json.loads((base / "waybar/config.jsonc").read_text())
     translated = {
@@ -41,15 +41,17 @@ def render(*, base=BASE):
     # The wide/compact choice is applied last so a language rebuild can never
     # bring the wider module set back onto a narrow output.
     import bar_layout
-    bar = bar_layout.build(bar, bar_layout.select(base=base))
+    if layout is None:
+        layout = bar_layout.select(base=base)
+    bar = bar_layout.build(bar, layout)
     return {"waybar.jsonc": bar, "swaync.json": notification}
 
 
-def write(*, base=BASE):
+def write(*, base=BASE, layout=None):
     base = Path(base)
     (base / "theme").mkdir(parents=True, exist_ok=True)
     _commit({base / "theme" / name: (json.dumps(value, ensure_ascii=False, indent=2) + "\n").encode()
-             for name, value in render(base=base).items()})
+             for name, value in render(base=base, layout=layout).items()})
 
 
 if __name__ == "__main__":

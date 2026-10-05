@@ -176,8 +176,13 @@ def _replace_ini(source: str, section: str, values: dict) -> str:
     return "\n".join(output) + "\n"
 
 
-def render_files(settings: dict, *, base: Path | None = None) -> dict[str, str]:
-    """Pure generation except for reading the existing launcher/lock templates."""
+def render_files(settings: dict, *, base: Path | None = None, layout: str | None = None) -> dict[str, str]:
+    """Pure generation except for reading the existing launcher/lock templates.
+
+    The bar layout is supplied or derived from the already generated bar
+    configuration; a rendering function never queries the compositor, so it stays
+    testable and cannot spawn a subprocess inside a mocked context.
+    """
     values = validate_settings(settings)
     base = Path(base or BASE)
     p = palette(values)
@@ -262,7 +267,7 @@ tooltip {{ color: {ink}; background: {rgba(bg, .97)}; border-color: {rgba(border
 #custom-control:hover {{ background: {ink}; }}
 """
     import bar_layout
-    waybar += bar_layout.css(bar_layout.select(size=size), size)
+    waybar += bar_layout.css(layout or bar_layout.current_layout(base=base) or "wide", size)
     swaync = '@import "../swaync/style.css";\n' + css_header + f"""@define-color cc-bg {rgba(bg, opacity)};
 @define-color noti-bg {rgba(surface, opacity)};
 @define-color noti-border-color {rgba(border, .18)};

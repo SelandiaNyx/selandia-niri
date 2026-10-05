@@ -145,6 +145,31 @@ class PanelLifecycleTests(unittest.TestCase):
         self.assertEqual(self.application.holds, 1)
         self.assertEqual(self.application.releases, 1)
 
+    def test_a_window_that_reopens_withdraws_a_pending_finish_request(self):
+        """A sticky flag would quit a panel that is in use again.
+
+        This is the regression that made the GTK probe see four unexpected quit
+        calls after panels had been opened and closed repeatedly.
+        """
+        within_task = threading.Event()
+        release = threading.Event()
+
+        def task():
+            within_task.set()
+            release.wait(5)
+
+        panel.Panel.work(self.window, task, commit=True)
+        self.assertTrue(within_task.wait(2))
+        panel.Panel.on_destroy(self.window)
+        self.assertEqual(self.application.quits, 0, "the exit must wait for the commit")
+        # A new window appears before the commit ends.
+        self.application.tasks.resume()
+        release.set()
+        self.assertTrue(self.wait_for(lambda: bool(self.idle)))
+        self.drain()
+        self.assertEqual(self.application.quits, 0, "a reopened panel must not be quit")
+        self.assertEqual(self.application.holds, self.application.releases)
+
     def test_a_late_callback_never_touches_a_destroyed_widget(self):
         touched = []
         widget = SimpleNamespace(set_text=lambda value: touched.append(value))
