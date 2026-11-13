@@ -17,7 +17,7 @@ SHELL = ROOT / "niri/shell"
 CJK = re.compile(r"[\u3400-\u9fff]")
 # Latin words that legitimately stay Latin inside a Chinese sentence.
 # Commands and paths shown verbatim inside a Chinese sentence.
-COMMAND_PHRASES = {"sudo locale-gen"}
+COMMAND_PHRASES = {"sudo locale-gen", "Wallpaper Engine", "Wallpaper Engine assets", "paru -S --needed eww"}
 
 
 def pairs(path):

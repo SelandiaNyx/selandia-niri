@@ -173,8 +173,20 @@ class PanelLifecycleTests(unittest.TestCase):
     def test_a_late_callback_never_touches_a_destroyed_widget(self):
         touched = []
         widget = SimpleNamespace(set_text=lambda value: touched.append(value))
-        panel.Panel.work(self.window, lambda: "value", lambda value: widget.set_text(value))
+        entered, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+
+        def read():
+            entered.set()
+            release.wait(5)
+            return "value"
+
+        panel.Panel.work(self.window, read, lambda value: widget.set_text(value))
+        # A queued read is now correctly discarded after destruction. Exercise
+        # the distinct case of an already running read completing afterwards.
+        self.assertTrue(entered.wait(2))
         panel.Panel.on_destroy(self.window)
+        release.set()
         self.assertTrue(self.wait_for(lambda: bool(self.idle)))
         self.drain()
         self.assertEqual(touched, [])

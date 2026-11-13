@@ -55,6 +55,10 @@ printf 'check:%s\n' "$*" >> "$TEST_CALLS"
 exit "${TEST_CHECK_EXIT:-0}"
 ''')
         (self.root / "tools").mkdir()
+        (self.root / "tools/export_config.py").write_text('''import os, sys
+with open(os.environ["TEST_CALLS"], "a") as output:
+    output.write("export:" + " ".join(sys.argv[1:]) + "\\n")
+''')
         (self.root / "tools/deploy.py").write_text('''import os, sys
 with open(os.environ["TEST_CALLS"], "a") as output:
     output.write("deploy:" + sys.argv[1] + "\\n")
@@ -77,6 +81,29 @@ sys.exit(int(os.environ.get("TEST_LANGUAGE_EXIT", "0")))
 with open(os.environ["TEST_CALLS"], "a") as output:
     output.write("ui_assets:write\\n")
 sys.exit(int(os.environ.get("TEST_UI_ASSETS_EXIT", "0")))
+''')
+        # The controller delegates one coordinated operation. Backend effects
+        # are mocked here; test_lifecycle exercises its real staging/rollback.
+        (self.root / "tools/lifecycle.py").write_text('''import os, pathlib, subprocess, sys
+root = pathlib.Path(__file__).resolve().parents[1]
+state = pathlib.Path(os.environ["XDG_STATE_HOME"]) / "selandia-niri"
+def call(path, *args):
+    result = subprocess.run([sys.executable, "-B", str(root / path), *args])
+    if result.returncode: sys.exit(result.returncode)
+if sys.argv[1] == "recover":
+    with open(os.environ["TEST_CALLS"], "a") as output: output.write("lifecycle:recover\\n")
+elif sys.argv[1] == "install":
+    if (state / "appearance.json").exists(): call("niri/shell/appearance.py", "restore-saved")
+    call("niri/shell/language_settings.py", "restore-saved")
+    call("niri/shell/ui_assets.py")
+    result = subprocess.run([str(root / "check.sh"), "--config"])
+    if result.returncode: sys.exit(result.returncode)
+    call("niri/shell/application_theme.py", "apply-saved")
+    call("tools/deploy.py", "install")
+else:
+    if (state / "language-backup.json").exists(): call("niri/shell/language_settings.py", "restore")
+    call("niri/shell/application_theme.py", "restore")
+    call("tools/deploy.py", "uninstall")
 ''')
         self.environment = {
             **os.environ,
@@ -114,14 +141,37 @@ sys.exit(int(os.environ.get("TEST_UI_ASSETS_EXIT", "0")))
         self.assertFalse(any(call.startswith(("sudo:", "pacman:-S", "check:", "application_theme:", "language:", "ui_assets:")) for call in calls), calls)
         self.assertNotIn("deploy:install", calls)
         self.assertNotIn("deploy:uninstall", calls)
+        self.assertNotIn("lifecycle:recover", calls)
+
+    def test_pending_transaction_status_and_previews_remain_read_only(self):
+        state = self.root / "state/selandia-niri"
+        state.mkdir(parents=True)
+        for journal in ("lifecycle-transaction.json", "deployment-transaction.json"):
+            (state / journal).write_text("{}")
+        for arguments in (("status",), ("install", "--dry-run", "--no-packages"),
+                          ("uninstall", "--dry-run")):
+            with self.subTest(arguments=arguments):
+                result, calls = self.run_control(*arguments)
+                self.assert_success(result)
+                self.assert_no_mutation(calls)
+                for journal in ("lifecycle-transaction.json", "deployment-transaction.json"):
+                    self.assertEqual((state / journal).read_text(), "{}")
+
+    def test_install_recovers_pending_transaction_before_setup(self):
+        state = self.root / "state/selandia-niri"
+        state.mkdir(parents=True)
+        (state / "lifecycle-transaction.json").write_text("{}")
+        result, calls = self.run_control("install", "--no-packages")
+        self.assert_success(result)
+        self.assertLess(calls.index("lifecycle:recover"), calls.index("check:--config"))
 
     def assert_config_flow(self, calls, *, deployed=True, themed=True):
         self.assertEqual(calls[0], "deploy:preflight")
         expected = ["language:restore-saved", "ui_assets:write", "check:--config"]
+        if themed:
+            expected.append("application_theme:apply-saved")
         if deployed:
             expected.append("deploy:install")
-            if themed:
-                expected.append("application_theme:apply-saved")
         self.assertEqual([call for call in calls if call != "deploy:preflight"], expected)
 
     def installed_manifest(self):
@@ -168,7 +218,16 @@ sys.exit(int(os.environ.get("TEST_UI_ASSETS_EXIT", "0")))
         result, calls = self.run_control("install")
         self.assert_success(result)
         self.assertFalse(any(call.startswith("sudo:") for call in calls))
-        self.assertEqual(calls[-3:], ["check:--config", "deploy:install", "application_theme:apply-saved"])
+        self.assertEqual(calls[-3:], ["check:--config", "application_theme:apply-saved", "deploy:install"])
+
+    def test_optional_aur_declarations_are_not_queried_or_sent_to_pacman(self):
+        with (self.root / "packages.txt").open("a") as manifest:
+            manifest.write("# optional aur mpvpaper | video playback\n"
+                           "# optional-experimental aur linux-wallpaperengine-git | scenes\n")
+        result, calls = self.run_control("install")
+        self.assert_success(result)
+        self.assertFalse(any("mpvpaper" in call or "linux-wallpaperengine" in call for call in calls))
+        self.assertFalse(any(call.startswith("sudo:") for call in calls))
 
     def test_install_missing_package_upgrades_before_validation_and_deployment(self):
         result, calls = self.run_control("install", TEST_MISSING="alpha")
@@ -176,7 +235,7 @@ sys.exit(int(os.environ.get("TEST_UI_ASSETS_EXIT", "0")))
         transaction = "sudo:pacman -Syu --needed -- alpha"
         self.assertIn(transaction, calls)
         self.assertLess(calls.index("deploy:preflight"), calls.index(transaction))
-        self.assertEqual(calls[-3:], ["check:--config", "deploy:install", "application_theme:apply-saved"])
+        self.assertEqual(calls[-3:], ["check:--config", "application_theme:apply-saved", "deploy:install"])
 
     def test_existing_qt_mixer_satisfies_install(self):
         result, calls = self.run_control("install", TEST_MISSING="pavucontrol")
@@ -190,7 +249,7 @@ sys.exit(int(os.environ.get("TEST_UI_ASSETS_EXIT", "0")))
         transaction = "sudo:pacman -Syu --needed -- alpha pavucontrol"
         self.assertIn(transaction, calls)
         self.assertLess(calls.index("deploy:preflight"), calls.index(transaction))
-        self.assertEqual(calls[-3:], ["check:--config", "deploy:install", "application_theme:apply-saved"])
+        self.assertEqual(calls[-3:], ["check:--config", "application_theme:apply-saved", "deploy:install"])
 
     def test_update_keeps_existing_qt_mixer(self):
         result, calls = self.run_control("update", TEST_MISSING="pavucontrol")
@@ -203,7 +262,7 @@ sys.exit(int(os.environ.get("TEST_UI_ASSETS_EXIT", "0")))
         self.assertIn("pacman:-Qk alpha", calls)
         self.assertIn("pacman:-Qk pavucontrol", calls)
         self.assertFalse(any(call.startswith("sudo:") for call in calls))
-        self.assertEqual(calls[-3:], ["check:--config", "deploy:install", "application_theme:apply-saved"])
+        self.assertEqual(calls[-3:], ["check:--config", "application_theme:apply-saved", "deploy:install"])
 
     def test_repair_reinstalls_damaged_package_without_needed(self):
         result, calls = self.run_control("repair", TEST_DAMAGED="alpha")
@@ -238,7 +297,7 @@ exec "$TEST_REAL_PYTHON" "$@"
         transaction = "sudo:pacman -Syu -- python"
         self.assertIn(transaction, calls)
         self.assertLess(calls.index(transaction), calls.index("deploy:preflight"))
-        self.assertEqual(calls[-3:], ["check:--config", "deploy:install", "application_theme:apply-saved"])
+        self.assertEqual(calls[-3:], ["check:--config", "application_theme:apply-saved", "deploy:install"])
 
     def test_no_packages_with_broken_python_stops_before_any_action(self):
         self.script(self.bin / "python3", "#!/usr/bin/env bash\nexit 1\n")
@@ -271,17 +330,17 @@ exec "$TEST_REAL_PYTHON" "$@"
     def test_validation_failure_prevents_deployment(self):
         result, calls = self.run_control("repair", "--no-packages", TEST_CHECK_EXIT="6")
         self.assertEqual(result.returncode, 6)
-        self.assert_config_flow(calls, deployed=False)
+        self.assert_config_flow(calls, deployed=False, themed=False)
 
     def test_deployment_failure_is_reported(self):
         result, calls = self.run_control("install", "--no-packages", TEST_DEPLOY_FAIL_MODE="install")
         self.assertEqual(result.returncode, 8)
-        self.assert_config_flow(calls, themed=False)
+        self.assert_config_flow(calls)
 
-    def test_failed_theme_apply_is_reported_after_config_deployment(self):
+    def test_failed_theme_plan_prevents_config_deployment(self):
         result, calls = self.run_control("repair", "--no-packages", TEST_APPLICATION_THEME_EXIT="9")
         self.assertEqual(result.returncode, 9)
-        self.assert_config_flow(calls)
+        self.assert_config_flow(calls, deployed=False)
 
     def test_failed_theme_restore_preserves_installed_config(self):
         self.installed_manifest()
@@ -505,7 +564,7 @@ sys.exit(int(os.environ.get("TEST_APPEARANCE_EXIT", "0")))
     def test_legacy_install_with_no_arguments_installs(self):
         result, calls = self.run_control(wrapper=True)
         self.assert_success(result)
-        self.assertEqual(calls[-3:], ["check:--config", "deploy:install", "application_theme:apply-saved"])
+        self.assertEqual(calls[-3:], ["check:--config", "application_theme:apply-saved", "deploy:install"])
 
     def test_legacy_conflicting_flags_do_nothing(self):
         for arguments in (("--packages", "--no-packages"), ("--uninstall", "--packages")):
@@ -523,6 +582,11 @@ sys.exit(int(os.environ.get("TEST_APPEARANCE_EXIT", "0")))
         result, calls = self.run_control("update", "--no-packages", wrapper=True)
         self.assert_success(result)
         self.assert_config_flow(calls)
+
+    def test_legacy_wrapper_forwards_export_without_installing(self):
+        result, calls = self.run_control("export", wrapper=True)
+        self.assert_success(result)
+        self.assertEqual(calls, ["export:"])
 
     def test_legacy_uninstall_flag_uses_safe_restore(self):
         self.installed_manifest()

@@ -57,6 +57,12 @@ def render(theme, name, size, scale):
 
 
 class KeyboardIconTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        initialized, _ = Gtk.init_check()
+        if not initialized or Gtk.Settings.get_default() is None or Gdk.Screen.get_default() is None:
+            raise unittest.SkipTest("GTK display unavailable; verify icon rendering in the isolated graphical session")
+
     def setUp(self):
         self.runtime = tempfile.TemporaryDirectory(prefix="selandia-icons-")
         self.addCleanup(self.runtime.cleanup)

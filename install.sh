@@ -12,7 +12,7 @@ for argument in "$@"; do
         --packages) explicit_packages=true ;;
         --no-packages) skip_packages=true; arguments+=("$argument") ;;
         --uninstall) uninstall=true; has_action=true; arguments+=(uninstall) ;;
-        install|update|repair|uninstall|status|check)
+        install|update|repair|uninstall|status|check|export)
             has_action=true
             [[ "$argument" != uninstall ]] || uninstall=true
             arguments+=("$argument")

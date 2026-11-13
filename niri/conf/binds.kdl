@@ -1,7 +1,7 @@
 // Mod 在正常会话中为 Super，在嵌套窗口中为 Alt。
 // 保留 End-4 的主要按键，避免把 Super+L 改成向右聚焦。
 binds {
-    Mod+Return hotkey-overlay-title="终端 · Kitty" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launch terminal"; }
+    Mod+Return hotkey-overlay-title="终端" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launch terminal"; }
     Mod+T repeat=false hotkey-overlay-title=null { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launch terminal"; }
     Ctrl+Alt+T repeat=false hotkey-overlay-title=null { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launch terminal"; }
     Mod+E hotkey-overlay-title="文件管理器" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launch files"; }
@@ -27,7 +27,6 @@ binds {
     Mod+Shift+Slash hotkey-overlay-title="Native shortcuts · 原生快捷键提示" repeat=false { show-hotkey-overlay; }
     Mod+I hotkey-overlay-title="Control Center · 控制中心" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" control"; }
     Mod+A hotkey-overlay-title="AI sidebar · AI 侧栏" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" ai"; }
-    Mod+Shift+A hotkey-overlay-title="Codex terminal · Codex 终端侧栏" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" codex"; }
     Mod+Tab hotkey-overlay-title="工作区总览" repeat=false { toggle-overview; }
     Mod+Q hotkey-overlay-title="关闭窗口" repeat=false { close-window; }
     Mod+F hotkey-overlay-title="全屏" repeat=false { fullscreen-window; }

@@ -1,5 +1,6 @@
 """Player-specific media controls; pause never depends on playlist navigation."""
 from pathlib import Path
+import threading
 from urllib.parse import unquote, urlparse
 
 import gi
@@ -9,6 +10,7 @@ from gi.repository import GdkPixbuf, GLib, Gtk, Pango
 
 from control_widgets import icon, icon_button, pack, style, text
 import media_backend as backend
+from media_events import MediaChanges
 from i18n import tr, tr_legacy
 
 
@@ -38,6 +40,7 @@ class MediaControls(Gtk.Box):
         self.guard = False
         self.generation = 0
         self.art_uri = None
+        self.art_pending = None
         self.source = style(Gtk.ComboBoxText(), "media-source")
         for cell in self.source.get_cells():
             cell.set_property("max-width-chars", 16)
@@ -76,15 +79,84 @@ class MediaControls(Gtk.Box):
         self.error = pack(self, text("", "media-error", 24))
         self.error.set_no_show_all(True)
         self.source.set_sensitive(False)
+        self.timer_source = None
+        self.media_changes = None
+        self.change_lock = threading.Lock()
+        self.change_epoch = 0
+        self.change_scheduled = False
+        self.connect("destroy", lambda *_: self.dispose())
+
+    def start(self):
+        """Subscribe while visible; a thirty-second read repairs missed signals."""
+        if self.media_changes is None and self.panel.alive:
+            with self.change_lock:
+                self.change_epoch += 1
+                epoch = self.change_epoch
+            # This card renders metadata/capabilities, not position. Players
+            # emitting frequent progress signals must not cause full snapshots.
+            changes = MediaChanges(threading.Event(), on_change=lambda: self.schedule_change(epoch),
+                player_properties=('Metadata', 'PlaybackStatus', 'CanControl', 'CanPlay',
+                                   'CanPause', 'CanGoNext', 'CanGoPrevious'), watch_seek=False)
+            self.media_changes = changes
+            changes.thread.start()
+        if self.timer_source is None and self.panel.alive:
+            self.timer_source = GLib.timeout_add_seconds(30, self.refresh)
+            self.panel.pending.add(self.timer_source)
+
+    def schedule_change(self, epoch):
+        """Coalesce a burst on the subscriber thread before entering GTK."""
+        with self.change_lock:
+            if epoch != self.change_epoch or self.change_scheduled or self.media_changes is None:
+                return
+            self.change_scheduled = True
+        GLib.timeout_add(200, self.dispatch_change, epoch)
+
+    def dispatch_change(self, epoch):
+        with self.change_lock:
+            if epoch != self.change_epoch:
+                return GLib.SOURCE_REMOVE
+            self.change_scheduled = False
+        changes = self.media_changes
+        if changes is not None and changes.changed.is_set():
+            self.refresh()
+        return GLib.SOURCE_REMOVE
+
+    def suspend(self):
+        with self.change_lock:
+            self.change_epoch += 1
+            self.change_scheduled = False
+        changes, self.media_changes = self.media_changes, None
+        if changes is not None:
+            changes.close()
+            if changes.thread.ident is not None:
+                self.panel.work(lambda: changes.thread.join(3), commit=True)
+        source = self.timer_source
+        self.timer_source = None
+        if source is not None:
+            self.panel.pending.discard(source)
+            GLib.source_remove(source)
+
+    def resume(self):
+        if not self.panel.alive:
+            return
+        self.start()
+        self.show_player()
         self.refresh()
-        panel.pending.add(GLib.timeout_add_seconds(2, self.refresh))
+
+    def dispose(self):
+        self.suspend()
 
     def refresh(self):
         if not self.panel.alive:
             return GLib.SOURCE_REMOVE
+        if not self.panel.page_visible('quick'):
+            return GLib.SOURCE_CONTINUE
         if self.loading or self.busy:
             return GLib.SOURCE_CONTINUE
         self.loading = True
+        changes = getattr(self, 'media_changes', None)
+        if changes is not None:
+            changes.changed.clear()
         preferred = self.preferred
         generation = self.generation
 
@@ -94,10 +166,16 @@ class MediaControls(Gtk.Box):
                 self.refresh()
                 return
             self.apply_state(state)
+            current = getattr(self, 'media_changes', None)
+            if current is not None and current.changed.is_set():
+                self.schedule_change(self.change_epoch)
 
         def failed(error):
             self.loading = False
             self.show_error(error)
+            current = getattr(self, 'media_changes', None)
+            if current is not None and current.changed.is_set():
+                self.schedule_change(self.change_epoch)
         self.panel.work(lambda: backend.read_state(preferred), done, failed)
         return GLib.SOURCE_CONTINUE
 
@@ -149,13 +227,17 @@ class MediaControls(Gtk.Box):
         uri = player.get("art_url") or ""
         if uri != self.art_uri:
             self.art_uri = uri
+            self.art_pending = uri or None
             self.art.set_from_icon_name("audio-x-generic-symbolic", Gtk.IconSize.DIALOG)
             self.art.set_pixel_size(28)
-            if uri:
-                def show_art(pixbuf):
-                    if uri == self.art_uri and pixbuf:
-                        self.art.set_from_pixbuf(pixbuf)
-                self.panel.work(lambda: local_cover(uri), show_art)
+        if uri and self.art_pending == uri:
+            if not self.panel.page_visible("quick"):
+                return
+            self.art_pending = None
+            def show_art(pixbuf):
+                if uri == self.art_uri and pixbuf:
+                    self.art.set_from_pixbuf(pixbuf)
+            self.panel.work(lambda: local_cover(uri), show_art)
 
     def source_changed(self, combo):
         if self.guard or self.busy:

@@ -1,22 +1,71 @@
 {
-  "method": "tools/bar_measure.py in a private nested Niri session (scale 1.5); the bar keeps a fixed 18px margin while its content fits and loses the right margin when it does not, so the margins are the pixel evidence.",
+  "method": "Segmented pills measured by tools/bar_measure.py on private nested Niri; only this test window was resized. Per-point screenshots and pixel bounds are in .validation/glass-ai-20261009/bar/.",
+  "style_version": 2,
   "font_size": 16.0,
   "points": [
-    {"layout": "compact", "logical_width": 733, "keeps_margins": false},
-    {"layout": "compact", "logical_width": 750, "keeps_margins": false},
-    {"layout": "compact", "logical_width": 773, "keeps_margins": true},
-    {"layout": "compact", "logical_width": 800, "keeps_margins": true},
-    {"layout": "compact", "logical_width": 1066, "keeps_margins": true, "note": "the audit's 1600x1000@150% case"},
-    {"layout": "wide", "logical_width": 1700, "keeps_margins": true},
-    {"layout": "wide", "logical_width": 1900, "keeps_margins": true},
-    {"layout": "wide", "logical_width": 2000, "keeps_margins": true},
-    {"layout": "wide", "logical_width": 2100, "keeps_margins": true},
-    {"layout": "wide", "logical_width": 2200, "keeps_margins": true},
-    {"layout": "wide", "logical_width": 2300, "keeps_margins": true},
-    {"layout": "wide", "logical_width": 2400, "keeps_margins": true}
+    {
+      "layout": "compact",
+      "logical_width": 733,
+      "keeps_margins": false
+    },
+    {
+      "layout": "compact",
+      "logical_width": 773,
+      "keeps_margins": false
+    },
+    {
+      "layout": "compact",
+      "logical_width": 800,
+      "keeps_margins": false
+    },
+    {
+      "layout": "compact",
+      "logical_width": 833,
+      "keeps_margins": true
+    },
+    {
+      "layout": "compact",
+      "logical_width": 850,
+      "keeps_margins": true
+    },
+    {
+      "layout": "compact",
+      "logical_width": 900,
+      "keeps_margins": true
+    },
+    {
+      "layout": "compact",
+      "logical_width": 1066,
+      "keeps_margins": true
+    },
+    {
+      "layout": "wide",
+      "logical_width": 1700,
+      "keeps_margins": false
+    },
+    {
+      "layout": "wide",
+      "logical_width": 2400,
+      "keeps_margins": true
+    },
+    {
+      "layout": "wide",
+      "logical_width": 2560,
+      "keeps_margins": true
+    }
   ],
   "acceptance": [
-    {"case": "1600x1000@150% (1067 logical)", "layout": "compact", "logical_width": 1066, "keeps_margins": true},
-    {"case": "3840x2160@150% (2560 logical)", "layout": "wide", "logical_width": 2400, "keeps_margins": true}
+    {
+      "layout": "compact",
+      "logical_width": 1066,
+      "keeps_margins": true,
+      "case": "1600x1000@150% (1066 logical)"
+    },
+    {
+      "layout": "wide",
+      "logical_width": 2560,
+      "keeps_margins": true,
+      "case": "3840x2160@150% (2560 logical)"
+    }
   ]
 }

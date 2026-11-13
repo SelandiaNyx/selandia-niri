@@ -1,15 +1,23 @@
-# Niri on Arch Linux · Niri 桌面的 Arch 官方仓库依赖。
-# Optional / 可选: power-profiles-daemon (hardware power profiles / 硬件电源模式)
+# required aur eww | Rust bar and Dynamic Island / Rust 顶栏与灵动岛，必需
+# required aur anyrun | Rust launcher including anyrun-provider / Rust 启动器及 provider，必需
+# Required / 必需: bare names below are official Arch repository packages, installed by pacman.
+# Optional declarations / 可选声明: comments are excluded from the required pacman transaction.
+# SwayNC/SwayBG/SwayIdle/SwayLock and Fuzzel dmenu remain required daily; see docs/EMERGENCY_COMPONENTS.md / 尚未迁移的日常部件见清单。
+alacritty
+rust
+# optional repo power-profiles-daemon | hardware power profiles / 硬件电源模式
+# optional repo ffmpeg | video thumbnails / 视频首帧与缩略图
+# optional aur mpvpaper | video wallpaper playback / 视频壁纸播放
+# optional-experimental aur linux-wallpaperengine-git | Wallpaper Engine scene/Web backend; original assets required / 场景与网页后端，需要正版资源
+# hardware-optional repo nvidia-utils | nvidia-smi metrics, NVIDIA GPUs only; unnecessary on Intel/AMD / 仅 NVIDIA 显卡指标，Intel/AMD 不需要
 # AI providers are configured separately / AI 服务单独配置，不自动安装模型或 Codex。
 niri
 xwayland-satellite
-waybar
 fuzzel
 swaync
 swaybg
 swayidle
 swaylock
-kitty
 wl-clipboard
 cliphist
 libnotify
@@ -35,8 +43,11 @@ zenity
 xdg-utils
 xdg-user-dirs
 python
+dbus
 python-gobject
+python-cairo
 gtk3
+gtk4-layer-shell
 gtk-layer-shell
 gsettings-desktop-schemas
 breeze

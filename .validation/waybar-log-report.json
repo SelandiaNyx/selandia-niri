@@ -1,241 +1,306 @@
 {
-  "lines": 63,
+  "lines": 60,
   "counts": {
-    "WARNING": 7,
-    "CRITICAL": 11
+    "WARNING": 14,
+    "CRITICAL": 9
   },
   "findings": [
+    {
+      "line": 4,
+      "severity": "WARNING",
+      "source": "niri/theme",
+      "message": "[2026-10-09 13:59:15.955] [warning] No batteries.",
+      "context": [
+        "[2026-10-09 13:59:15.947] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 13:59:15.952] [info] Niri IPC starting",
+        "[2026-10-09 13:59:15.955] [warning] No batteries.",
+        "[2026-10-09 13:59:16.013] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 13:59:16.013] [info] Bar configured (width: 1031, height: 48) for output: winit"
+      ]
+    },
     {
       "line": 5,
       "severity": "WARNING",
       "source": "niri/theme",
-      "message": "[2026-10-05 10:43:42.011] [warning] No batteries.",
+      "message": "[2026-10-09 13:59:16.013] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
       "context": [
-        "[2026-10-05 10:43:42.006] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css",
-        "[2026-10-05 10:43:42.008] [info] Niri IPC starting",
-        "[2026-10-05 10:43:42.011] [warning] No batteries.",
-        "[2026-10-05 10:43:42.061] [info] Bar configured (width: 1031, height: 46) for output: winit",
-        "[2026-10-05 10:44:45.870] [info] Reloading..."
+        "[2026-10-09 13:59:15.952] [info] Niri IPC starting",
+        "[2026-10-09 13:59:15.955] [warning] No batteries.",
+        "[2026-10-09 13:59:16.013] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 13:59:16.013] [info] Bar configured (width: 1031, height: 48) for output: winit",
+        "[2026-10-09 14:00:19.721] [info] Reloading..."
       ]
     },
     {
       "line": 9,
       "severity": "CRITICAL",
       "source": "waybar",
-      "message": "** (waybar:491634): CRITICAL **: 10:44:45.872: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "message": "** (waybar:211470): CRITICAL **: 14:00:19.723: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
       "context": [
-        "[2026-10-05 10:44:45.870] [info] Reloading...",
+        "[2026-10-09 14:00:19.721] [info] Reloading...",
         "",
-        "** (waybar:491634): CRITICAL **: 10:44:45.872: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "",
-        "** (waybar:491638): CRITICAL **: 10:44:45.875: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed"
+        "** (waybar:211470): CRITICAL **: 14:00:19.723: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+        "[2026-10-09 14:00:19.728] [info] Using configuration file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.jsonc",
+        "[2026-10-09 14:00:19.728] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css"
       ]
     },
     {
-      "line": 11,
-      "severity": "CRITICAL",
-      "source": "waybar",
-      "message": "** (waybar:491638): CRITICAL **: 10:44:45.875: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-      "context": [
-        "** (waybar:491634): CRITICAL **: 10:44:45.872: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "",
-        "** (waybar:491638): CRITICAL **: 10:44:45.875: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "[2026-10-05 10:44:45.876] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc",
-        "[2026-10-05 10:44:45.876] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css"
-      ]
-    },
-    {
-      "line": 14,
+      "line": 12,
       "severity": "WARNING",
       "source": "niri/theme",
-      "message": "[2026-10-05 10:44:45.893] [warning] No batteries.",
+      "message": "[2026-10-09 14:00:19.746] [warning] No batteries.",
       "context": [
-        "[2026-10-05 10:44:45.876] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc",
-        "[2026-10-05 10:44:45.876] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css",
-        "[2026-10-05 10:44:45.893] [warning] No batteries.",
-        "[2026-10-05 10:44:45.921] [info] Bar configured (width: 1031, height: 46) for output: winit",
-        "[2026-10-05 10:44:45.960] [info] Bar configured (width: 1087, height: 46) for output: winit"
+        "[2026-10-09 14:00:19.728] [info] Using configuration file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.jsonc",
+        "[2026-10-09 14:00:19.728] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 14:00:19.746] [warning] No batteries.",
+        "[2026-10-09 14:00:19.759] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 14:00:19.759] [info] Bar configured (width: 1031, height: 48) for output: winit"
+      ]
+    },
+    {
+      "line": 13,
+      "severity": "WARNING",
+      "source": "niri/theme",
+      "message": "[2026-10-09 14:00:19.759] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+      "context": [
+        "[2026-10-09 14:00:19.728] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 14:00:19.746] [warning] No batteries.",
+        "[2026-10-09 14:00:19.759] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 14:00:19.759] [info] Bar configured (width: 1031, height: 48) for output: winit",
+        "[2026-10-09 14:00:20.029] [info] Reloading..."
+      ]
+    },
+    {
+      "line": 17,
+      "severity": "CRITICAL",
+      "source": "waybar",
+      "message": "** (waybar:211500): CRITICAL **: 14:00:20.033: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "context": [
+        "[2026-10-09 14:00:20.029] [info] Reloading...",
+        "",
+        "** (waybar:211500): CRITICAL **: 14:00:20.033: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+        "[2026-10-09 14:00:20.034] [info] Using configuration file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.jsonc",
+        "[2026-10-09 14:00:20.034] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css"
       ]
     },
     {
       "line": 20,
-      "severity": "CRITICAL",
-      "source": "waybar",
-      "message": "** (waybar:491725): CRITICAL **: 10:44:46.187: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "severity": "WARNING",
+      "source": "niri/theme",
+      "message": "[2026-10-09 14:00:20.053] [warning] No batteries.",
       "context": [
-        "[2026-10-05 10:44:46.185] [info] Reloading...",
-        "",
-        "** (waybar:491725): CRITICAL **: 10:44:46.187: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "",
-        "** (waybar:491726): CRITICAL **: 10:44:46.190: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed"
+        "[2026-10-09 14:00:20.034] [info] Using configuration file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.jsonc",
+        "[2026-10-09 14:00:20.034] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 14:00:20.053] [warning] No batteries.",
+        "[2026-10-09 14:00:20.065] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 14:00:20.065] [info] Bar configured (width: 1031, height: 48) for output: winit"
       ]
     },
     {
-      "line": 22,
-      "severity": "CRITICAL",
-      "source": "waybar",
-      "message": "** (waybar:491726): CRITICAL **: 10:44:46.190: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "line": 21,
+      "severity": "WARNING",
+      "source": "niri/theme",
+      "message": "[2026-10-09 14:00:20.065] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
       "context": [
-        "** (waybar:491725): CRITICAL **: 10:44:46.187: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "",
-        "** (waybar:491726): CRITICAL **: 10:44:46.190: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "[2026-10-05 10:44:46.191] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc",
-        "[2026-10-05 10:44:46.191] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css"
+        "[2026-10-09 14:00:20.034] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 14:00:20.053] [warning] No batteries.",
+        "[2026-10-09 14:00:20.065] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 14:00:20.065] [info] Bar configured (width: 1031, height: 48) for output: winit",
+        "[2026-10-09 14:00:20.337] [info] Reloading..."
       ]
     },
     {
       "line": 25,
-      "severity": "WARNING",
-      "source": "niri/theme",
-      "message": "[2026-10-05 10:44:46.200] [warning] No batteries.",
+      "severity": "CRITICAL",
+      "source": "waybar",
+      "message": "** (waybar:211527): CRITICAL **: 14:00:20.340: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
       "context": [
-        "[2026-10-05 10:44:46.191] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc",
-        "[2026-10-05 10:44:46.191] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css",
-        "[2026-10-05 10:44:46.200] [warning] No batteries.",
-        "[2026-10-05 10:44:46.212] [info] Bar configured (width: 1031, height: 46) for output: winit",
-        "[2026-10-05 10:44:46.260] [info] Bar configured (width: 1121, height: 46) for output: winit"
+        "[2026-10-09 14:00:20.337] [info] Reloading...",
+        "",
+        "** (waybar:211527): CRITICAL **: 14:00:20.340: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+        "",
+        "** (waybar:211531): CRITICAL **: 14:00:20.345: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed"
+      ]
+    },
+    {
+      "line": 27,
+      "severity": "CRITICAL",
+      "source": "waybar",
+      "message": "** (waybar:211531): CRITICAL **: 14:00:20.345: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "context": [
+        "** (waybar:211527): CRITICAL **: 14:00:20.340: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+        "",
+        "** (waybar:211531): CRITICAL **: 14:00:20.345: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+        "[2026-10-09 14:00:20.346] [info] Using configuration file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.jsonc",
+        "[2026-10-09 14:00:20.347] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css"
       ]
     },
     {
       "line": 30,
-      "severity": "CRITICAL",
-      "source": "waybar",
-      "message": "** (waybar:491860): CRITICAL **: 10:44:46.495: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "severity": "WARNING",
+      "source": "niri/theme",
+      "message": "[2026-10-09 14:00:20.359] [warning] No batteries.",
       "context": [
-        "[2026-10-05 10:44:46.493] [info] Reloading...",
-        "",
-        "** (waybar:491860): CRITICAL **: 10:44:46.495: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "",
-        "** (waybar:491862): CRITICAL **: 10:44:46.497: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed"
+        "[2026-10-09 14:00:20.346] [info] Using configuration file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.jsonc",
+        "[2026-10-09 14:00:20.347] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 14:00:20.359] [warning] No batteries.",
+        "[2026-10-09 14:00:20.371] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 14:00:20.371] [info] Bar configured (width: 1031, height: 48) for output: winit"
       ]
     },
     {
-      "line": 32,
-      "severity": "CRITICAL",
-      "source": "waybar",
-      "message": "** (waybar:491862): CRITICAL **: 10:44:46.497: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "line": 31,
+      "severity": "WARNING",
+      "source": "niri/theme",
+      "message": "[2026-10-09 14:00:20.371] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
       "context": [
-        "** (waybar:491860): CRITICAL **: 10:44:46.495: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "",
-        "** (waybar:491862): CRITICAL **: 10:44:46.497: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "[2026-10-05 10:44:46.499] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc",
-        "[2026-10-05 10:44:46.499] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css"
+        "[2026-10-09 14:00:20.347] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 14:00:20.359] [warning] No batteries.",
+        "[2026-10-09 14:00:20.371] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 14:00:20.371] [info] Bar configured (width: 1031, height: 48) for output: winit",
+        "[2026-10-09 14:00:20.654] [info] Reloading..."
       ]
     },
     {
       "line": 35,
+      "severity": "CRITICAL",
+      "source": "waybar",
+      "message": "** (waybar:211556): CRITICAL **: 14:00:20.657: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "context": [
+        "[2026-10-09 14:00:20.654] [info] Reloading...",
+        "",
+        "** (waybar:211556): CRITICAL **: 14:00:20.657: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+        "[2026-10-09 14:00:20.662] [info] Using configuration file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.jsonc",
+        "[2026-10-09 14:00:20.663] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css"
+      ]
+    },
+    {
+      "line": 38,
       "severity": "WARNING",
       "source": "niri/theme",
-      "message": "[2026-10-05 10:44:46.505] [warning] No batteries.",
+      "message": "[2026-10-09 14:00:20.672] [warning] No batteries.",
       "context": [
-        "[2026-10-05 10:44:46.499] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc",
-        "[2026-10-05 10:44:46.499] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css",
-        "[2026-10-05 10:44:46.505] [warning] No batteries.",
-        "[2026-10-05 10:44:46.518] [info] Bar configured (width: 1031, height: 46) for output: winit",
-        "[2026-10-05 10:44:46.801] [info] Reloading..."
+        "[2026-10-09 14:00:20.662] [info] Using configuration file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.jsonc",
+        "[2026-10-09 14:00:20.663] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 14:00:20.672] [warning] No batteries.",
+        "[2026-10-09 14:00:20.683] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 14:00:20.683] [info] Bar configured (width: 1031, height: 48) for output: winit"
       ]
     },
     {
       "line": 39,
-      "severity": "CRITICAL",
+      "severity": "WARNING",
       "source": "niri/theme",
-      "message": "** (waybar:492022): CRITICAL **: 10:44:46.803: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "message": "[2026-10-09 14:00:20.683] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
       "context": [
-        "[2026-10-05 10:44:46.801] [info] Reloading...",
-        "",
-        "** (waybar:492022): CRITICAL **: 10:44:46.803: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "[2026-10-05 10:44:46.804] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc",
-        "[2026-10-05 10:44:46.804] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css"
+        "[2026-10-09 14:00:20.663] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 14:00:20.672] [warning] No batteries.",
+        "[2026-10-09 14:00:20.683] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 14:00:20.683] [info] Bar configured (width: 1031, height: 48) for output: winit",
+        "[2026-10-09 14:00:20.970] [info] Reloading..."
       ]
     },
     {
-      "line": 42,
-      "severity": "WARNING",
-      "source": "niri/theme",
-      "message": "[2026-10-05 10:44:46.818] [warning] No batteries.",
+      "line": 43,
+      "severity": "CRITICAL",
+      "source": "waybar",
+      "message": "** (waybar:211585): CRITICAL **: 14:00:20.973: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
       "context": [
-        "[2026-10-05 10:44:46.804] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc",
-        "[2026-10-05 10:44:46.804] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css",
-        "[2026-10-05 10:44:46.818] [warning] No batteries.",
-        "[2026-10-05 10:44:46.831] [info] Bar configured (width: 1031, height: 46) for output: winit",
-        "[2026-10-05 10:44:46.879] [info] Bar configured (width: 1087, height: 46) for output: winit"
+        "[2026-10-09 14:00:20.970] [info] Reloading...",
+        "",
+        "** (waybar:211585): CRITICAL **: 14:00:20.973: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+        "",
+        "** (waybar:211589): CRITICAL **: 14:00:20.977: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed"
+      ]
+    },
+    {
+      "line": 45,
+      "severity": "CRITICAL",
+      "source": "waybar",
+      "message": "** (waybar:211589): CRITICAL **: 14:00:20.977: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "context": [
+        "** (waybar:211585): CRITICAL **: 14:00:20.973: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+        "",
+        "** (waybar:211589): CRITICAL **: 14:00:20.977: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+        "[2026-10-09 14:00:20.979] [info] Using configuration file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.jsonc",
+        "[2026-10-09 14:00:20.979] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css"
       ]
     },
     {
       "line": 48,
-      "severity": "CRITICAL",
-      "source": "waybar",
-      "message": "** (waybar:492186): CRITICAL **: 10:44:47.107: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "severity": "WARNING",
+      "source": "niri/theme",
+      "message": "[2026-10-09 14:00:20.985] [warning] No batteries.",
       "context": [
-        "[2026-10-05 10:44:47.105] [info] Reloading...",
-        "",
-        "** (waybar:492186): CRITICAL **: 10:44:47.107: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "",
-        "** (waybar:492188): CRITICAL **: 10:44:47.110: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed"
+        "[2026-10-09 14:00:20.979] [info] Using configuration file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.jsonc",
+        "[2026-10-09 14:00:20.979] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 14:00:20.985] [warning] No batteries.",
+        "[2026-10-09 14:00:20.996] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 14:00:20.996] [info] Bar configured (width: 1031, height: 48) for output: winit"
       ]
     },
     {
-      "line": 50,
-      "severity": "CRITICAL",
-      "source": "waybar",
-      "message": "** (waybar:492188): CRITICAL **: 10:44:47.110: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "line": 49,
+      "severity": "WARNING",
+      "source": "niri/theme",
+      "message": "[2026-10-09 14:00:20.996] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
       "context": [
-        "** (waybar:492186): CRITICAL **: 10:44:47.107: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "",
-        "** (waybar:492188): CRITICAL **: 10:44:47.110: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "[2026-10-05 10:44:47.111] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc",
-        "[2026-10-05 10:44:47.111] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css"
+        "[2026-10-09 14:00:20.979] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 14:00:20.985] [warning] No batteries.",
+        "[2026-10-09 14:00:20.996] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 14:00:20.996] [info] Bar configured (width: 1031, height: 48) for output: winit",
+        "[2026-10-09 14:00:21.287] [info] Reloading..."
       ]
     },
     {
       "line": 53,
-      "severity": "WARNING",
-      "source": "niri/theme",
-      "message": "[2026-10-05 10:44:47.115] [warning] No batteries.",
+      "severity": "CRITICAL",
+      "source": "waybar",
+      "message": "** (waybar:211616): CRITICAL **: 14:00:21.290: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
       "context": [
-        "[2026-10-05 10:44:47.111] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc",
-        "[2026-10-05 10:44:47.111] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css",
-        "[2026-10-05 10:44:47.115] [warning] No batteries.",
-        "[2026-10-05 10:44:47.125] [info] Bar configured (width: 1031, height: 46) for output: winit",
-        "[2026-10-05 10:44:47.408] [info] Reloading..."
+        "[2026-10-09 14:00:21.287] [info] Reloading...",
+        "",
+        "** (waybar:211616): CRITICAL **: 14:00:21.290: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+        "",
+        "** (waybar:211618): CRITICAL **: 14:00:21.294: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed"
       ]
     },
     {
-      "line": 57,
+      "line": 55,
       "severity": "CRITICAL",
-      "source": "niri/theme",
-      "message": "** (waybar:492323): CRITICAL **: 10:44:47.410: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+      "source": "waybar",
+      "message": "** (waybar:211618): CRITICAL **: 14:00:21.294: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
       "context": [
-        "[2026-10-05 10:44:47.408] [info] Reloading...",
+        "** (waybar:211616): CRITICAL **: 14:00:21.290: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
         "",
-        "** (waybar:492323): CRITICAL **: 10:44:47.410: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "",
-        "** (waybar:492325): CRITICAL **: 10:44:47.413: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed"
+        "** (waybar:211618): CRITICAL **: 14:00:21.294: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
+        "[2026-10-09 14:00:21.295] [info] Using configuration file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.jsonc",
+        "[2026-10-09 14:00:21.296] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css"
+      ]
+    },
+    {
+      "line": 58,
+      "severity": "WARNING",
+      "source": "niri/theme",
+      "message": "[2026-10-09 14:00:21.301] [warning] No batteries.",
+      "context": [
+        "[2026-10-09 14:00:21.295] [info] Using configuration file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.jsonc",
+        "[2026-10-09 14:00:21.296] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 14:00:21.301] [warning] No batteries.",
+        "[2026-10-09 14:00:21.315] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 14:00:21.315] [info] Bar configured (width: 1031, height: 48) for output: winit"
       ]
     },
     {
       "line": 59,
-      "severity": "CRITICAL",
-      "source": "waybar",
-      "message": "** (waybar:492325): CRITICAL **: 10:44:47.413: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-      "context": [
-        "** (waybar:492323): CRITICAL **: 10:44:47.410: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "",
-        "** (waybar:492325): CRITICAL **: 10:44:47.413: static void Glib::DispatchNotifier::unreference_instance(Glib::DispatchNotifier*, const Glib::Dispatcher*): assertion 'instance == notifier' failed",
-        "[2026-10-05 10:44:47.414] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc",
-        "[2026-10-05 10:44:47.414] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css"
-      ]
-    },
-    {
-      "line": 62,
       "severity": "WARNING",
       "source": "niri/theme",
-      "message": "[2026-10-05 10:44:47.417] [warning] No batteries.",
+      "message": "[2026-10-09 14:00:21.315] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
       "context": [
-        "[2026-10-05 10:44:47.414] [info] Using configuration file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.jsonc",
-        "[2026-10-05 10:44:47.414] [info] Using CSS file /home/SelandiaNyx/Selandia's Niri/niri/theme/waybar.css",
-        "[2026-10-05 10:44:47.417] [warning] No batteries.",
-        "[2026-10-05 10:44:47.431] [info] Bar configured (width: 1031, height: 46) for output: winit"
+        "[2026-10-09 14:00:21.296] [info] Using CSS file /tmp/selandia-smoke-qu3cmt_b/config/niri/theme/waybar.css",
+        "[2026-10-09 14:00:21.301] [warning] No batteries.",
+        "[2026-10-09 14:00:21.315] [warning] Requested height: 46 is less than the minimum height: 48 required by the modules",
+        "[2026-10-09 14:00:21.315] [info] Bar configured (width: 1031, height: 48) for output: winit"
       ]
     }
   ],

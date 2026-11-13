@@ -35,20 +35,40 @@ class DesktopActionTests(unittest.TestCase):
         # host, even if future desktop hooks accidentally invoke them directly.
         for command in ("dirname", "bash"):
             (self.bin / command).symlink_to(shutil.which(command))
-        for command in ("kitty", "python3", "niri", "systemctl", "notify-send", "fuzzel", "swaylock", "flock", "pgrep"):
+        for command in ("alacritty", "python3", "niri", "systemctl", "notify-send", "fuzzel", "anyrun", "anyrun-provider", "swaylock", "flock", "pgrep"):
             self.stub(self.bin / command)
         self.stub(self.root / "control.sh")
+        shell=self.base/'shell';shell.mkdir()
+        source=Path(__file__).resolve().parents[1]/'niri/shell'
+        for name in ('component_preferences.py','appearance.py','font_scale.py','session_identity.py'):
+            shutil.copy2(source/name,shell/name)
+        shutil.copy2(source/'i18n.py',shell/'i18n.py')
+        state=self.root/'state/selandia-niri';state.mkdir(parents=True)
+        (state/'components.json').write_text('{"bar":"waybar","launcher":"fuzzel","terminal":"alacritty"}')
 
     def stub(self, path):
         path.write_text(f"#!{sys.executable}\n" + '''import json, os, pathlib, sys
 name = pathlib.Path(sys.argv[0]).name
 with open(os.environ["TEST_DESKTOP_CALLS"], "a") as output:
-    output.write(json.dumps([name, *sys.argv[1:]]) + "\\n")
+    if not (name == "python3" and len(sys.argv)>2 and pathlib.Path(sys.argv[2]).name in ("component_preferences.py", "language_settings.py", "i18n.py")):
+        output.write(json.dumps([name, *sys.argv[1:]]) + "\\n")
 if name == "pgrep":
     sys.exit(1)
 if name == "niri":
     sys.exit(int(os.environ.get("TEST_NIRI_STATUS", "0")))
-if name == "kitty" and os.environ.get("TEST_LANGUAGE_LOG"):
+if name == "python3" and len(sys.argv)>2 and pathlib.Path(sys.argv[2]).name=="component_preferences.py":
+    sys.path.insert(0,str(pathlib.Path(sys.argv[2]).parent))
+    import component_preferences as c
+    if sys.argv[3]=='terminal':
+        args=c.terminal_command(sys.argv[4:]);os.execv(args[0] if '/' in args[0] else str(pathlib.Path(sys.argv[0]).parent/args[0]),args)
+    elif sys.argv[3]=='launcher':c.launch()
+if name == "python3" and len(sys.argv)>2 and pathlib.Path(sys.argv[2]).name=="i18n.py":
+    os.execv(sys.executable,[sys.executable,*sys.argv[1:]])
+if name == "python3" and os.environ.get("TEST_DESKTOP_STDOUT"):
+    print(os.environ["TEST_DESKTOP_STDOUT"])
+if name == "python3" and os.environ.get("TEST_DESKTOP_STATUS"):
+    sys.exit(int(os.environ["TEST_DESKTOP_STATUS"]))
+if name == "alacritty" and os.environ.get("TEST_LANGUAGE_LOG"):
     keys = ("LANG", "LC_ALL", "LC_MESSAGES", "LANGUAGE", "SELANDIA_LANGUAGE_WRAPPED")
     pathlib.Path(os.environ["TEST_LANGUAGE_LOG"]).write_text(json.dumps({key: os.environ[key] for key in keys if key in os.environ}))
 ''')
@@ -72,7 +92,7 @@ if name == "kitty" and os.environ.get("TEST_LANGUAGE_LOG"):
                 self.assert_success(result)
                 self.assertEqual(len(calls), 1)
                 call, = calls
-                self.assertEqual(call[0], "kitty")
+                self.assertEqual(call[0], "alacritty")
                 self.assertIn("--hold", call)
                 self.assertEqual(Path(call[-2]).resolve(), self.root / "control.sh")
                 self.assertEqual(call[-1], "update" if action == "updates" else action)
@@ -98,13 +118,13 @@ if name == "kitty" and os.environ.get("TEST_LANGUAGE_LOG"):
 
     def prepare_language_helpers(self, *, ui="zh_CN", session="en_US.UTF-8"):
         source = Path(__file__).resolve().parents[1] / "niri/shell"
-        (self.base / "shell").mkdir()
+        (self.base / "shell").mkdir(exist_ok=True)
         for name in ("i18n.py", "language_settings.py"):
             shutil.copy2(source / name, self.base / "shell" / name)
         (self.bin / "python3").unlink()
         (self.bin / "python3").symlink_to(sys.executable)
         state = self.root / "state/selandia-niri"
-        state.mkdir(parents=True)
+        state.mkdir(parents=True,exist_ok=True)
         (state / "language.json").write_text(json.dumps({"ui_language": ui, "session_locale": session}))
 
     def test_saved_interface_language_and_terminal_locale_remain_independent(self):
@@ -135,7 +155,7 @@ if name == "kitty" and os.environ.get("TEST_LANGUAGE_LOG"):
             result, calls = self.invoke("system-monitor")
             self.assert_success(result)
             call, = calls
-            self.assertEqual(call[0], "kitty")
+            self.assertEqual(call[0], "alacritty")
             self.assertEqual(call[-1], expected)
             (self.bin / expected).unlink()
         result, calls = self.invoke("system-monitor")
@@ -153,33 +173,37 @@ if name == "kitty" and os.environ.get("TEST_LANGUAGE_LOG"):
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual([call[0] for call in calls], ["niri"])
 
-    def test_launcher_prefers_generated_theme_and_falls_back_to_shipped_config(self):
-        for language, expected in (("C", "Search applications"), ("zh_CN.UTF-8", "搜索应用")):
-            for generated in (False, True):
-                with self.subTest(language=language, generated=generated):
-                    theme = self.base / "theme/fuzzel.ini"
-                    theme.unlink(missing_ok=True)
-                    if generated:
-                        theme.parent.mkdir(exist_ok=True)
-                        theme.write_text("[main]\n")
-                    result, calls = self.invoke("launcher", LC_ALL=language)
-                    self.assert_success(result)
-                    self.assertEqual(calls, [["fuzzel", "--config",
-                                              str(theme if generated else self.base / "fuzzel/fuzzel.ini"),
-                                              "--placeholder", expected]])
 
-    def test_launcher_placeholder_is_never_bilingual(self):
-        for language in ("C", "zh_CN.UTF-8"):
-            with self.subTest(language=language):
-                result, calls = self.invoke("launcher", LC_ALL=language)
+
+    def test_power_uses_the_native_menu_and_dispatches_only_what_it_reports(self):
+        # The submenu has no search field any more: fuzzel is never involved, so
+        # a hidden filter cannot turn one stray keystroke into a reboot.
+        for choice, expected in (
+                ("lock", ["python3", "-B", str(self.base / "shell/lock_session.py")]),
+                ("sleep", ["python3", "-B", str(self.base / "shell/power_actions.py"), "suspend"]),
+                ("logout", ["niri", "msg", "action", "quit", "--skip-confirmation"]),
+                ("restart", ["systemctl", "reboot"]),
+                ("shutdown", ["systemctl", "poweroff"]),
+        ):
+            with self.subTest(choice=choice):
+                result, calls = self.invoke("power", TEST_DESKTOP_STDOUT=choice)
                 self.assert_success(result)
-                placeholder = calls[0][-1]
-                self.assertNotIn(" · ", placeholder)
-                self.assertFalse(re.search(r"[\u3400-\u9fff]", placeholder) and re.search(r"[A-Za-z]", placeholder),
-                                 "the launcher placeholder still shows two languages")
+                self.assertEqual(calls[0], ["python3", "-B", str(self.base / "shell/power_menu.py")])
+                self.assertEqual(calls[1:], [expected])
+                self.assertFalse(any(call[0] == "fuzzel" for call in calls))
 
-    def test_dmenu_modes_do_not_reuse_the_application_placeholder(self):
-        result, calls = self.invoke("power", LC_ALL="C")
+    def test_cancelling_the_power_menu_performs_no_session_action(self):
+        result, calls = self.invoke("power", TEST_DESKTOP_STATUS="1")
+        self.assert_success(result)
+        self.assertEqual(calls, [["python3", "-B", str(self.base / "shell/power_menu.py")]])
+
+    def test_unknown_power_output_is_refused(self):
+        result, calls = self.invoke("power", TEST_DESKTOP_STDOUT="reboot-now")
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(len(calls), 1)
+
+    def test_dmenu_confirmation_does_not_reuse_the_application_placeholder(self):
+        result, calls = self.invoke("clipboard-clear", LC_ALL="C", TEST_DESKTOP_STDOUT="Cancel")
         self.assert_success(result)
         fuzzel = [call for call in calls if call[0] == "fuzzel"]
         self.assertTrue(fuzzel)
@@ -187,6 +211,8 @@ if name == "kitty" and os.environ.get("TEST_LANGUAGE_LOG"):
         placeholder = fuzzel[0][fuzzel[0].index("--placeholder") + 1]
         self.assertNotEqual(placeholder, "Search applications")
         self.assertNotIn(" · ", placeholder)
+        # Cancelling must not wipe the clipboard: only the menu ran.
+        self.assertEqual([call[0] for call in calls], ["fuzzel"])
 
     def test_lock_uses_session_scoped_readiness_helper(self):
         result, calls = self.invoke("lock")

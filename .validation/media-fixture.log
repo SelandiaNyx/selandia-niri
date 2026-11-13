@@ -1,3 +1,1 @@
-/home/SelandiaNyx/Selandia's Niri/tools/media_probe.py:73: DeprecationWarning: Gio.DBusConnection.register_object is deprecated
-  connection.register_object(backend.PATH, interface,
 READY fake single-track player · 单曲测试播放器已启动

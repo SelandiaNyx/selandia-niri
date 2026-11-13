@@ -28,7 +28,7 @@ usage() {
     if [[ "$controller_language" == zh_CN ]]; then
         cat <<'HELP'
 Selandia Glass · 桌面控制脚本
-用法: ./control.sh [install|update|repair|uninstall|status|check] [选项]
+用法: ./control.sh [install|update|repair|uninstall|status|check|export] [选项]
 无参数时，在终端显示交互菜单。
 
 install     安装缺少依赖并部署配置
@@ -37,6 +37,7 @@ repair      修复缺失软件、软件包文件及配置链接
 uninstall   恢复原配置、应用主题与会话语言配置，保留软件包
 status      检查软件包、文件和部署状态
 check       运行完整桌面自检
+export      在 dist/ 导出适合分享的配置包，清除本机屏幕与个人覆盖设置
 
 --dry-run       预演，不修改系统
 --no-packages   仅处理配置，跳过软件包
@@ -52,7 +53,7 @@ HELP
     else
         cat <<'HELP'
 Selandia Glass · Desktop controller
-Usage: ./control.sh [install|update|repair|uninstall|status|check] [OPTIONS]
+Usage: ./control.sh [install|update|repair|uninstall|status|check|export] [OPTIONS]
 No arguments: show an interactive menu in a terminal.
 
 install     Install missing dependencies and deploy
@@ -61,6 +62,7 @@ repair      Restore missing packages/files and configuration links
 uninstall   Restore previous configuration, app themes and session language; retain packages
 status      Inspect packages, their files, and deployment
 check       Run full desktop diagnostics
+export      Export portable defaults to dist/ without local hardware overrides
 
 --dry-run       Preview operations without changes
 --no-packages   Apply install/update/repair to configuration only
@@ -86,8 +88,9 @@ choose_action() {
             "$(tr '  4) Uninstall configuration (keep packages)' '  4) 卸载配置（保留软件包）')" \
             "$(tr '  5) Status' '  5) 状态')" \
             "$(tr '  6) Check' '  6) 自检')" \
+            "$(tr '  7) Export for sharing' '  7) 导出分享包')" \
             "$(tr '  0) Exit' '  0) 退出')"
-        if ! read -r -p "$(tr 'Choose [0-6]: ' '请选择 [0-6]：')" choice; then exit 0; fi
+        if ! read -r -p "$(tr 'Choose [0-7]: ' '请选择 [0-7]：')" choice; then exit 0; fi
         case "$choice" in
             1) action=install; return ;;
             2) action=update; return ;;
@@ -95,8 +98,9 @@ choose_action() {
             4) action=uninstall; return ;;
             5) action=status; return ;;
             6) action=check; return ;;
+            7) action='export'; return ;;
             0|'') exit 0 ;;
-            *) printf '%s\n' "$(tr 'Choose a number from 0 to 6.' '请输入 0 到 6。')" ;;
+            *) printf '%s\n' "$(tr 'Choose a number from 0 to 7.' '请输入 0 到 7。')" ;;
         esac
     done
 }
@@ -114,7 +118,7 @@ skip_packages=false
 confirmed=false
 for argument in "$@"; do
     case "$argument" in
-        install|update|repair|uninstall|status|check)
+        install|update|repair|uninstall|status|check|export)
             [[ -z "$action" ]] || invalid "$(tr 'Choose one command' '一次只能选择一个操作。')"
             action=$argument
             ;;
@@ -129,7 +133,7 @@ if [[ -z "$action" ]]; then
     if (($#)); then invalid "$(tr 'Specify a command before its options' '请指定操作命令。')"; fi
     if [[ -t 0 && -t 1 ]]; then choose_action; else usage; exit 0; fi
 fi
-if [[ "$action" == status || "$action" == check ]]; then
+if [[ "$action" == status || "$action" == check || "$action" == export ]]; then
     if "$preview" || "$skip_packages" || "$confirmed"; then invalid "$(tr 'This command takes no options' '此操作不接受选项。')"; fi
 elif [[ "$action" == uninstall ]]; then
     if "$skip_packages"; then invalid "$(tr 'Uninstall already retains packages' '卸载本身就保留软件包。')"; fi
@@ -137,6 +141,7 @@ elif "$confirmed"; then
     invalid "$(tr '--yes is only for uninstall' '--yes 仅用于卸载配置。')"
 fi
 if [[ "$action" == check ]]; then exec "$root/check.sh"; fi
+if [[ "$action" == export ]]; then exec python3 -B "$root/tools/export_config.py"; fi
 
 controller_state=${XDG_STATE_HOME:-$HOME/.local/state}/selandia-niri
 controller_config=${XDG_CONFIG_HOME:-$HOME/.config}
@@ -157,7 +162,7 @@ case "$action" in
             printf '%s\n' "$(tr 'Restore managed user session language settings; retain the system default' '恢复托管的用户会话语言设置，保留系统默认语言。')"
         fi
         if "$preview"; then exit 0; fi
-        if [[ ! -e "$controller_state/install.json" && ! -e "$controller_state/application-theme.json" && ! -e "$controller_state/language-backup.json" ]]; then exit 0; fi
+        if [[ ! -e "$controller_state/install.json" && ! -e "$controller_state/application-theme.json" && ! -e "$controller_state/language-backup.json" && ! -e "$controller_state/session-settings-backup.json" && ! -e "$controller_state/lifecycle-transaction.json" && ! -e "$controller_state/deployment-transaction.json" ]]; then exit 0; fi
         if ! "$confirmed"; then
             [[ -t 0 ]] || fail "$(tr 'Use uninstall --yes to confirm non-interactive configuration removal' '非交互卸载请明确使用 uninstall --yes。')"
             read -r -p "$(tr 'Restore the listed paths and stop desktop components? [y/N] ' '恢复以上路径并停止桌面组件？ [y/N] ')" answer || exit 0
@@ -184,14 +189,11 @@ if [[ "$action" != status ]] && ! "$preview"; then
     exec 9>"$controller_state/control.lock"
     flock -n 9 || fail "$(tr 'Another controller operation is running' '另一个控制操作正在运行。')"
 fi
+if [[ "$action" != status ]] && ! "$preview" && [[ -e "$controller_state/lifecycle-transaction.json" || -e "$controller_state/deployment-transaction.json" ]]; then
+    python3 -B "$root/tools/lifecycle.py" recover
+fi
 if [[ "$action" == uninstall ]]; then
-    # Restore application settings while their journal and project sources are
-    # still available. A failed restoration keeps deployment backups in place.
-    if [[ -e "$controller_state/language-backup.json" ]]; then
-        python3 -B "$root/niri/shell/language_settings.py" restore
-    fi
-    python3 -B "$root/niri/shell/application_theme.py" restore
-    exec python3 -B "$root/tools/deploy.py" uninstall
+    exec python3 -B "$root/tools/lifecycle.py" uninstall
 fi
 
 selected=()
@@ -289,14 +291,32 @@ if "$preview"; then
     printf '%s\n' "$(tr 'Preview complete; no changes made' '预演完成，未做任何修改。')"
     exit 0
 fi
+# AUR helpers run as the user. Never pass AUR names to pacman or retry sudo.
+# Missing required AUR packages stop deployment, with an exact password-aware command.
+if ! "$skip_packages" && "$inventory_ok"; then
+    required_missing=()
+    while IFS= read -r declaration; do
+        if [[ "$declaration" =~ ^\#[[:space:]]required[[:space:]]aur[[:space:]]([a-zA-Z0-9@._+-]+)[[:space:]] ]]; then
+            required_package=${BASH_REMATCH[1]}
+            pacman -Q "$required_package" >/dev/null 2>&1 || required_missing+=("$required_package")
+        fi
+    done < "$root/packages.txt"
+    if ((${#required_missing[@]})); then
+        helper=paru
+        command -v paru >/dev/null || helper=yay
+        printf '%s\n' "$(tr 'Required Rust components; enter your sudo password in this terminal when prompted.' '必需 Rust 组件：出现 sudo 提示时，请在当前终端输入密码。')"
+        printf '%q ' "$helper" -S --needed -- "${required_missing[@]}"
+        printf '\n'
+        if [[ -t 0 && -t 1 ]] && command -v "$helper" >/dev/null; then
+            if ! "$helper" -S --needed -- "${required_missing[@]}" 9>&-; then
+                fail "$(tr 'Required AUR installation incomplete; deployment stopped. Run the command above to retry.' '必需 AUR 安装未完成，已停止部署。请执行上述命令。')"
+            fi
+        else
+            fail "$(tr 'Run the command above in your terminal; waiting for user password. Deployment stopped.' '请在自己的终端执行上述命令，待用户输入密码；已停止部署。')"
+        fi
+    fi
+fi
 python_ready || fail "$(tr 'Working Python 3 is required' '需要可正常运行的 Python 3。')"
 python3 -B "$root/tools/deploy.py" preflight
-if [[ -f "$controller_state/appearance.json" ]]; then
-    python3 -B "$root/niri/shell/appearance.py" restore-saved
-fi
-python3 -B "$root/niri/shell/language_settings.py" restore-saved
-python3 -B "$root/niri/shell/ui_assets.py"
-"$root/check.sh" --config
-python3 -B "$root/tools/deploy.py" install
-python3 -B "$root/niri/shell/application_theme.py" apply-saved
+python3 -B "$root/tools/lifecycle.py" install
 printf '%s\n' "$(tr 'Done. In Niri, press Super+Ctrl+R to reload desktop components.' '完成。在 Niri 中按 Super+Ctrl+R 重载桌面组件。')"

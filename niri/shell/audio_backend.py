@@ -4,6 +4,7 @@ import json
 import math
 import os
 import subprocess
+from i18n import tr
 
 
 def _run(*arguments):
@@ -188,6 +189,26 @@ def _card(item):
             "recommended_description": _description(recommendation) if recommendation else ""}
 
 
+def _stream(item, kind):
+    index = item.get("index")
+    if type(index) is not int or index < 0:
+        return None
+    props = item.get("properties")
+    props = props if isinstance(props, dict) else {}
+    title = next((value for value in (props.get("application.name"), props.get("application.process.binary"),
+                                     props.get("media.name")) if isinstance(value, str) and value),
+                 tr("Unknown application", "未知应用"))
+    identity = [item.get("client"), *[props.get(key) for key in
+                ("object.serial", "application.process.id", "application.id", "application.name",
+                 "application.process.binary")]]
+    identity = [value if isinstance(value, (int, str)) else None for value in identity]
+    return {"kind": kind, "index": index, "identity": identity, "name": title,
+            "media": str(props.get("media.name") or ""), "volume": _volume(item.get("volume")),
+            "mute": item.get("mute") if isinstance(item.get("mute"), bool) else None,
+            "volume_writable": item.get("has_volume") is not False and item.get("volume_writable") is not False,
+            "corked": item.get("corked") is True}
+
+
 def read_state(include_unavailable=False):
     """Inspect audio without changing profiles or routes.
 
@@ -200,6 +221,7 @@ def read_state(include_unavailable=False):
     with ThreadPoolExecutor(max_workers=5) as executor:
         pending = {kind: executor.submit(_list, kind) for kind in ("sinks", "sources", "cards")}
         defaults = {kind: executor.submit(_run, f"get-default-{kind}") for kind in ("sink", "source")}
+        streams = {kind: executor.submit(_list, kind + "s") for kind in ("sink-input", "source-output")}
         result = {kind: task.result() for kind, task in pending.items()}
         result["cards"] = [_card(item) for item in result["cards"] if item.get("name")]
         for kind, task in defaults.items():
@@ -208,6 +230,12 @@ def read_state(include_unavailable=False):
                 result[f"default_{kind}"] = task.result()
             except RuntimeError:
                 result[f"default_{kind}"] = ""
+        result["streams"], result["stream_errors"] = [], []
+        for kind, task in streams.items():
+            try:
+                result["streams"].extend(row for item in task.result() if (row := _stream(item, kind)) is not None)
+            except RuntimeError as error:
+                result["stream_errors"].append(str(error))
     result["hidden_counts"] = {}
     for plural, kind in (("sinks", "sink"), ("sources", "source")):
         devices = [_device(item, result[f"default_{kind}"]) for item in result[plural] if item.get("name")]
@@ -238,6 +266,35 @@ def set_mute(kind, name, muted):
     if not isinstance(muted, bool):
         raise ValueError("Mute must be true or false · 静音状态必须是布尔值")
     return _run(f"set-{_kind(kind)}-mute", _name(name), "1" if muted else "0")
+
+
+def set_stream_audio(stream, *, volume=None, muted=None):
+    """Control only the selected current stream, never a reused application ID."""
+    if volume is not None:
+        if isinstance(volume, bool):
+            raise ValueError(tr("Invalid volume", "音量无效"))
+        volume = float(volume)
+        if not math.isfinite(volume) or not 0 <= volume <= 100:
+            raise ValueError(tr("Volume must be 0–100%", "音量范围为 0–100%"))
+    if muted is not None and not isinstance(muted, bool):
+        raise ValueError(tr("Invalid mute state", "静音状态无效"))
+    if not isinstance(stream, dict) or stream.get("kind") not in ("sink-input", "source-output"):
+        raise ValueError(tr("Invalid application stream", "应用音频流无效"))
+    kind, index = stream["kind"], stream.get("index")
+    if type(index) is not int or index < 0:
+        raise ValueError(tr("Invalid application stream", "应用音频流无效"))
+    current = next((_stream(item, kind) for item in _list(kind + "s") if item.get("index") == index), None)
+    if current is None or current["identity"] != stream.get("identity"):
+        raise RuntimeError(tr("This application stream ended or changed; refresh and try again.",
+                              "此应用音频流已退出或变化，请刷新后重试。"))
+    if volume is not None and (current["volume"] is None or not current["volume_writable"]):
+        raise RuntimeError(tr("Volume is unavailable for this stream", "此音频流不支持调节音量"))
+    if muted is not None and current["mute"] is None:
+        raise RuntimeError(tr("Mute is unavailable for this stream", "此音频流不支持静音"))
+    if volume is not None:
+        _run(f"set-{kind}-volume", str(index), f"{volume:.0f}%")
+    if muted is not None:
+        _run(f"set-{kind}-mute", str(index), "1" if muted else "0")
 
 
 def set_port(kind, name, port):

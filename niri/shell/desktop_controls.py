@@ -208,6 +208,11 @@ class InputSettings(SettingsPage):
     group = "input"
 
     def build(self):
+        card = self.card(tr("Input method", "输入法"))
+        self.add(card, self.panel.compact_label(tr("Fcitx 5 manages input methods separately from the keyboard layout below.",
+                                                  "Fcitx 5 管理输入法，下方的键盘布局设置独立生效。")))
+        self.add(card, self.button(tr("Configure Fcitx 5", "配置 Fcitx 5 输入法"),
+                                   lambda: self.panel.desktop("launch", "input")))
         card = self.card(tr("Keyboard", "键盘"))
         self.entry(card, "keyboard_layout", tr("Keyboard layouts", "键盘布局"), "us / us,de")
         self.entry(card, "keyboard_variant", tr("Layout variants", "布局变体"), " / dvorak")

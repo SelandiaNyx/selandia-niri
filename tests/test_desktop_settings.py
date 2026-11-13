@@ -111,6 +111,68 @@ cursor { xcursor-size 28; xcursor-theme "Example"; }
         self.assertIn("gaps 33", self.target.read_text())
         self.assertEqual(self.state.read_text(), prior_state)
 
+    def test_edits_during_validation_preserve_target_and_saved_state(self):
+        with patch.object(desktop, "_run"):
+            self.apply("desktop", gaps=20)
+        prior_state = self.state.read_bytes()
+        manual = "// User edit during validation\nlayout { gaps 33; }\n"
+        with patch.object(desktop, "_run", side_effect=lambda *args: self.target.write_text(manual)):
+            with self.assertRaisesRegex(RuntimeError, "preserved|保留"):
+                self.apply("desktop", gaps=30)
+        self.assertEqual(self.target.read_text(), manual)
+        self.assertEqual(self.state.read_bytes(), prior_state)
+
+    def test_edit_between_initial_read_and_snapshot_is_preserved(self):
+        identity = desktop._identity
+        edited = False
+        manual = "// User edit before snapshot\nlayout { gaps 33; }\n"
+        def snapshot(path):
+            nonlocal edited
+            if path == self.target and not edited:
+                edited = True
+                self.target.write_text(manual)
+            return identity(path)
+        with patch.object(desktop, "_identity", side_effect=snapshot), patch.object(desktop, "_run") as command:
+            with self.assertRaisesRegex(RuntimeError, "preserved|保留"):
+                self.apply("desktop", gaps=30)
+        self.assertEqual(self.target.read_text(), manual)
+        command.assert_not_called()
+        self.assertFalse(self.state.exists())
+
+    def test_identical_content_replacement_during_validation_is_preserved(self):
+        old = self.target.read_bytes()
+        def replace(*args):
+            replacement = self.target.with_suffix(".replacement")
+            replacement.write_bytes(old)
+            replacement.replace(self.target)
+        with patch.object(desktop, "_run", side_effect=replace):
+            with self.assertRaisesRegex(RuntimeError, "preserved|保留"):
+                self.apply("desktop", gaps=30)
+        self.assertEqual(self.target.read_bytes(), old)
+        self.assertFalse(self.state.exists())
+
+    def test_saved_state_edit_during_validation_is_preserved(self):
+        def edit(*args):
+            self.state.parent.mkdir(parents=True, exist_ok=True)
+            self.state.write_text('{"user":"new preference"}')
+        with patch.object(desktop, "_run", side_effect=edit):
+            with self.assertRaises(RuntimeError):
+                self.apply("desktop", gaps=30)
+        self.assertEqual(self.target.read_text(), "// Placeholder\n")
+        self.assertEqual(self.state.read_text(), '{"user":"new preference"}')
+
+    def test_reload_failure_preserves_later_manual_edit(self):
+        manual = "// Edit during reload\nlayout { gaps 39; }\n"
+        def command(*args):
+            if args[0] == "msg":
+                self.target.write_text(manual)
+                raise RuntimeError("reload rejected")
+        with patch.dict(os.environ, NIRI_SOCKET="/probe/socket"), patch.object(desktop, "_run", side_effect=command):
+            with self.assertRaisesRegex(RuntimeError, "reload rejected"):
+                self.apply("desktop", gaps=30)
+        self.assertEqual(self.target.read_text(), manual)
+        self.assertFalse(self.state.exists())
+
     def test_reload_failure_rolls_back_both_saved_and_generated_state(self):
         with patch.object(desktop, "_run"):
             self.apply("desktop", gaps=20)

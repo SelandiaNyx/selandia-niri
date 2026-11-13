@@ -1,22 +1,50 @@
-/* Shared pearl/cyan/violet glass palette. GTK 4 (SwayNC >= 0.12). */
-@define-color cc-bg rgba(16, 21, 34, 0.88);
-@define-color noti-bg rgba(31, 42, 60, 0.86);
-@define-color noti-border-color rgba(214, 234, 255, 0.18);
-@define-color text-color #eef5ff;
-@define-color text-color-disabled #9daec6;
+/* SwayNC structural shell (GTK 4).
+ *
+ * theme/swaync.css is imported after this file and supplies the generated MD3
+ * roles for the active preset, colour mode and font size.  The constants below
+ * are the dark glacier fallback from design/TOKENS.md. */
+@define-color md3_primary #78d3f8;
+@define-color md3_on_primary #003546;
+@define-color md3_primary_container #004d64;
+@define-color md3_on_primary_container #bee9ff;
+@define-color md3_secondary #6bb3ff;
+@define-color md3_secondary_container #314b69;
+@define-color md3_on_secondary_container #f0f4f8;
+@define-color md3_surface #111418;
+@define-color md3_surface_container_low #191c20;
+@define-color md3_surface_container #1e2227;
+@define-color md3_surface_container_high #282c32;
+@define-color md3_surface_container_highest #30353c;
+@define-color md3_surface_sunken #0e131a;
+@define-color md3_on_surface #e1e3e8;
+@define-color md3_on_surface_variant #8a929a;
+@define-color md3_outline rgba(225, 227, 232, 0.140);
+@define-color md3_outline_variant rgba(225, 227, 232, 0.060);
+@define-color md3_error #ffb4ab;
+@define-color md3_error_container #5d3a42;
+@define-color md3_on_error_container #e1e3e8;
+@define-color bg #111418;
+@define-color cc-bg rgba(25, 28, 32, 0.92);
+@define-color noti-bg rgba(40, 44, 50, 0.90);
+@define-color noti-border-color @md3_outline;
+@define-color text-color @md3_on_surface;
+@define-color text-color-disabled @md3_on_surface_variant;
+
 * {
-    font-family: "Inter", "Noto Sans", "Noto Sans CJK SC", sans-serif;
+    font-family: "Adwaita Sans", "Noto Sans CJK SC", "Noto Sans", sans-serif;
     font-size: 13px;
+    color: @md3_on_surface;
 }
 .control-center {
-    background: linear-gradient(145deg, rgba(37, 49, 70, 0.91), rgba(16, 21, 34, 0.88) 58%, rgba(37, 32, 55, 0.89));
-    color: @text-color;
-    border: 1px solid @noti-border-color;
-    border-radius: 24px;
+    background-color: @cc-bg;
+    background-image: none;
+    color: @md3_on_surface;
+    border: 1px solid @md3_outline;
+    border-radius: 26px;
     padding: 18px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px alpha(@md3_on_surface, .08), 0 18px 48px alpha(black, .30);
 }
-/* The upstream focused row paints a rectangular grey background around cards. */
+/* Upstream paints a rectangular grey row around cards; keep the card surface. */
 .notification-group,
 .notification-group:focus,
 .notification-group:focus-within,
@@ -32,51 +60,77 @@
 }
 .notification-row .notification-background .notification,
 .notification {
-    background: @noti-bg;
-    color: @text-color;
-    border: 1px solid @noti-border-color;
-    border-radius: 18px;
+    background-color: @noti-bg;
+    color: @md3_on_surface;
+    border: 1px solid @md3_outline_variant;
+    border-radius: 20px;
     padding: 6px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 1px alpha(@md3_on_surface, .06);
 }
-.notification-row .notification-background .notification.critical {
-    border-color: rgba(255, 180, 196, 0.6);
+.notification-row .notification-background .notification:hover,
+.notification:hover {
+    background-color: alpha(@md3_surface_container_highest, .94);
+    border-color: @md3_outline;
+}
+.notification-row .notification-background .notification.critical,
+.notification.critical {
+    border-color: @md3_error;
+    background-color: @md3_error_container;
 }
 .notification-group:focus .notification,
 .notification-row:focus .notification,
 .notification-row:focus-within .notification {
-    border-color: rgba(148, 223, 255, 0.40);
+    outline: 2px solid @md3_primary;
+    outline-offset: -2px;
 }
 .notification-content { padding: 10px; }
-.summary { color: #eef5ff; font-weight: 600; font-size: 14px; }
-.body { color: #c6d4e7; }
-.time, .app-name { color: #9daec6; font-size: 11px; }
-.widget-title { color: #eef5ff; margin: 4px 0 18px; }
+.summary { color: @md3_on_surface; font-weight: 600; font-size: 14px; }
+.body { color: @md3_on_surface; }
+.time, .app-name { color: @md3_on_surface_variant; font-size: 11px; }
+.widget-title { color: @md3_on_surface; margin: 4px 0 18px; }
 .widget-title > label { font-size: 18px; font-weight: 600; }
 .widget-title > button { font-size: 11px; }
 .widget-dnd {
     margin: 4px 0 18px;
-    color: #c6d4e7;
+    color: @md3_on_surface;
+    border: 1px solid @md3_outline_variant;
     border-radius: 14px;
-    background: rgba(214, 234, 255, 0.05);
+    background-color: alpha(@md3_surface_container, .65);
     padding: 12px;
 }
 .widget-mpris { margin: 4px 0 14px; }
-.widget-mpris-player { border-radius: 18px; padding: 12px; }
+.widget-mpris-player { border-radius: 20px; padding: 12px; }
 button {
-    color: #d4e1f3;
-    background: rgba(214, 234, 255, 0.07);
-    border: 1px solid rgba(214, 234, 255, 0.12);
+    color: @md3_on_surface;
+    background-color: alpha(@md3_surface_container_high, .70);
+    border: 1px solid @md3_outline;
     border-radius: 12px;
     padding: 8px 12px;
     box-shadow: none;
     text-shadow: none;
+    transition: background-color 140ms ease-out, border-color 140ms ease-out;
 }
-button:hover { background: rgba(148, 223, 255, 0.16); color: #eef5ff; }
+button:hover {
+    color: @md3_on_primary_container;
+    background-color: @md3_primary_container;
+    border-color: alpha(@md3_primary, .35);
+}
+button:checked {
+    color: @md3_on_primary_container;
+    background-color: @md3_primary_container;
+    border-color: @md3_primary;
+}
+button:disabled { opacity: .38; }
+button:focus { outline: none; box-shadow: inset 0 0 0 2px @md3_primary; }
+button.suggested-action { background-color: @md3_primary; color: @md3_on_primary; border-color: @md3_primary; font-weight: 600; }
 .notification-default-action { background: transparent; }
-.close-button { border-radius: 12px; background: rgba(214, 234, 255, 0.10); }
-switch { border-radius: 20px; background: rgba(214, 234, 255, 0.12); }
-switch:checked { background: linear-gradient(120deg, #94dfff, #c4b5fd); }
-switch slider { background: #eef5ff; border-radius: 20px; }
+.close-button { background-color: alpha(@md3_on_surface, .08); border-radius: 999px; }
+switch {
+    background-color: alpha(@md3_surface_sunken, .85);
+    border: 1px solid @md3_outline;
+    border-radius: 999px;
+}
+switch:checked { background-color: @md3_primary; background-image: none; }
+switch slider { background-color: @md3_on_primary; border-radius: 999px; }
 scrollbar { background: transparent; }
-scrollbar slider { background: rgba(214, 234, 255, 0.18); border-radius: 8px; }
+scrollbar slider { background-color: alpha(@md3_on_surface, .22); border-radius: 999px; }

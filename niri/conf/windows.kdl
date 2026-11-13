@@ -15,25 +15,30 @@ window-rule {
     clip-to-geometry true
     draw-border-with-background false
 }
-// The bundled terminal/AI launchers use transparent backgrounds with native blur.
-// 专用终端和 AI 面板使用原生毛玻璃，不影响其他应用的不透明度。
+// Settings are a regular floating window, so dialogs can appear above them.
 window-rule {
-    match app-id=r#"^(kitty|selandia-terminal|selandia-ai)$"#
+    match app-id=r#"^org\.selandia\.Glass$"# title="^Selandia · control$"
+    open-floating true
+    default-column-width {}
+    default-window-height {}
+    geometry-corner-radius 24
+    border { off; }
+    focus-ring { off; }
+    background-effect {
+        blur true
+        xray true
+        saturation 1.25
+    }
+}
+// The bundled terminal launchers use transparent backgrounds with native blur.
+// 专用终端使用原生毛玻璃，不影响其他应用的不透明度。
+window-rule {
+    match app-id=r#"^(Alacritty|alacritty|selandia-terminal)$"#
     background-effect {
         blur true
         xray true
         saturation 1.25
         noise 0.02
-    }
-}
-window-rule {
-    match app-id=r#"^selandia-ai$"#
-    open-floating true
-    default-column-width { fixed 480; }
-    default-window-height { proportion 0.86; }
-    default-floating-position x=18 y=18 relative-to="top-right"
-    focus-ring {
-        active-gradient from="#c4b5fd" to="#94dfff" angle=150
     }
 }
 window-rule {

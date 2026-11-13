@@ -6,6 +6,7 @@ required cases are guard on, lock failure, suspend failure and success.
 """
 import subprocess
 import sys
+import threading
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -43,6 +44,43 @@ class Recorder:
 
 
 class SuspendTests(EnglishMessages, unittest.TestCase):
+    def test_slow_lock_never_releases_project_sleep_request_early(self):
+        entered, ready = threading.Event(), threading.Event()
+        run = Recorder()
+        errors = []
+        def lock():
+            entered.set()
+            if not ready.wait(3):
+                raise RuntimeError("test lock timeout")
+        def worker():
+            try:
+                power_actions.suspend(status=guard_state(), lock=lock, run=run)
+            except Exception as error:
+                errors.append(error)
+        process = threading.Thread(target=worker)
+        process.start()
+        try:
+            self.assertTrue(entered.wait(2))
+            self.assertEqual(run.calls, [])
+        finally:
+            ready.set()
+            process.join(3)
+        self.assertFalse(process.is_alive())
+        self.assertEqual(errors, [])
+        self.assertEqual(run.calls[0][0][0], ["systemctl", "suspend"])
+
+    def test_documented_external_and_lid_limits_match_shipped_mechanisms(self):
+        root = Path(__file__).resolve().parents[1]
+        readme = (root / "README.md").read_text()
+        for restriction in ("InhibitDelayMaxSec", "LidSwitchIgnoreInhibited=yes", "cannot cancel an external request"):
+            self.assertIn(restriction, readme)
+        sleep = (root / "niri/swayidle/sleep.conf").read_text()
+        components = (root / "niri/scripts/components").read_text()
+        self.assertIn("before-sleep", sleep)
+        self.assertIn('swayidle -w -C "$base/swayidle/sleep.conf"', components)
+        self.assertIn("--what=idle:sleep", components)
+        self.assertNotIn("--what=handle-lid-switch", components)
+
     def test_stay_awake_refuses_before_anything_is_locked_or_suspended(self):
         lock = Recorder()
         run = Recorder()

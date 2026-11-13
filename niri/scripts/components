@@ -1,19 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 base=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
-bar_style=$base/theme/waybar.css
 notification_style=$base/theme/swaync.css
-bar_config=$base/waybar/config.jsonc
 notification_config=$base/swaync/config.json
-[[ ! -f "$base/theme/waybar.jsonc" ]] || bar_config=$base/theme/waybar.jsonc
 [[ ! -f "$base/theme/swaync.json" ]] || notification_config=$base/theme/swaync.json
-[[ -f "$bar_style" ]] || bar_style=$base/waybar/style.css
 [[ -f "$notification_style" ]] || notification_style=$base/swaync/style.css
 case "${1:-}" in
+    # Compatibility service instance name; Eww is the sole bar backend.
     waybar)
-        # Pick the layout for the current output before the bar reads its config.
-        python3 -B "$base/shell/bar_layout.py" apply >/dev/null 2>&1 || true
-        exec waybar -c "$bar_config" -s "$bar_style"
+        exec python3 -B "$base/shell/bar_backend.py"
         ;;
     notification-stream)
         # Only the notification module waits; a failed daemon must not hide the
@@ -22,26 +17,7 @@ case "${1:-}" in
         exec swaync-client --skip-wait --subscribe-waybar
         ;;
     notifications) exec swaync -c "$notification_config" -s "$notification_style" ;;
-    wallpaper)
-        wallpaper=$(python3 - "$base" <<'PY'
-import os, pathlib, sys
-state = pathlib.Path(os.environ.get('XDG_STATE_HOME', pathlib.Path.home()/'.local/state'))
-chosen = state/'selandia-niri/wallpaper'
-if chosen.is_file():
-    path = pathlib.Path(chosen.read_text().rstrip('\n'))
-    if path.is_file():
-        print(path)
-        sys.exit()
-path = pathlib.Path(sys.argv[1])/'assets/selandia-glass.svg'
-if path.is_file():
-    print(path)
-PY
-)
-        if [[ -n "$wallpaper" ]]; then
-            exec swaybg -i "$wallpaper" -m fill -c '#101522'
-        fi
-        exec swaybg -c '#101522'
-        ;;
+    wallpaper) exec python3 -B "$base/shell/wallpaper.py" run ;;
     idle)
         idle_config=$base/swayidle/config
         [[ ! -f "$base/swayidle/managed.conf" ]] || idle_config=$base/swayidle/managed.conf

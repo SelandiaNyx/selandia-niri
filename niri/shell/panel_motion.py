@@ -3,6 +3,10 @@
 Animate the painted child, never layer-shell anchors or the window's allocation.
 GTK's accessibility preference always wins over the local animation preference.
 There are no timeout sources or background threads to outlive a closed panel.
+
+The optional offset callback lets drawers slide their already-allocated content
+while the same frame-clock tick also fades it. Opacity-only callers keep the
+original constructor and behaviour.
 """
 from __future__ import annotations
 
@@ -32,18 +36,23 @@ def ease_out_cubic(progress):
 
 
 class PanelMotion:
-    """Reversible fade driven by the widget's compositor-paced frame clock.
+    """Reversible fade (and optional paint offset) driven by the frame clock.
 
     Call ``reveal()`` immediately before ``show_all()``. Route user close actions
     through ``dismiss(window.destroy)``; destruction still cancels any animation
     if shutdown bypasses that route. ``reveal()`` cancels a pending dismissal.
     ``enabled`` can be a function so an appearance preference is read each frame.
+    ``offset_setter`` receives the current horizontal offset; ``travel`` is the
+    offset used for a fully dismissed drawer.
     """
 
-    def __init__(self, widget, *, duration_ms=180, enabled=None):
+    def __init__(self, widget, *, duration_ms=180, enabled=None,
+                 offset_setter=None, travel=0):
         self.widget = widget
         self.duration_ms = max(0, int(duration_ms))
         self.enabled = enabled
+        self.offset_setter = offset_setter
+        self.travel = float(travel)
         self._tick_id = None
         self._started_at = None
         self._done = None
@@ -51,6 +60,9 @@ class PanelMotion:
         self._revealed = False
         self._start_opacity = 1.0
         self._target = 1.0
+        self._start_offset = 0.0
+        self._target_offset = 0.0
+        self._offset = 0.0
         self._duration_us = 0
         self._destroy_handler = widget.connect("destroy", lambda *_: self.dispose())
 
@@ -58,11 +70,18 @@ class PanelMotion:
     def running(self):
         return self._tick_id is not None
 
+    def _set_offset(self, value):
+        self._offset = value
+        if self.offset_setter is not None:
+            self.offset_setter(value)
+
     def reveal(self):
         if self._disposed:
             return
         if not self._revealed:
             self.widget.set_opacity(0.0)
+            if self.travel:
+                self._set_offset(self.travel)
             self._revealed = True
         self._animate(1.0)
 
@@ -72,6 +91,8 @@ class PanelMotion:
         if not self.widget.get_mapped():
             self.cancel()
             self.widget.set_opacity(0.0)
+            if self.travel:
+                self._set_offset(self.travel)
             on_finished()
             return
         self._animate(0.0, on_finished)
@@ -93,16 +114,24 @@ class PanelMotion:
         handler = self._destroy_handler
         self._destroy_handler = None
         if handler is not None:
-            self.widget.disconnect(handler)
+            try:
+                self.widget.disconnect(handler)
+            except (TypeError, RuntimeError):
+                pass
 
     def _animate(self, target, done=None):
         self.cancel()
         self._target = target
+        self._target_offset = 0.0 if target >= 1.0 else self.travel
         self._start_opacity = self.widget.get_opacity()
+        self._start_offset = self._offset
         self._done = done
         distance = abs(target - self._start_opacity)
         self._duration_us = self.duration_ms * 1000 * distance
         if not animations_enabled(self.widget, self.enabled) or self._duration_us < 1:
+            self._finish()
+            return
+        if target < 1.0 and distance < 1e-6 and abs(self._start_offset - self._target_offset) < 1e-6:
             self._finish()
             return
         self._tick_id = self.widget.add_tick_callback(self._tick)
@@ -114,6 +143,8 @@ class PanelMotion:
         self._started_at = None
         done, self._done = self._done, None
         self.widget.set_opacity(self._target)
+        if self.travel:
+            self._set_offset(self._target_offset)
         if done is not None:
             done()
 
@@ -130,6 +161,9 @@ class PanelMotion:
         if progress >= 1:
             self._finish()
             return False
-        opacity = self._start_opacity + (self._target - self._start_opacity) * ease_out_cubic(progress)
+        eased = ease_out_cubic(progress)
+        opacity = self._start_opacity + (self._target - self._start_opacity) * eased
         self.widget.set_opacity(opacity)
+        if self.travel:
+            self._set_offset(self._start_offset + (self._target_offset - self._start_offset) * eased)
         return True

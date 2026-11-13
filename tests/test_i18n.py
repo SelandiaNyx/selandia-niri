@@ -86,6 +86,16 @@ class TranslationTests(unittest.TestCase):
             for value in ("NVIDIA GPU", "/home/用户/notes.txt", "模型-local-7b", "2560x1440@144", "", None):
                 self.assertEqual(i18n.tr_legacy(value), value)
 
+    def test_playlist_and_inventory_vocabulary_is_bilingual(self):
+        pairs = {"Library": "资源库", "Playback": "播放设置", "Refresh": "刷新", "Playlist": "播放集", "Current wallpaper": "当前壁纸", "Grid": "网格", "List": "列表",
+                 "Sequential": "顺序", "Random": "随机", "After playback ends": "播完切换",
+                 "Copy system information": "复制系统信息", "Mainboard": "主板", "Packages": "已安装包数量"}
+        for en, zh in pairs.items():
+            for language, expected in (("en_US", en), ("zh_CN", zh)):
+                i18n.set_language(language)
+                self.assertEqual(i18n.tr(en, zh), expected)
+                self.assertEqual(i18n.tr_legacy(en), expected)
+
 
 if __name__ == "__main__":
     unittest.main()

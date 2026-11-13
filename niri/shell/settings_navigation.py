@@ -1,30 +1,10 @@
 """Searchable categories for the Niri desktop settings window."""
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Pango
+from gi.repository import Gdk, GLib, Gtk, Pango
 from control_widgets import icon, pack, style
 from i18n import tr
-
-# Search accepts both languages; each label renders only the chosen language.
-PAGES = (
-    ("quick", "Overview", "总览", "view-grid-symbolic", "常用", "wifi bluetooth brightness volume 快捷 网络 蓝牙 亮度 音量"),
-    ("sound", "Sound", "声音", "audio-volume-high-symbolic", "设备", "audio microphone speaker profile 音频 麦克风 扬声器 声卡"),
-    ("displays", "Displays", "屏幕", "video-display-symbolic", "设备", "resolution refresh scale hdr 分辨率 刷新 缩放 位深"),
-    ("input", "Keyboard & mouse", "键盘与鼠标", "input-keyboard-symbolic", "设备", "touchpad pointer keyboard repeat 输入 触摸板 指针 重复"),
-    ("network", "Connections", "网络与蓝牙", "network-wireless-symbolic", "设备", "wifi ethernet vpn dns bluetooth 无线 有线 连接 蓝牙"),
-    ("hardware", "Other devices", "其他设备", "printer-symbolic", "设备", "printer disk storage input method 打印机 磁盘 分区 输入法"),
-    ("appearance", "Appearance", "外观", "preferences-desktop-appearance-symbolic", "个性化", "theme font dark light transparency 主题 字体 深色 浅色 透明度"),
-    ("desktop", "Windows & workspace", "窗口与工作区", "focus-windows-symbolic", "个性化", "layout gaps focus cursor 布局 间距 焦点 光标 动画"),
-    ("applications", "Default applications", "默认应用", "preferences-desktop-apps-symbolic", "个性化", "browser mail files pdf mime 浏览器 邮件 文件关联"),
-    ("language", "Language & region", "语言与地区", "preferences-desktop-locale-symbolic", "个性化", "locale terminal lang chinese english 中文 英文 终端 语言 地区"),
-    ("power", "Power & locking", "电源与锁屏", "system-shutdown-symbolic", "系统", "idle lock suspend sleep 节能 空闲 睡眠 息屏 锁屏"),
-    ("time", "Date & time", "日期与时间", "preferences-system-time-symbolic", "系统", "clock timezone ntp 时钟 时区 同步"),
-    ("startup", "Startup applications", "开机启动", "system-run-symbolic", "系统", "autostart login startup 自动启动 登录"),
-    ("services", "Desktop services", "桌面服务", "preferences-system-symbolic", "系统", "clipboard notifications bar privacy 剪贴板 通知 状态栏 隐私"),
-    ("security", "Accounts & security", "账户与安全", "security-high-symbolic", "系统", "user firewall password keyring 用户 防火墙 密码 密钥"),
-    ("system", "System & maintenance", "系统与维护", "applications-system-symbolic", "系统", "update repair cpu memory monitor diagnostics 更新 修复 监控 内存 自检"),
-)
-PAGE_KEYS = tuple(item[0] for item in PAGES)
+from navigation_catalog import GROUP_LABELS, PAGES, PAGE_KEYS  # re-exported API
 
 
 class SettingsNavigation(Gtk.Box):
@@ -33,8 +13,13 @@ class SettingsNavigation(Gtk.Box):
         self.panel = panel
         self.rows = {}
         self.syncing = False
+        self._reveal_source = None
+        self._disposed = False
         style(self, "settings-sidebar")
-        self.set_size_request(190, -1)
+        # English categories such as "Windows & workspace" need room at the
+        # default font; 190 px ellipsized them. The 25 px still leave the
+        # 960 px quick overview enough width for every primary control.
+        self.set_size_request(215, -1)
         self.search = Gtk.SearchEntry()
         self.search.set_placeholder_text(tr("Search settings", "搜索设置"))
         self.search.set_tooltip_text(tr("Search names and functions · Ctrl+F", "按名称或功能搜索 · Ctrl+F"))
@@ -44,10 +29,25 @@ class SettingsNavigation(Gtk.Box):
         style(self.list, "settings-navigation")
         scroll = Gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_overlay_scrolling(False)
+        scroll.set_shadow_type(Gtk.ShadowType.NONE)
         scroll.add(self.list)
+        self.scroll = scroll
         pack(self, scroll, True)
         previous = None
         for key, english, chinese, glyph, group, keywords in PAGES:
+            if group != previous:
+                heading = Gtk.ListBoxRow()
+                heading.is_header = True
+                style(heading, "nav-group-row")
+                heading.set_selectable(False)
+                heading.set_activatable(False)
+                english_group, chinese_group = GROUP_LABELS.get(group, (group, group))
+                group_label = Gtk.Label(label=tr(english_group, chinese_group), xalign=0)
+                group_label.get_style_context().add_class("nav-group")
+                heading.add(group_label)
+                self.list.add(heading)
+                previous = group
             row = Gtk.ListBoxRow()
             row.key = key
             row.search_text = " ".join((english, chinese, keywords)).casefold()
@@ -55,8 +55,13 @@ class SettingsNavigation(Gtk.Box):
             content = Gtk.Box(spacing=9)
             pack(content, icon(glyph, 18))
             label = Gtk.Label(label=tr(english, chinese), xalign=0)
-            label.set_ellipsize(Pango.EllipsizeMode.END)
-            label.set_max_width_chars(20)
+            label.set_ellipsize(Pango.EllipsizeMode.NONE)
+            label.set_line_wrap(True)
+            label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            # Keep the requested width comfortably inside the fixed 215 px
+            # sidebar. Long English categories then wrap onto a second line
+            # and their row grows vertically instead of widening the window.
+            label.set_max_width_chars(18)
             pack(content, label, True)
             row.add(content)
             row.set_tooltip_text(tr(english, chinese))
@@ -70,9 +75,25 @@ class SettingsNavigation(Gtk.Box):
         self.list.set_filter_func(self.matches)
         self.search.connect("search-changed", self.filter)
         self.search.connect("activate", self.search_activate)
+        self.search.connect("stop-search", lambda _: self.search.set_text(""))
+        self.search.connect("key-press-event", self._on_search_key)
         self.list.connect("row-selected", self.selected)
+        self.list.connect("size-allocate", lambda *_: self.schedule_reveal())
+        self.connect("destroy", self.dispose)
+
+    def _on_search_key(self, _entry, event):
+        if event.keyval in (Gdk.KEY_Down, Gdk.KEY_KP_Down):
+            target = self.rows.get(self.panel.control_stack.get_visible_child_name())
+            if target is None or not self.matches(target):
+                target = next((row for row in self.rows.values() if self.matches(row)), None)
+            if target is not None:
+                self.panel.select_control_tab(target.key, focus=True)
+            return True
+        return False
 
     def matches(self, row):
+        if getattr(row, "is_header", False):
+            return not self.search.get_text().strip()
         terms = self.search.get_text().casefold().split()
         return all(term in row.search_text for term in terms)
 
@@ -86,20 +107,40 @@ class SettingsNavigation(Gtk.Box):
             self.panel.select_control_tab(target.key, focus=True)
 
     def selected(self, _list, row):
-        if row and not self.syncing:
+        if row and not self.syncing and not getattr(row, "is_header", False):
             self.panel.select_control_tab(row.key)
 
     def select(self, key, focus=False):
         row = self.rows.get(key)
         if row is None:
             return
+        if not self.matches(row):
+            self.search.set_text("")
+            self.filter()
         self.syncing = True
         self.list.select_row(row)
         self.syncing = False
+        self.schedule_reveal()
         if focus:
-            if not self.matches(row):
-                self.search.set_text("")
             row.grab_focus()
+
+    def schedule_reveal(self):
+        if not self._disposed and self._reveal_source is None:
+            self._reveal_source = GLib.idle_add(self.reveal_selected)
+
+    def reveal_selected(self):
+        self._reveal_source = None
+        row = self.list.get_selected_row()
+        if not self._disposed and row is not None and row.get_mapped():
+            allocation = row.get_allocation()
+            self.scroll.get_vadjustment().clamp_page(allocation.y, allocation.y + allocation.height)
+        return GLib.SOURCE_REMOVE
+
+    def dispose(self, *_):
+        self._disposed = True
+        if self._reveal_source is not None:
+            GLib.source_remove(self._reveal_source)
+            self._reveal_source = None
 
     def focus_current(self):
         self.select(self.panel.control_stack.get_visible_child_name(), focus=True)

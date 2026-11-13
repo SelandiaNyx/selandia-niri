@@ -1,7 +1,7 @@
 """Compact overview: connectivity, independent media, sliders and clear actions."""
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
+from gi.repository import Gtk, Pango
 
 from control_widgets import icon, icon_button, pack, style, text
 from media_controls import MediaControls
@@ -10,7 +10,8 @@ from i18n import tr
 
 def build_overview(panel):
     body = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12), "quick-overview")
-    hero = Gtk.Grid(column_spacing=12, row_spacing=10, column_homogeneous=True)
+    hero = Gtk.Box(orientation=(Gtk.Orientation.VERTICAL if panel.panel_width < 650
+                                else Gtk.Orientation.HORIZONTAL), spacing=12)
     pack(body, hero)
     panel.tiles = {}
     panel.tile_groups = {}
@@ -21,15 +22,18 @@ def build_overview(panel):
         toggle = style(Gtk.ToggleButton(), "quick-toggle")
         toggle.set_tooltip_text(title)
         toggle.get_accessible().set_name(title)
-        inner = Gtk.Box(spacing=10)
+        inner = Gtk.Box(spacing=8)
         toggle.add(inner)
         badge = style(Gtk.Box(), "quick-icon")
         badge.set_valign(Gtk.Align.CENTER)
-        pack(badge, icon(image, 20))
+        pack(badge, icon(image, 18))
         pack(inner, badge)
-        labels = pack(inner, Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3), True)
-        pack(labels, text(title, "quick-title", 12))
-        state = pack(labels, text(tr("Checking…", "检测中…"), "quick-state", 14))
+        labels = pack(inner, Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2), True)
+        title_label = pack(labels, text(title, "quick-title", 14))
+        title_label.set_ellipsize(Pango.EllipsizeMode.NONE)
+        title_label.set_line_wrap(True)
+        title_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        state = pack(labels, text(tr("Checking…", "检测中…"), "quick-state", 13))
         toggle.set_sensitive(False)
         def changed(widget):
             if panel.updating_tiles:
@@ -41,22 +45,34 @@ def build_overview(panel):
         toggle.connect("toggled", changed)
         pack(group, toggle, True)
         if details:
+            action_cb = details if callable(details) else (lambda: panel.show_connection_details(key, disclosure))
             disclosure, _ = icon_button("pan-end-symbolic", tr(f"{title} details", f"{title}详情"),
-                                         lambda: panel.show_connection_details(key, disclosure), "quick-disclosure")
+                                         action_cb, "quick-disclosure")
             pack(group, disclosure)
         panel.tiles[key] = (toggle, state)
         panel.tile_groups[key] = group
         return group
 
-    hero.attach(tile("wifi", tr("Wi-Fi", "无线网络"), "network-wireless-symbolic", panel.toggle_wifi,
-                     lambda: panel.desktop("launch", "network")), 0, 0, 1, 1)
-    hero.attach(tile("bluetooth", tr("Bluetooth", "蓝牙"), "bluetooth-active-symbolic", panel.toggle_bluetooth,
-                     lambda: panel.desktop("launch", "bluetooth")), 0, 1, 1, 1)
+    tile_grid = Gtk.Grid(column_spacing=10, row_spacing=8, column_homogeneous=True)
+    tile_grid.attach(tile("wifi", tr("Wi-Fi", "无线网络"), "network-wireless-symbolic", panel.toggle_wifi,
+                          lambda: panel.desktop("launch", "network")), 0, 0, 1, 1)
+    tile_grid.attach(tile("bluetooth", tr("Bluetooth", "蓝牙"), "bluetooth-active-symbolic", panel.toggle_bluetooth,
+                          lambda: panel.desktop("launch", "bluetooth")), 1, 0, 1, 1)
+    tile_grid.attach(tile("dnd", tr("Do Not Disturb", "勿扰模式"), "notifications-disabled-symbolic", panel.toggle_dnd), 0, 1, 1, 1)
+    tile_grid.attach(tile("idle", tr("Stay awake", "保持唤醒"), "display-brightness-symbolic", panel.toggle_idle), 1, 1, 1, 1)
+
     panel.media_controls = MediaControls(panel)
-    hero.attach(panel.media_controls, 1, 0, 1, 2)
-    toggles = pack(body, Gtk.Box(spacing=12))
-    pack(toggles, tile("dnd", tr("Do Not Disturb", "勿扰模式"), "notifications-disabled-symbolic", panel.toggle_dnd), True)
-    pack(toggles, tile("idle", tr("Stay awake", "保持唤醒"), "display-brightness-symbolic", panel.toggle_idle), True)
+    pack(hero, tile_grid, True)
+    pack(hero, panel.media_controls, True)
+
+    pulse = style(Gtk.Box(spacing=14), "pulse-card")
+    pack(body, pulse)
+    panel.quick_pulse = {}
+    for key, title in (("cpu", "CPU"), ("memory", "RAM"), ("network", "NET"), ("temp", "TEMP")):
+        item = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2), "pulse-item")
+        pack(item, text(title, "pulse-label"))
+        panel.quick_pulse[key] = pack(item, text("—", "pulse-value"))
+        pack(pulse, item, True)
 
     sliders = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12), "quick-slider-card")
     pack(body, sliders)
@@ -67,6 +83,10 @@ def build_overview(panel):
         heading = pack(group, Gtk.Box(spacing=6))
         pack(heading, text(title, "quick-slider-label"), True)
         panel.scale_values[key] = pack(heading, text("—", "quick-slider-value", 7))
+        if details:
+            action, _ = icon_button("pan-end-symbolic", tr(f"{title} settings", f"{title}设置"),
+                                    details, "quick-slider-action")
+            pack(heading, action)
         row = pack(group, Gtk.Box(spacing=10))
         if device:
             mute, _ = icon_button(image, tr("Mute / Unmute", "静音 / 取消静音"),
@@ -88,9 +108,6 @@ def build_overview(panel):
         scale.connect("focus-out-event", panel.scale_drag_end, key)
         pack(row, scale, True)
         panel.scales[key] = scale
-        if details:
-            more, _ = icon_button("pan-end-symbolic", tr(f"{title} settings", f"{title}设置"), details, "quick-disclosure")
-            pack(row, more)
 
     slider(sliders, "volume", tr("Volume", "音量"), "audio-volume-high-symbolic", "@DEFAULT_AUDIO_SINK@",
            lambda: panel.select_control_tab("sound"))
@@ -129,20 +146,25 @@ def build_overview(panel):
     for title, name, callback in [
         (tr("Shortcuts", "快捷键"), "input-keyboard-symbolic", lambda: panel.desktop("shortcuts")),
         (tr("AI sidebar", "AI 侧栏"), "system-search-symbolic", lambda: panel.desktop("ai")),
-        (tr("Refresh", "刷新"), "view-refresh-symbolic", panel.refresh_control),
+        (tr("Refresh", "刷新"), "view-refresh-symbolic", panel.manual_refresh_control),
     ]:
         item, _ = icon_button(name, title, callback, "quick-utility", title)
         pack(utility, item, True)
+        if name == "view-refresh-symbolic":
+            panel.quick_refresh_button = item
 
-    footer = pack(body, style(Gtk.Box(spacing=8), "quick-footer"))
-    for title, name, callback in [
+    footer = pack(body, style(Gtk.Grid(column_spacing=8, row_spacing=8,
+                                      column_homogeneous=True), "quick-footer"))
+    for index, (title, name, callback) in enumerate([
         (tr("Screenshot", "截图"), "camera-photo-symbolic", lambda: panel.launch(["niri", "msg", "action", "screenshot"])),
         (tr("Notifications", "通知"), "preferences-system-notifications-symbolic", lambda: panel.launch(["swaync-client", "--skip-wait", "-t"])),
         (tr("Lock", "锁屏"), "system-lock-screen-symbolic", lambda: panel.desktop("lock")),
         (tr("Power", "电源"), "system-shutdown-symbolic", lambda: panel.desktop("power")),
-    ]:
+    ]):
         item, _ = icon_button(name, title, callback, "quick-utility", title)
-        pack(footer, item, True)
+        item.set_hexpand(True)
+        footer.attach(item, index % 2 if panel.panel_width < 650 else index,
+                      index // 2 if panel.panel_width < 650 else 0, 1, 1)
         if name == "preferences-system-notifications-symbolic":
             panel.notification_button = item
         if name == "system-shutdown-symbolic":

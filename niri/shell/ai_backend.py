@@ -1,10 +1,15 @@
-"""Small, dependency-free chat transport. No chat history or credentials on disk."""
+"""Small chat transport. Credentials are read only from environment variables."""
+import copy
 import ipaddress
 import json
 import os
 from pathlib import Path
 import re
+import subprocess
+import sys
 import tempfile
+import threading
+import time
 from urllib import error, parse, request
 
 DEFAULTS = {
@@ -14,6 +19,13 @@ DEFAULTS = {
     "api_key_env": "",
 }
 MAX_RESPONSE = 4 * 1024 * 1024
+CHAT_REQUEST_TIMEOUT = 120
+CANCEL_POLL_INTERVAL = 0.1
+REAP_TIMEOUT = 2.0
+WORKER_FLAG = "--chat-worker"
+UNKNOWN_ERROR = "Chat request failed / 聊天请求失败"
+TIMEOUT_ERROR = "AI request timed out / AI 请求超时"
+INVALID_REPLY = "AI worker returned an invalid reply / AI 工作进程回复无效"
 
 
 def settings_path():
@@ -48,6 +60,10 @@ def validate_settings(settings, require_model=False):
 
 
 def load_settings():
+    workspace = settings_path().with_name("ai-workspace.json")
+    if workspace.exists():
+        import ai_store
+        return dict(ai_store.profile(ai_store.load())["settings"])
     path = settings_path()
     if not path.exists():
         return dict(DEFAULTS)
@@ -146,3 +162,195 @@ def discover_models(settings):
         return sorted({item[key] for item in models if isinstance(item.get(key), str)})
     except (KeyError, TypeError, AttributeError):
         raise ValueError("Cannot read model list / 无法读取模型列表") from None
+
+
+class Cancelled(Exception):
+    """A chat request was cancelled before its reply was committed."""
+
+
+_PENDING = "pending"
+_RUNNING = "running"
+_DONE = "done"
+_COMMITTED = "committed"
+_CANCELLED = "cancelled"
+_FAILED = "failed"
+
+
+class ChatRequest:
+    """One cancellable chat turn, run in a short-lived worker process.
+
+    ``run`` and ``commit`` are called from a background thread. ``cancel`` is
+    called from the GTK thread: it only flips state under a short lock and
+    returns immediately, while ``run`` polls and reaps the worker.
+    """
+
+    def __init__(self, messages, settings):
+        self.messages = copy.deepcopy(list(messages))
+        self.settings = copy.deepcopy(dict(settings))
+        self._lock = threading.Lock()
+        self._state = _PENDING
+        self._cancelled = False
+        self._process = None
+        self._reply = None
+
+    @property
+    def cancelled(self):
+        return self._cancelled
+
+    def run(self):
+        """Background thread: run the configured ``chat`` in a worker process."""
+        with self._lock:
+            if self._state != _PENDING or self._cancelled:
+                raise Cancelled("Chat request cancelled / 聊天请求已取消")
+            self._state = _RUNNING
+        try:
+            reply = self._run_worker()
+        except Cancelled:
+            with self._lock:
+                self._cancelled = True
+                self._state = _CANCELLED
+            raise
+        except BaseException:
+            with self._lock:
+                if self._cancelled:
+                    self._state = _CANCELLED
+                    raise Cancelled("Chat request cancelled / 聊天请求已取消") from None
+                self._state = _FAILED
+            raise
+        with self._lock:
+            if self._state == _CANCELLED or self._cancelled:
+                self._cancelled = True
+                self._state = _CANCELLED
+                raise Cancelled("Chat request cancelled / 聊天请求已取消")
+            self._reply = reply
+            self._state = _DONE
+        return reply
+
+    def cancel(self):
+        """GTK thread: accept cancellation before commit started. Returns bool."""
+        with self._lock:
+            if self._cancelled or self._state in (_COMMITTED, _FAILED):
+                return False
+            self._cancelled = True
+            self._state = _CANCELLED
+            return True
+
+    def commit(self, callback):
+        """Background thread: run the saving callback once run has finished."""
+        with self._lock:
+            if self._cancelled or self._state == _CANCELLED:
+                raise Cancelled("Chat request cancelled / 聊天请求已取消")
+            if self._state != _DONE:
+                raise RuntimeError("Chat request is not ready to commit / 聊天请求尚未完成")
+            self._state = _COMMITTED
+        # The callback saves the reply and runs without the state lock, so a
+        # cancel arriving now returns False immediately and never kills it.
+        return callback()
+
+    def _run_worker(self):
+        deadline = time.monotonic() + CHAT_REQUEST_TIMEOUT
+        payload = json.dumps({"messages": self.messages, "settings": self.settings}, ensure_ascii=False).encode()
+        try:
+            process = subprocess.Popen(
+                [sys.executable, "-B", str(Path(__file__).resolve()), WORKER_FLAG],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, close_fds=True)
+        except OSError as exc:
+            raise ValueError("Cannot start the AI worker / 无法启动 AI 工作进程") from exc
+        with self._lock:
+            cancelled = self._cancelled
+            if not cancelled:
+                self._process = process
+        if cancelled:
+            self._reap(process)
+            raise Cancelled("Chat request cancelled / 聊天请求已取消")
+        try:
+            stdout = self._wait(process, payload, deadline)
+        finally:
+            self._reap(process)
+            with self._lock:
+                self._process = None
+        return self._reply_from(stdout)
+
+    def _wait(self, process, payload, deadline):
+        # communicate applies its timeout while writing stdin too: even a
+        # worker stalled before reading a large history remains cancellable.
+        while True:
+            if self._cancelled:
+                raise Cancelled("Chat request cancelled / 聊天请求已取消")
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise ValueError(TIMEOUT_ERROR)
+            try:
+                stdout, _ = process.communicate(input=payload, timeout=min(CANCEL_POLL_INTERVAL, remaining))
+            except subprocess.TimeoutExpired:
+                payload = None
+                continue
+            return stdout
+
+    @classmethod
+    def _reap(cls, process):
+        if process.poll() is None:
+            try:
+                process.terminate()
+            except OSError:
+                pass
+            try:
+                process.wait(timeout=REAP_TIMEOUT)
+            except subprocess.TimeoutExpired:
+                try:
+                    process.kill()
+                except OSError:
+                    pass
+                try:
+                    process.wait(timeout=REAP_TIMEOUT)
+                except subprocess.TimeoutExpired:
+                    pass
+        for stream in (process.stdin, process.stdout, process.stderr):
+            if stream is not None and not stream.closed:
+                try:
+                    stream.close()
+                except OSError:
+                    pass
+
+    @staticmethod
+    def _reply_from(stdout):
+        try:
+            message = json.loads(stdout.decode("utf-8"))
+        except (UnicodeError, json.JSONDecodeError, AttributeError):
+            raise ValueError(INVALID_REPLY) from None
+        if not isinstance(message, dict):
+            raise ValueError(INVALID_REPLY)
+        if message.get("error"):
+            raise ValueError(str(message["error"]))
+        reply = message.get("reply")
+        if not isinstance(reply, str) or not reply.strip():
+            raise ValueError(INVALID_REPLY)
+        return reply
+
+
+def _emit_worker(message):
+    sys.stdout.write(json.dumps(message, ensure_ascii=False) + "\n")
+    sys.stdout.flush()
+
+
+def _chat_worker():
+    try:
+        request = json.loads(sys.stdin.buffer.read().decode("utf-8"))
+        messages, settings = request["messages"], request["settings"]
+    except (UnicodeError, ValueError, KeyError, TypeError):
+        _emit_worker({"error": "Invalid worker request / 工作进程请求无效"})
+        return
+    try:
+        reply = chat(messages, settings)
+    except ValueError as exc:
+        # chat/validate_settings only raise curated, credential-free messages.
+        _emit_worker({"error": str(exc)})
+    except BaseException:
+        # Never leak an unknown traceback (it could contain request data).
+        _emit_worker({"error": UNKNOWN_ERROR})
+    else:
+        _emit_worker({"reply": reply})
+
+
+if __name__ == "__main__" and WORKER_FLAG in sys.argv[1:]:
+    _chat_worker()

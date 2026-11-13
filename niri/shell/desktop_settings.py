@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 import tempfile
 
@@ -369,16 +370,32 @@ def _validate_keymap(values, retained):
         lib.xkb_context_unref(context)
 
 
-def _atomic(path, text):
+UNCHECKED = object()
+
+
+def _identity(path):
+    if not path.exists() and not path.is_symlink():
+        return None
+    info = path.lstat()
+    if not stat.S_ISREG(info.st_mode):
+        raise RuntimeError(_error("Settings path was replaced", "设置路径已被替换"))
+    return (info.st_dev, info.st_ino, info.st_mode, info.st_mtime_ns,
+            info.st_ctime_ns, hashlib.sha256(path.read_bytes()).hexdigest())
+
+
+def _atomic(path, text, *, expected=UNCHECKED, mode=0o600):
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.is_symlink():
         raise RuntimeError(_error("Settings path was replaced", "设置路径已被替换"))
     handle, temporary = tempfile.mkstemp(prefix="." + path.name, dir=path.parent)
     try:
         with os.fdopen(handle, "w") as stream:
+            os.fchmod(stream.fileno(), mode)
             stream.write(text)
             stream.flush()
             os.fsync(stream.fileno())
+        if expected is not UNCHECKED and _identity(path) != expected:
+            raise RuntimeError(_error("Settings changed during validation; edits preserved", "设置在校验期间发生变化，已保留改动"))
         os.replace(temporary, path)
     finally:
         Path(temporary).unlink(missing_ok=True)
@@ -402,6 +419,9 @@ def _commit(group, values, base, state_path):
         if target.is_symlink() or state_path.is_symlink():
             raise RuntimeError(_error("Settings path was replaced", "设置路径已被替换"))
         old = target.read_text() if target.exists() else ""
+        original_target, original_state = _identity(target), _identity(state_path)
+        if original_target is not None and _digest(old) != original_target[-1]:
+            raise RuntimeError(_error("Settings changed while reading; edits preserved", "读取设置时发生变化，已保留改动"))
         saved = _saved(state_path)
         if saved.get("hash"):
             if _digest(old) != saved["hash"]:
@@ -432,19 +452,26 @@ def _commit(group, values, base, state_path):
             (stage / GENERATED).parent.mkdir(parents=True, exist_ok=True)
             (stage / GENERATED).write_text(contents)
             _run("validate", "--config", str(stage / "config.kdl"))
+        if _identity(target) != original_target or _identity(state_path) != original_state:
+            raise RuntimeError(_error("Settings changed during validation; edits preserved", "设置在校验期间发生变化，已保留改动"))
         # Write a recovery copy before replacing the include atomically.
         _atomic(state_path.with_suffix(".backup.kdl"), old)
-        previous_state = state_path.read_text() if state_path.exists() else None
+        installed = None
         try:
-            _atomic(target, contents)
+            _atomic(target, contents, expected=original_target)
+            installed = _identity(target)
             if os.environ.get("NIRI_SOCKET"):
                 _run("msg", "action", "load-config-file")
             saved["hash"] = _digest(contents)
-            _atomic(state_path, json.dumps(saved, indent=2, ensure_ascii=False) + "\n")
+            if _identity(target) != installed:
+                raise RuntimeError(_error("Settings changed during reload; edits preserved", "设置在重载期间发生变化，已保留改动"))
+            _atomic(state_path, json.dumps(saved, indent=2, ensure_ascii=False) + "\n", expected=original_state)
         except Exception:
-            _atomic(target, old)
-            if previous_state is not None:
-                _atomic(state_path, previous_state)
+            if installed is not None and _identity(target) == installed:
+                if original_target is None:
+                    target.unlink()
+                else:
+                    _atomic(target, old, expected=installed, mode=stat.S_IMODE(original_target[2]))
             if os.environ.get("NIRI_SOCKET"):
                 try:
                     _run("msg", "action", "load-config-file")

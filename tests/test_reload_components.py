@@ -49,17 +49,20 @@ class ReloadTests(unittest.TestCase):
                 if "--property=UnitFileState" in arguments:
                     return "masked" if unit in self.masked else "static"
                 return self.states.get(unit, "inactive")
-            if "start" in arguments:
+            if "start" in arguments or "restart" in arguments:
                 self.states[unit] = "active"
         return ""
 
-    def test_repeated_theme_apply_never_restarts_healthy_components(self):
+    def test_repeated_theme_apply_restarts_only_the_managed_bar_without_signals(self):
         for _ in range(12):
             reload.reload_components()
-        self.assertFalse(any(action in call for call in self.calls
-                             for action in ("restart", "try-restart", "start", "reset-failed")))
-        signals = [call for call in self.calls if "--signal=SIGUSR2" in call]
-        self.assertEqual(len(signals), 12)
+        mutations = [call for call in self.calls
+                     if any(action in call for action in ("restart", "start", "reset-failed", "kill"))]
+        self.assertEqual(mutations, [
+            ["systemctl", "--user", "reset-failed", "selandia-niri@waybar.service"],
+            ["systemctl", "--user", "restart", "selandia-niri@waybar.service"],
+        ] * 12)
+        self.assertFalse(any("--signal=SIGUSR2" in call for call in self.calls))
         self.assertEqual(self.calls.count(["swaync-client", "--skip-wait", "--reload-css"]), 12)
         self.assertNotIn(["swaync-client", "--skip-wait", "--reload-config"], self.calls)
 
@@ -67,7 +70,8 @@ class ReloadTests(unittest.TestCase):
         self.masked = {"notifications", "waybar"}
         self.states = {"notifications": "inactive", "waybar": "inactive"}
         reload.reload_components()
-        self.assertFalse(any(action in call for call in self.calls for action in ("start", "kill", "reset-failed")))
+        self.assertFalse(any(action in call for call in self.calls
+                             for action in ("start", "restart", "kill", "reset-failed")))
         self.assertFalse(any(call[0] == "swaync-client" for call in self.calls))
 
     def test_failed_services_clear_start_limits_and_start_notifications_first(self):
@@ -90,12 +94,29 @@ class ReloadTests(unittest.TestCase):
         self.assertEqual(self.states["waybar"], "active")
         self.assertFalse(any(call[0] == "swaync-client" for call in self.calls))
 
-    def test_signal_failure_is_not_reported_as_success(self):
-        self.failures.add(("systemctl", "--user", "kill", "--kill-whom=main", "--signal=SIGUSR2",
+    def test_restart_failure_is_not_reported_as_success(self):
+        self.failures.add(("systemctl", "--user", "restart",
                            "selandia-niri@waybar.service"))
         with self.assertRaisesRegex(RuntimeError, "Status bar"):
             reload.reload_components()
         self.assertFalse(any("start" in call for call in self.calls))
+
+    def test_reset_failure_does_not_submit_a_restart(self):
+        self.failures.add(("systemctl", "--user", "reset-failed", "selandia-niri@waybar.service"))
+        with self.assertRaisesRegex(RuntimeError, "Status bar"):
+            reload.reload_components()
+        self.assertFalse(any("restart" in call for call in self.calls))
+
+    def test_inactive_bar_after_restart_is_reported(self):
+        original = self.run_command
+        def inactive_after_restart(arguments, **kwargs):
+            result = original(arguments, **kwargs)
+            if "restart" in arguments:
+                self.states["waybar"] = "failed"
+            return result
+        with patch.object(reload, "run", side_effect=inactive_after_restart):
+            with self.assertRaisesRegex(RuntimeError, "Service did not start"):
+                reload.reload_components()
 
     def test_bad_css_does_not_touch_any_service(self):
         self.css_mock.side_effect = RuntimeError("invalid stylesheet")
@@ -107,7 +128,8 @@ class ReloadTests(unittest.TestCase):
         reload.reload_components(full=True)
         self.assertIn(["swaync-client", "--skip-wait", "--reload-config"], self.calls)
         self.assertIn(["systemctl", "--user", "restart", "selandia-niri@wallpaper.service"], self.calls)
-        self.assertFalse(any("restart" in call and call[-1] != "selandia-niri@wallpaper.service"
+        self.assertFalse(any("restart" in call and call[-1] not in
+                             ("selandia-niri@waybar.service", "selandia-niri@wallpaper.service")
                              for call in self.calls))
 
     def test_concurrent_apply_calls_are_serialized_by_shared_writer_lock(self):
@@ -147,10 +169,11 @@ class ComponentStartupTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory(prefix="selandia-component-")
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
+        shutil.copytree(ROOT/'niri',self.root/'niri',ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
         self.bin = self.root / "bin"
         self.bin.mkdir()
         self.log = self.root / "calls.jsonl"
-        for command in ("bash", "dirname"):
+        for command in ("bash", "dirname", "python3"):
             (self.bin / command).symlink_to(shutil.which(command))
         for command in ("waybar", "gdbus", "swaync-client"):
             path = self.bin / command
@@ -164,16 +187,14 @@ if name == "gdbus":
             path.chmod(0o755)
 
     def invoke(self, component, **extra):
-        result = subprocess.run(["/usr/bin/bash", str(ROOT / "niri/scripts/components"), component],
-                                env=dict(os.environ, PATH=str(self.bin), CALL_LOG=str(self.log), **extra),
+        state=self.root/'state/selandia-niri';state.mkdir(parents=True,exist_ok=True)
+        (state/'components.json').write_text('{"bar":"waybar"}')
+        result = subprocess.run(["/usr/bin/bash", str(self.root / "niri/scripts/components"), component],
+                                env=dict(os.environ, PATH=str(self.bin), CALL_LOG=str(self.log),XDG_STATE_HOME=str(self.root/'state'),NIRI_SOCKET='', **extra),
                                 text=True, capture_output=True, timeout=3)
         calls = [json.loads(line) for line in self.log.read_text().splitlines()]
         return result, calls
 
-    def test_bar_starts_without_waiting_for_failed_notification_service(self):
-        result, calls = self.invoke("waybar")
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual([call[0] for call in calls], ["waybar"])
 
     def test_notification_stream_does_not_autostart_an_unmanaged_daemon(self):
         result, calls = self.invoke("notification-stream")

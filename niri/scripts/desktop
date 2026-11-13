@@ -1,5 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# Eww's GTK3 input helper must never be inherited by GTK4 launchers.
+if [[ -n "${SELANDIA_EWW_INPUT_LIB:-}" ]]; then
+    IFS=: read -ra preload_parts <<< "${LD_PRELOAD:-}"
+    filtered_preload=()
+    for preload_part in "${preload_parts[@]}"; do
+        [[ -z "$preload_part" || "$preload_part" == "$SELANDIA_EWW_INPUT_LIB" ]] || filtered_preload+=("$preload_part")
+    done
+    if ((${#filtered_preload[@]})); then
+        LD_PRELOAD=$(IFS=:; printf '%s' "${filtered_preload[*]}")
+        export LD_PRELOAD
+    else
+        unset LD_PRELOAD
+    fi
+    unset SELANDIA_EWW_INPUT_LIB SELANDIA_EWW_GEOMETRY
+fi
 base=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 # A terminal opened from an already-running panel still gets the newly selected
 # user locale. The guard is set only for this exec chain, never globally.
@@ -8,7 +23,6 @@ if [[ "${SELANDIA_LANGUAGE_WRAPPED:-0}" != 1 && -f "$base/shell/language_setting
     exec python3 -B "$base/shell/language_settings.py" exec "$0" "$@"
 fi
 unset SELANDIA_LANGUAGE_WRAPPED
-state=${XDG_STATE_HOME:-$HOME/.local/state}/selandia-niri
 launcher_config=$base/theme/fuzzel.ini
 [[ -f "$launcher_config" ]] || launcher_config=$base/fuzzel/fuzzel.ini
 ui_language=${LC_ALL:-${LC_MESSAGES:-${LANG:-en_US}}}
@@ -36,7 +50,10 @@ first_app() {
 }
 
 case "${1:-}" in
-    control|quick|system|appearance|sound|displays|input|desktop|network|hardware|applications|language|power-settings|time|startup|services|security|shortcuts|ai)
+    notification-toggle) exec swaync-client -t ;;
+    bar-backend) exec python3 -B "$base/shell/component_preferences.py" bar "${2:-}" ;;
+    daily-components) exec python3 -B "$base/shell/component_preferences.py" daily ;;
+    control|quick|system|appearance|wallpapers|sound|displays|input|desktop|network|hardware|applications|language|power-settings|time|startup|services|security|shortcuts|ai|calendar)
         panel_mode=$1
         [[ "$panel_mode" != power-settings ]] || panel_mode=power
         exec python3 -B "$base/shell/panel.py" "$panel_mode"
@@ -46,43 +63,37 @@ case "${1:-}" in
             system-config-printer|gnome-disk-utility|fcitx5-configtool|firewall-config|seahorse|network-manager-applet|blueman) ;;
             *) exit 2 ;;
         esac
-        exec kitty --config "$base/kitty/kitty.conf" --class selandia-settings --hold \
+        exec python3 -B "$base/shell/component_preferences.py" terminal --class selandia-settings --hold \
             sudo pacman -Syu --needed -- "$2"
         ;;
-    password) exec kitty --config "$base/kitty/kitty.conf" --class selandia-settings --hold passwd ;;
+    password) exec python3 -B "$base/shell/component_preferences.py" terminal --class selandia-settings --hold passwd ;;
     updates|repair|status|check)
         operation=$1
         [[ "$operation" != updates ]] || operation=update
         controller=$base/../control.sh
         [[ -x "$controller" ]] || { notify "$(tr 'Controller missing' '控制脚本缺失')" "$controller"; exit 1; }
-        exec kitty --config "$base/kitty/kitty.conf" --class selandia-settings \
+        exec python3 -B "$base/shell/component_preferences.py" terminal --class selandia-settings \
             --title "$(tr 'Desktop maintenance' '桌面维护') — $operation" --hold "$controller" "$operation"
         ;;
     system-monitor)
         for monitor in btop htop top; do
             if command -v "$monitor" >/dev/null; then
-                exec kitty --config "$base/kitty/kitty.conf" --class selandia-monitor \
+                exec python3 -B "$base/shell/component_preferences.py" terminal --class selandia-monitor \
                     --title "$(tr 'System monitor' '系统监控')" "$monitor"
             fi
         done
         notify "$(tr 'System monitor unavailable' '系统监控不可用')" "$(tr 'Install btop, htop or procps-ng' '请安装 btop、htop 或 procps-ng')"
         exit 1
         ;;
-    codex)
-        command -v codex >/dev/null || { notify "$(tr 'Codex is not installed' '未安装 Codex')" "$(tr 'Install Codex CLI first, then sign in' '请先安装 Codex CLI 并登录')"; exit 1; }
-        exec kitty --config "$base/kitty/kitty.conf" --class selandia-ai --title "$(tr 'Codex · AI Workspace' 'Codex · AI 工作区')" codex
-        ;;
-    chatgpt) exec xdg-open 'https://chatgpt.com/' ;;
     launcher)
         # Override at launch time so a language switch applies immediately,
         # without regenerating the theme. Never the bilingual template text.
-        exec fuzzel --config "$launcher_config" --placeholder "$(tr 'Search applications' '搜索应用')"
+        exec python3 -B "$base/shell/component_preferences.py" launcher
         ;;
     launch)
         case "${2:-}" in
             terminal)
-                if command -v kitty >/dev/null; then exec kitty --config "$base/kitty/kitty.conf"; fi
-                first_app foot alacritty konsole
+                exec python3 -B "$base/shell/component_preferences.py" terminal
                 ;;
             files) first_app dolphin nautilus thunar ;;
             browser) first_app google-chrome-stable firefox chromium ;;
@@ -90,7 +101,7 @@ case "${1:-}" in
             audio) first_app pavucontrol-qt pavucontrol ;;
             network) first_app nm-connection-editor ;;
             bluetooth) first_app blueman-manager ;;
-            input) first_app fcitx5-configtool ;;
+            input) first_app fcitx5-config-qt fcitx5-configtool ;;
             *) exit 2 ;;
         esac
         ;;
@@ -109,18 +120,18 @@ case "${1:-}" in
         exec python3 -B "$base/shell/lock_session.py"
         ;;
     power)
-        lock_label=$(tr 'Lock' '锁屏')
-        sleep_label=$(tr 'Suspend' '睡眠')
-        if python3 -B "$base/shell/power_actions.py" blocked >/dev/null 2>&1; then
-            sleep_label="$sleep_label · $(tr 'Stay awake blocks sleep' '保持唤醒已阻止睡眠')"
-        fi
-        selection=$(printf '%s\n' "$lock_label" "$sleep_label" "$(tr 'Log out of Niri' '注销 Niri')" "$(tr 'Restart' '重启')" "$(tr 'Shut down' '关机')" | menu --prompt "$(tr 'Power' '电源')  ›  ") || exit 0
+        # The native menu holds every action as a button: no search field, and
+        # the session-ending choices confirm inside the same surface. It only
+        # reports the action, so lock and suspend keep their entry points above
+        # and power_actions.py stays the one path the automatic timer shares.
+        selection=$(python3 -B "$base/shell/power_menu.py") || exit 0
         case "$selection" in
-            "$lock_label") exec "$0" lock ;;
-            "$sleep_label") exec "$0" sleep ;;
-            "$(tr 'Log out of Niri' '注销 Niri')") confirm "$(tr 'Log out of Niri?' '注销 Niri？')" && niri msg action quit --skip-confirmation ;;
-            "$(tr 'Restart' '重启')") confirm "$(tr 'Restart computer?' '重启电脑？')" && systemctl reboot ;;
-            "$(tr 'Shut down' '关机')") confirm "$(tr 'Shut down computer?' '关闭电脑？')" && systemctl poweroff ;;
+            lock) exec "$0" lock ;;
+            sleep) exec "$0" sleep ;;
+            logout) niri msg action quit --skip-confirmation ;;
+            restart) systemctl reboot ;;
+            shutdown) systemctl poweroff ;;
+            *) exit 2 ;;
         esac
         ;;
     sleep)
@@ -139,10 +150,13 @@ case "${1:-}" in
             mic) wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle ;;
             *) exit 2 ;;
         esac
-        device=@DEFAULT_AUDIO_SINK@
-        [[ "$2" == mic ]] && device=@DEFAULT_AUDIO_SOURCE@
-        value=$(wpctl get-volume "$device")
-        notify -h string:x-canonical-private-synchronous:volume -t 1200 "$(tr 'Volume' '音量')" "$value"
+        if [[ "$2" == mic ]]; then
+            value=$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@)
+            notify -h string:x-canonical-private-synchronous:microphone -t 1200 "$(tr 'Microphone' '麦克风')" "$value"
+        elif ! python3 -B "$base/shell/island.py" show volume; then
+            value=$(wpctl get-volume @DEFAULT_AUDIO_SINK@)
+            notify -h string:x-canonical-private-synchronous:volume -t 1200 "$(tr 'Volume' '音量')" "$value"
+        fi
         ;;
     brightness)
         [[ "${2:-}" == up || "${2:-}" == down ]] || exit 2
@@ -150,7 +164,9 @@ case "${1:-}" in
             notify "$(tr 'Brightness unavailable' '无法调节亮度')" "$value"
             exit 1
         fi
-        notify -h string:x-canonical-private-synchronous:brightness -t 1200 "$(tr 'Brightness' '亮度')" "$value"
+        if ! python3 -B "$base/shell/island.py" show brightness; then
+            notify -h string:x-canonical-private-synchronous:brightness -t 1200 "$(tr 'Brightness' '亮度')" "$value"
+        fi
         ;;
     idle-toggle)
         if ! result=$(python3 -B "$base/shell/sleep_guard.py" toggle 2>&1); then
@@ -165,12 +181,10 @@ case "${1:-}" in
     wallpaper)
         path=${2:-}
         if [[ -z "$path" ]]; then
-            path=$(zenity --file-selection --title="$(tr 'Choose Niri wallpaper' '选择 Niri 壁纸')" --file-filter="$(tr 'Images' '图片') | *.png *.jpg *.jpeg *.webp *.svg") || exit 0
+            exec python3 -B "$base/shell/panel.py" wallpapers
         fi
         [[ -f "$path" && "$path" != *$'\n'* ]] || { notify "$(tr 'Image is missing or its path contains a newline' '图片不存在或路径含换行')"; exit 1; }
-        mkdir -p "$state"
-        realpath -- "$path" > "$state/wallpaper"
-        systemctl --user restart selandia-niri@wallpaper.service
+        exec python3 -B "$base/shell/wallpaper.py" set "$path"
         ;;
     reload)
         niri validate -c "$base/config.kdl"
@@ -181,6 +195,6 @@ case "${1:-}" in
         niri validate -c "$base/config.kdl"
         exec python3 -B "$base/shell/reload_components.py" theme
         ;;
-    bar-toggle) systemctl --user kill --kill-whom=main --signal=SIGUSR1 selandia-niri@waybar.service ;;
-    *) printf '%s\n' "$(tr 'Usage' '用法'): desktop {control|quick|system|appearance|sound|displays|input|desktop|network|hardware|applications|language|power-settings|time|startup|services|security|shortcuts|ai|codex|chatgpt|updates|repair|status|check|system-monitor|launcher|launch APP|install-tool PACKAGE|password|clipboard|clipboard-clear|lock|sleep|power|volume up/down/mute/mic|brightness up/down|idle-toggle|idle-status|wallpaper [IMAGE]|reload|theme-reload|bar-toggle}"; exit 2 ;;
+    bar-toggle) exec python3 -B "$base/shell/component_preferences.py" toggle-bar ;;
+    *) printf '%s\n' "$(tr 'Usage' '用法'): desktop {control|quick|system|appearance|sound|displays|input|desktop|network|hardware|applications|language|power-settings|time|startup|services|security|shortcuts|ai|updates|repair|status|check|system-monitor|launcher|launch APP|install-tool PACKAGE|password|clipboard|clipboard-clear|lock|sleep|power|volume up/down/mute/mic|brightness up/down|idle-toggle|idle-status|wallpaper [IMAGE]|reload|theme-reload|bar-toggle}"; exit 2 ;;
 esac

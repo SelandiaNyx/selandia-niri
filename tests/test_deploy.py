@@ -307,9 +307,13 @@ class DeploymentTests(unittest.TestCase):
 
     def test_uninstall_does_not_require_intact_project_sources(self):
         deploy.install()
-        with patch.object(deploy, "ROOT", Path(self.temp.name) / "deleted-project"):
-            deploy.preview_uninstall()
+        output = io.StringIO()
+        with patch.object(deploy, "ROOT", Path(self.temp.name) / "deleted-project"), \
+                patch.dict(sys.modules, {"session_settings": None}):
+            with patch("sys.stdout", output):
+                deploy.preview_uninstall()
             deploy.uninstall()
+        self.assertIn("helper unavailable", output.getvalue())
         self.assert_originals()
 
     def test_preflight_accepts_missing_target_but_refuses_foreign_edits_without_mutation(self):

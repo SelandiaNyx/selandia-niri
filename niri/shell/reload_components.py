@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reload Niri desktop styling without spending systemd's restart allowance."""
+"""Reload styling and let systemd own the bar's complete process lifecycle."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -42,7 +42,7 @@ def validate_css(base: Path):
     import gi
     gi.require_version("Gtk", "3.0")
     from gi.repository import Gtk
-    for component in ("waybar", "swaync"):
+    for component in ("eww", "swaync"):
         path = base / "theme" / f"{component}.css"
         if not path.is_file():
             path = base / component / "style.css"
@@ -71,12 +71,12 @@ def reload_components(*, full: bool = False, base: Path = BASE):
         try:
             if not masked("waybar"):
                 if active("waybar"):
-                    try:
-                        service("waybar", "kill", "--kill-whom=main", "--signal=SIGUSR2")
-                    except RuntimeError:
-                        if active("waybar"):
-                            raise
-                        recover("waybar")
+                    # Compatibility unit name: this service now runs only Eww.
+                    # systemd owns and reaps its complete process group.
+                    service("waybar", "reset-failed")
+                    service("waybar", "restart")
+                    if not active("waybar"):
+                        raise RuntimeError("waybar: " + tr("Service did not start", "服务未能启动"))
                 else:
                     recover("waybar")
         except (OSError, RuntimeError, subprocess.SubprocessError) as error:

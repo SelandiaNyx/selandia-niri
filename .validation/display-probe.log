@@ -1,15 +1,23 @@
-2026-10-05T02:44:44.054441Z  INFO niri: starting version 26.04 (8ed0da4)
-2026-10-05T02:44:44.054651Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uioq1ywn/niri/config.kdl"
-2026-10-05T02:44:44.109679Z DEBUG niri::niri: putting output winit at x=0 y=0
-2026-10-05T02:44:44.109711Z  INFO niri: listening on Wayland socket: wayland-3
-2026-10-05T02:44:44.109714Z  INFO niri: IPC listening on: /run/user/1000/niri.wayland-3.491541.sock
-2026-10-05T02:44:44.110752Z  INFO niri: listening on X11 socket: :3
-2026-10-05T02:44:44.155945Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uioq1ywn/niri/config.kdl"
-2026-10-05T02:44:44.210320Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uioq1ywn/niri/config.kdl"
-2026-10-05T02:44:44.224526Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uioq1ywn/niri/config.kdl"
-2026-10-05T02:44:44.285059Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uioq1ywn/niri/config.kdl"
-2026-10-05T02:44:45.785976Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uioq1ywn/niri/config.kdl"
-2026-10-05T02:44:45.790643Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uioq1ywn/niri/config.kdl"
-2026-10-05T02:44:45.818268Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-uioq1ywn/niri/config.kdl"
-2026-10-05T02:44:45.822782Z  INFO niri::utils::signals::platform: quitting due to receiving signal SIGTERM
-2026-10-05T02:44:45.824984Z DEBUG niri::utils::watcher: exiting watcher thread for Explicit("/tmp/selandia-display-probe-uioq1ywn/niri/config.kdl")
+2026-10-11T13:35:08.116127Z  INFO niri: starting version 26.04 (8ed0da4)
+2026-10-11T13:35:08.116335Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-_y2yx7nu/niri/config.kdl"
+2026-10-11T13:35:08.243827Z DEBUG niri::niri: putting output winit at x=0 y=0
+2026-10-11T13:35:08.243853Z  INFO niri: listening on Wayland socket: wayland-2
+2026-10-11T13:35:08.243855Z  INFO niri: IPC listening on: /tmp/selandia-smoke-7t_r5rq9/runtime/niri.wayland-2.660079.sock
+2026-10-11T13:35:08.244984Z  INFO niri: listening on X11 socket: :3
+2026-10-11T13:35:08.245081Z  WARN niri::dbus: error starting login1 watcher: I/O error: No such file or directory (os error 2)
+
+Caused by:
+    No such file or directory (os error 2)
+2026-10-11T13:35:08.245104Z  WARN niri::dbus: error starting locale1 watcher: I/O error: No such file or directory (os error 2)
+
+Caused by:
+    No such file or directory (os error 2)
+2026-10-11T13:35:08.304653Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-_y2yx7nu/niri/config.kdl"
+2026-10-11T13:35:08.359669Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-_y2yx7nu/niri/config.kdl"
+2026-10-11T13:35:08.372727Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-_y2yx7nu/niri/config.kdl"
+2026-10-11T13:35:08.432358Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-_y2yx7nu/niri/config.kdl"
+2026-10-11T13:35:09.933316Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-_y2yx7nu/niri/config.kdl"
+2026-10-11T13:35:09.937743Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-_y2yx7nu/niri/config.kdl"
+2026-10-11T13:35:09.995487Z DEBUG niri_config: loaded config from "/tmp/selandia-display-probe-_y2yx7nu/niri/config.kdl"
+2026-10-11T13:35:10.000286Z  INFO niri::utils::signals::platform: quitting due to receiving signal SIGTERM
+2026-10-11T13:35:10.002087Z DEBUG niri::utils::watcher: exiting watcher thread for Explicit("/tmp/selandia-display-probe-_y2yx7nu/niri/config.kdl")

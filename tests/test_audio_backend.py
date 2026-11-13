@@ -2,8 +2,10 @@
 import importlib.util
 from pathlib import Path
 import subprocess
+import sys
 import unittest
 from unittest.mock import patch
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "niri/shell"))
 
 spec = importlib.util.spec_from_file_location("audio_backend", Path(__file__).resolve().parents[1] / "niri/shell/audio_backend.py")
 audio = importlib.util.module_from_spec(spec)
@@ -14,7 +16,7 @@ class AudioTests(unittest.TestCase):
     def read_fixture(self, sinks=(), sources=(), cards=(), default_sink="", default_source="", advanced=False):
         data = {"sinks": list(sinks), "sources": list(sources), "cards": list(cards)}
         defaults = {"get-default-sink": default_sink, "get-default-source": default_source}
-        with patch.object(audio, "_list", side_effect=lambda kind: data[kind]), \
+        with patch.object(audio, "_list", side_effect=lambda kind: data.get(kind, [])), \
                 patch.object(audio, "_run", side_effect=lambda command: defaults[command]) as run:
             state = audio.read_state(include_unavailable=advanced)
         self.assertEqual({call.args[0] for call in run.call_args_list}, set(defaults))
@@ -61,7 +63,7 @@ class AudioTests(unittest.TestCase):
             if args[0] == "get-default-source":
                 raise RuntimeError("No default")
             self.fail(f"Unexpected command {args}")
-        with patch.object(audio, "_list", side_effect=lambda name: data[name]), patch.object(audio, "_run", side_effect=run):
+        with patch.object(audio, "_list", side_effect=lambda name: data.get(name, [])), patch.object(audio, "_run", side_effect=run):
             state = audio.read_state()
         self.assertEqual(state["default_source"], "")
         self.assertEqual(state["default_sink"], "speaker")

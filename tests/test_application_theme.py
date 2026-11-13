@@ -313,6 +313,75 @@ theme.apply_mode({"color_mode": "light"}, config_home=home, state_path=state,
         theme.restore(**self.restore_options)
         self.assertEqual(path.read_text(), "/* user's custom theme */")
 
+    def plasma_palette(self):
+        names = ("theme_bg_color", "theme_fg_color", "theme_base_color",
+                 *("theme_custom_" + chr(97 + index) for index in range(20)))
+        return "".join(f"@define-color {name}_breeze #202326;\n" for name in names)
+
+    def test_plasma_palette_import_is_disabled_and_exactly_restorable(self):
+        original = theme.MIGRATED_CSS + "@import 'colors.css';"
+        palette = self.plasma_palette()
+        for version in ("gtk-3.0", "gtk-4.0"):
+            self.write(version + "/gtk.css", original)
+            self.write(version + "/colors.css", palette)
+        before = self.files()
+        result = theme.apply_mode({"color_mode": "light"}, **self.options)
+        self.assertEqual(result["migrated_css"], list(theme.CSS_FILES))
+        self.assertFalse(result["warnings"])
+        for relative in theme.CSS_FILES:
+            self.assertEqual((self.home / relative).read_text(), theme.MIGRATED_CSS)
+        theme.apply_mode({"color_mode": "dark"}, **self.options)
+        theme.restore(**self.restore_options)
+        self.assertEqual(self.files(), before)
+
+    def test_plasma_migration_keeps_custom_rules_on_reapply_and_restore(self):
+        self.write("gtk-3.0/colors.css", self.plasma_palette())
+        custom = "/* My spacing */\nbutton { padding: 13px; }\n"
+        path = self.write("gtk-3.0/gtk.css", "@import url(\"colors.css\");\n" + custom)
+        for mode in ("light", "dark", "light"):
+            result = theme.apply_mode({"color_mode": mode}, **self.options)
+            self.assertEqual(path.read_text(), custom)
+            self.assertTrue(result["warnings"])
+        theme.restore(**self.restore_options)
+        self.assertEqual(path.read_text(), "@import url(\"colors.css\");\n" + custom)
+
+    def test_unrecognized_or_symlinked_palette_is_never_disabled(self):
+        original = "@import 'colors.css';\n"
+        path = self.write("gtk-3.0/gtk.css", original)
+        for palette in ("@define-color my_color #000000;", self.plasma_palette() + "button { color: red; }"):
+            self.write("gtk-3.0/colors.css", palette)
+            theme.apply_mode({}, **self.options)
+            self.assertEqual(path.read_text(), original)
+        target = self.root / "external.css"
+        target.write_text(self.plasma_palette())
+        colors = self.home / "gtk-3.0/colors.css"
+        colors.unlink()
+        colors.symlink_to(target)
+        theme.apply_mode({}, **self.options)
+        self.assertEqual(path.read_text(), original)
+
+    def test_commented_palette_import_is_preserved_exactly(self):
+        self.write("gtk-3.0/colors.css", self.plasma_palette())
+        original = "/*\n@import 'colors.css';\n*/\n"
+        path = self.write("gtk-3.0/gtk.css", original)
+        theme.apply_mode({}, **self.options)
+        self.assertEqual(path.read_text(), original)
+
+    def test_plasma_migration_rollback_and_later_user_edits(self):
+        self.write("gtk-3.0/colors.css", self.plasma_palette())
+        path = self.write("gtk-3.0/gtk.css", "@import 'colors.css';\n")
+        original = self.files()
+        self.desktop.fail = "font-name"
+        with self.assertRaises(RuntimeError):
+            theme.apply_mode({}, **self.options)
+        self.assertEqual(self.files(), original)
+        theme.apply_mode({}, **self.options)
+        path.write_text("button { color: red; }\n")
+        theme.apply_mode({"color_mode": "light"}, **self.options)
+        result = theme.restore(**self.restore_options)
+        self.assertIn("gtk-3.0/gtk.css", result["preserved"])
+        self.assertEqual(path.read_text(), "button { color: red; }\n")
+
     def test_old_matugen_overrides_are_backed_up_disabled_and_restored_exactly(self):
         original = "/* GTK colors generated with Matugen */\n@define-color window_bg_color #000;\n"
         paths = [self.write(relative, original) for relative in theme.CSS_FILES]

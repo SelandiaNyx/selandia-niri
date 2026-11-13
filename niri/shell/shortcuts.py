@@ -86,7 +86,6 @@ DESKTOP = {
     "shortcuts": ("Search every shortcut", "搜索全部快捷键"),
     "control": ("Control Center", "控制中心"),
     "ai": ("AI sidebar", "AI 侧栏"),
-    "codex": ("Codex terminal sidebar", "Codex 终端侧栏"),
     "volume up": ("Volume up", "提高音量"),
     "volume down": ("Volume down", "降低音量"),
     "volume mute": ("Mute speakers", "扬声器静音"),

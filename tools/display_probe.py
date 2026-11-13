@@ -74,13 +74,21 @@ def main():
                     current = output["current"]
                     if not current:
                         raise AssertionError("Private output is not active")
-                    values = {**current, "max_bpc": None, "vrr": False, "scale": 1.25}
+
+                    def values_for(scale):
+                        # A scale change resizes the nested winit output, so the
+                        # reported mode list/current mode can change between
+                        # applies. Re-read it instead of reusing stale values.
+                        current = backend.read_outputs()[0]["current"]
+                        if not current:
+                            raise AssertionError("Private output lost its active mode")
+                        return {**current, "max_bpc": None, "vrr": False, "scale": scale}
 
                     def has_scale(scale):
                         actual = backend.read_outputs()[0]["current"]
                         return actual is not None and math.isclose(actual["scale"], scale, abs_tol=1 / 120)
 
-                    token = backend.begin_apply(output["name"], values)
+                    token = backend.begin_apply(output["name"], values_for(1.25))
                     until(lambda: has_scale(1.25))
                     if not backend.confirm(token):
                         raise AssertionError("Private display preview could not be confirmed")
@@ -89,7 +97,7 @@ def main():
                     confirmed_contents = target.read_text()
                     print("PASS display: actual Niri reload applies scale; confirmation persists it")
 
-                    token = backend.begin_apply(output["name"], {**values, "scale": 1.5})
+                    token = backend.begin_apply(output["name"], values_for(1.5))
                     until(lambda: has_scale(1.5))
                     if not backend.revert(token):
                         raise AssertionError("Private display preview could not be reverted")
@@ -101,7 +109,7 @@ def main():
                     # Use the real independent helper with a shorter test deadline.
                     # The product constant remains fifteen seconds.
                     with patch.object(backend, "CONFIRM_SECONDS", 1.5):
-                        token = backend.begin_apply(output["name"], {**values, "scale": 1.75})
+                        token = backend.begin_apply(output["name"], values_for(1.75))
                     until(lambda: has_scale(1.75), timeout=1)
                     until(lambda: has_scale(1.25), timeout=5)
                     until(lambda: not (backend._state_dir() / "pending.json").exists())

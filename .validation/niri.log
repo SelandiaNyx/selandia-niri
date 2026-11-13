@@ -1,32 +1,24 @@
-2026-10-05T02:43:41.369696Z  INFO niri: starting version 26.04 (8ed0da4)
-2026-10-05T02:43:41.375015Z DEBUG niri_config: loaded config from "/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl"
-2026-10-05T02:43:41.431991Z DEBUG niri::niri: putting output winit at x=0 y=0
-2026-10-05T02:43:41.432021Z  INFO niri: listening on Wayland socket: wayland-2
-2026-10-05T02:43:41.432024Z  INFO niri: IPC listening on: /run/user/1000/niri.wayland-2.430580.sock
-2026-10-05T02:43:41.433023Z  INFO niri: listening on X11 socket: :2
-2026-10-05T02:43:41.434602Z  WARN niri::cursor: error loading xcursor default@48: no default icon
-2026-10-05T02:43:45.140734Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/notifications-center.png"
-2026-10-05T02:43:45.546932Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/desktop-overview.png"
-2026-10-05T02:43:46.941264Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/launcher.png"
-2026-10-05T02:43:48.722732Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/control.png"
-2026-10-05T02:43:50.761380Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/sound.png"
-2026-10-05T02:43:52.803036Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/displays.png"
-2026-10-05T02:43:54.854397Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/input.png"
-2026-10-05T02:43:56.896110Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/network.png"
-2026-10-05T02:43:58.945627Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/hardware.png"
-2026-10-05T02:44:00.991303Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/appearance.png"
-2026-10-05T02:44:03.038073Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/desktop.png"
-2026-10-05T02:44:05.073487Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/applications.png"
-2026-10-05T02:44:07.118004Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/language.png"
-2026-10-05T02:44:09.162986Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/power.png"
-2026-10-05T02:44:11.200238Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/time.png"
-2026-10-05T02:44:13.235400Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/startup.png"
-2026-10-05T02:44:15.291323Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/services.png"
-2026-10-05T02:44:17.339410Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/security.png"
-2026-10-05T02:44:21.383788Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/system.png"
-2026-10-05T02:44:23.334768Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/shortcuts.png"
-2026-10-05T02:44:25.285712Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/ai.png"
-2026-10-05T02:44:43.956177Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/font-dialog.png"
-2026-10-05T02:44:47.798440Z  INFO niri::niri: locking session
-2026-10-05T02:44:47.869657Z  INFO niri::utils::signals::platform: quitting due to receiving signal SIGTERM
-2026-10-05T02:44:47.871889Z DEBUG niri::utils::watcher: exiting watcher thread for Explicit("/home/SelandiaNyx/Selandia's Niri/niri/preview.kdl")
+2026-10-13T11:21:52.232932Z  INFO niri: starting version 26.04 (8ed0da4)
+2026-10-13T11:21:52.238396Z DEBUG niri_config: loaded config from "/tmp/selandia-smoke-gf5kr3te/config/niri/preview.kdl"
+2026-10-13T11:21:52.423081Z DEBUG niri::niri: putting output winit at x=0 y=0
+2026-10-13T11:21:52.423115Z  INFO niri: listening on Wayland socket: wayland-1
+2026-10-13T11:21:52.423118Z  INFO niri: IPC listening on: /tmp/selandia-smoke-gf5kr3te/runtime/niri.wayland-1.499236.sock
+2026-10-13T11:21:52.424035Z  INFO niri: listening on X11 socket: :2
+2026-10-13T11:21:52.424254Z  WARN niri::dbus: error starting login1 watcher: I/O error: No such file or directory (os error 2)
+
+Caused by:
+    No such file or directory (os error 2)
+2026-10-13T11:21:52.424279Z  WARN niri::dbus: error starting locale1 watcher: I/O error: No such file or directory (os error 2)
+
+Caused by:
+    No such file or directory (os error 2)
+2026-10-13T11:21:52.424394Z  WARN niri::cursor: error loading xcursor default@48: no default icon
+2026-10-13T11:21:52.504998Z  WARN niri::cursor: error loading xcursor default@24: no default icon
+2026-10-13T11:21:52.930217Z DEBUG niri_config: loaded config from "/tmp/selandia-smoke-gf5kr3te/config/niri/preview.kdl"
+2026-10-13T11:21:54.552368Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/wallpaper-unified-20261013/maximize/maximized.png"
+2026-10-13T11:21:55.629495Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/wallpaper-unified-20261013/maximize/expanded.png"
+2026-10-13T11:21:57.012341Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/wallpaper-unified-20261013/maximize/restored.png"
+2026-10-13T11:21:57.967154Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/wallpaper-unified-20261013/maximize/button-maximized.png"
+2026-10-13T11:21:59.233515Z DEBUG niri::niri: saving screenshot to "/home/SelandiaNyx/Selandia's Niri/.validation/wallpaper-unified-20261013/maximize/fullscreen.png"
+2026-10-13T11:22:00.562393Z  INFO niri::utils::signals::platform: quitting due to receiving signal SIGTERM
+2026-10-13T11:22:00.565333Z DEBUG niri::utils::watcher: exiting watcher thread for Explicit("/tmp/selandia-smoke-gf5kr3te/config/niri/preview.kdl")

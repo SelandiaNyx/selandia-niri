@@ -19,9 +19,11 @@ import html
 import json
 from i18n import tr
 import math
+import os
 from pathlib import Path
 import re
 import shutil
+import shlex
 import subprocess
 import time
 
@@ -71,7 +73,9 @@ def parse_memory(text: str) -> tuple[dict | None, dict | None]:
         fields = line.replace(":", "", 1).split()
         if len(fields) >= 2:
             try:
-                values[fields[0]] = max(0, int(fields[1])) * 1024
+                value = int(fields[1])
+                if value >= 0:
+                    values[fields[0]] = value * 1024
             except ValueError:
                 continue
     total = values.get("MemTotal", 0)
@@ -84,7 +88,9 @@ def parse_memory(text: str) -> tuple[dict | None, dict | None]:
         if available is not None:
             available = min(total, max(0, available))
             memory = {"total": total, "available": available,
-                      "used": total - available, "percent": 100 * (total - available) / total}
+                      "used": total - available, "percent": 100 * (total - available) / total,
+                      **{key: values.get(source) for key, source in
+                         (("free", "MemFree"), ("cached", "Cached"), ("buffers", "Buffers"), ("reclaimable", "SReclaimable"))}}
     swap = None
     if "SwapTotal" in values and "SwapFree" in values:
         total = values["SwapTotal"]
@@ -130,6 +136,21 @@ def format_percent(value: float | None) -> str:
     return f"{value:.0f}%" if value is not None else UNAVAILABLE
 
 
+def gpu_activity_text(gpu):
+    status = gpu.get('status')
+    if gpu.get('percent') is None:
+        return {
+            'suspended': tr('Sleeping', '休眠中'),
+            'warmup': tr('Collecting baseline…', '正在采集基线…'),
+            'no-clients': tr('No readable GPU clients', '无可读取的 GPU 客户端'),
+            'unreadable': tr('GPU clients unavailable', '无法读取 GPU 客户端'),
+        }.get(status, tr('Unavailable', '不可用'))
+    value = format_percent(gpu['percent'])
+    if gpu.get('coverage') == 'readable-clients':
+        return value + tr(' · readable clients, busiest engine', ' · 可读客户端，最忙引擎')
+    return value
+
+
 def format_uptime(seconds: float | None) -> str:
     if seconds is None:
         return UNAVAILABLE
@@ -142,7 +163,8 @@ def format_uptime(seconds: float | None) -> str:
 class MetricsSampler:
     def __init__(self, proc_root=Path("/proc"), sys_root=Path("/sys"),
                  disk_path=Path("/"), enable_nvidia=True, *, clock=None,
-                 run=None, disk_usage=None):
+                 run=None, disk_usage=None, detailed=False, etc_root=Path("/etc"),
+                 pci_ids=Path("/usr/share/hwdata/pci.ids")):
         self.proc = Path(proc_root)
         self.sys = Path(sys_root)
         self.disk_path = Path(disk_path)
@@ -154,6 +176,163 @@ class MetricsSampler:
         self.previous_network = {}
         self.previous_time = None
         self.nvidia_command = shutil.which("nvidia-smi") if enable_nvidia else None
+        self.detailed = detailed
+        self.etc = Path(etc_root)
+        self.pci_ids = Path(pci_ids)
+        self.pci_names = None
+        self.previous_processes = {}
+        self.previous_process_time = None
+        self._inventory_cache = {}
+        self.gpu_sampler = None
+        self.gpu_read_allowed = lambda: True
+
+    def _cached_inventory(self, key, seconds, load):
+        now = self.clock()
+        cached = self._inventory_cache.get(key)
+        if cached is None or now < cached[0] or now - cached[0] >= seconds:
+            cached = (now, load())
+            self._inventory_cache[key] = cached
+        return cached[1]
+
+    def _cpu_rows(self):
+        rows = []
+        for block in read_text(self.proc / "cpuinfo").split("\n\n"):
+            row = dict(line.split(":", 1) for line in block.splitlines() if ":" in line)
+            row = {key.strip(): value.strip() for key, value in row.items()}
+            if row:
+                rows.append(row)
+        return rows
+
+    def _cpu_inventory(self):
+        rows = self._cpu_rows()
+        models = list(dict.fromkeys(row.get("model name") or row.get("Processor") for row in rows
+                                   if row.get("model name") or row.get("Processor")))
+        processors = {row["processor"] for row in rows if row.get("processor", "").isdigit()}
+        topology = {(row["physical id"], row["core id"]) for row in rows
+                    if row.get("physical id", "").isdigit() and row.get("core id", "").isdigit()}
+        cores = len(topology) if rows and topology and all(row.get("core id", "").isdigit() and
+                    row.get("physical id", "").isdigit() for row in rows) else None
+        cpus, sys_topology, complete = [], set(), True
+        for cpu in (self.sys / "devices/system/cpu").glob("cpu[0-9]*"):
+            if not re.fullmatch(r"cpu\d+", cpu.name) or read_text(cpu / "online") == "0":
+                continue
+            cpus.append(cpu)
+            package, core = (read_text(cpu / "topology" / name) for name in ("physical_package_id", "core_id"))
+            if package.isdigit() and core.isdigit():
+                sys_topology.add((package, core))
+            else:
+                complete = False
+        if cores is None and sys_topology and complete:
+            cores = len(sys_topology)
+        return (dict(model=" / ".join(models) or None, physical_cores=cores,
+                     logical_threads=len(processors) if processors else len(cpus) or None), cpus)
+
+    def _cpu_info(self):
+        # Topology/model do not need a full 24+ CPU inventory every two seconds.
+        # A hotplug mask change invalidates immediately; a short TTL also covers
+        # unusual kernels without a global online mask.
+        online = read_text(self.sys / "devices/system/cpu/online")
+        if getattr(self, "_cpu_online", None) != online:
+            self._inventory_cache.pop("cpu", None)
+            self._cpu_online = online
+        static, cpus = self._cached_inventory("cpu", 30, self._cpu_inventory)
+        frequencies = []
+        for cpu in cpus:
+            frequency = number(read_text(cpu / "cpufreq/scaling_cur_freq"), 1, 20000000)
+            if frequency is not None:
+                frequencies.append(frequency / 1000)
+        if not frequencies:
+            frequencies = [value for row in self._cpu_rows()
+                           if (value := number(row.get("cpu MHz"), 1, 20000)) is not None]
+        return {**static, "frequency_mhz": sum(frequencies) / len(frequencies) if frequencies else None,
+                "min_mhz": min(frequencies) if frequencies else None,
+                "max_mhz": max(frequencies) if frequencies else None}
+
+    def _system(self):
+        values = {}
+        for line in read_text(self.etc / "os-release").splitlines():
+            if "=" not in line or line.startswith("#"):
+                continue
+            key, value = line.split("=", 1)
+            try:
+                tokens = shlex.split(value)
+                if len(tokens) == 1:
+                    values[key] = tokens[0]
+            except ValueError:
+                pass
+        return dict(distribution=values.get("PRETTY_NAME") or values.get("NAME"),
+                    kernel=read_text(self.proc / "sys/kernel/osrelease") or None,
+                    architecture=os.uname().machine if self.proc == Path("/proc") else None)
+
+    def _mounts(self):
+        mounts = {}
+        pseudo = {"proc", "sysfs", "devtmpfs", "devpts", "tmpfs", "cgroup", "cgroup2", "securityfs",
+                  "pstore", "efivarfs", "debugfs", "tracefs", "configfs", "fusectl", "mqueue", "hugetlbfs",
+                  "rpc_pipefs", "binfmt_misc", "nsfs", "ramfs"}
+        for line in read_text(self.proc / "self/mountinfo").splitlines():
+            left, separator, right = line.partition(" - ")
+            fields, tail = left.split(), right.split()
+            if not separator or len(fields) < 6 or len(tail) < 2 or tail[0] in pseudo:
+                continue
+            decode = lambda value: re.sub(r"\\([0-7]{3})", lambda match: chr(int(match[1], 8)), value)
+            mount, source = decode(fields[4]), decode(tail[1])
+            if not mount.startswith("/"):
+                continue
+            mounts[mount] = dict(mount=mount, device=source, filesystem=tail[0], total=None, used=None, free=None, percent=None)
+        for row in list(mounts.values())[:64]:
+            # Do not let an unavailable network/autofs mount stall all metrics.
+            if row["filesystem"] in ("nfs", "nfs4", "cifs", "smbfs", "fuse.sshfs", "autofs"):
+                continue
+            try:
+                usage = self.disk_usage(Path(row["mount"]))
+                row.update(total=usage.total, used=usage.used, free=usage.free,
+                           percent=100 * usage.used / usage.total if usage.total else None)
+            except OSError:
+                pass
+        return sorted(mounts.values(), key=lambda row: row["mount"])[:64]
+
+    def _processes(self, now):
+        try:
+            ticks, page = os.sysconf("SC_CLK_TCK"), os.sysconf("SC_PAGE_SIZE")
+        except (OSError, ValueError):
+            return []
+        elapsed = now - self.previous_process_time if self.previous_process_time is not None else 0
+        previous, current, rows = self.previous_processes, {}, []
+        for path in self.proc.glob("[0-9]*/stat"):
+            try:
+                raw = read_text(path)
+                header, tail = raw.rsplit(")", 1)
+                fields = tail.split()
+                if fields[0] == "Z":
+                    continue
+                pid, start = int(path.parent.name), int(fields[19])
+                cpu = int(fields[11]) + int(fields[12])
+                resident = int(fields[21])
+                if cpu < 0 or resident < 0:
+                    continue
+                key = (pid, start)
+                percent = None
+                if key in previous and elapsed > 0 and cpu >= previous[key]:
+                    percent = 100 * (cpu - previous[key]) / ticks / elapsed
+                current[key] = cpu
+                name = " ".join(header.split("(", 1)[1].split())[:60]
+                rows.append(dict(pid=pid, name=name, cpu_percent=percent, memory=resident * page))
+            except (ValueError, IndexError):
+                continue
+        self.previous_processes, self.previous_process_time = current, now
+        return sorted(rows, key=lambda row: (row["cpu_percent"] if row["cpu_percent"] is not None else -1,
+                                            row["memory"]), reverse=True)[:8]
+
+    def _pci_name(self, vendor, device):
+        if self.pci_names is None:
+            self.pci_names = {}
+            current = None
+            for line in read_text(self.pci_ids).splitlines():
+                if re.match(r"^[0-9a-fA-F]{4}  ", line):
+                    current = line[:4].lower()
+                elif current and re.match(r"^\t[0-9a-fA-F]{4}  ", line):
+                    self.pci_names[(current, line[1:5].lower())] = line[7:].strip()
+        return self.pci_names.get((vendor.removeprefix("0x"), device.removeprefix("0x")))
 
     def _cpu(self):
         current = parse_cpu(read_text(self.proc / "stat"))
@@ -221,23 +400,30 @@ class MetricsSampler:
         seen = set()
         for directory in sorted((self.sys / "class/hwmon").glob("hwmon*")):
             chip = read_text(directory / "name") or directory.name
+            # xe hwmon callbacks acquire runtime-PM references: even a decorative
+            # temperature read can wake an otherwise suspended discrete card.
+            if read_text(directory / "device/power/runtime_status") in ("suspended", "suspending", "resuming"):
+                if self.detailed:
+                    readings.append({"name": chip, "celsius": None})
+                continue
             for path in sorted(directory.glob("temp*_input")):
                 value = number(read_text(path), -50000, 200000)
-                if value is None or path.resolve() in seen:
+                if (value is None and not self.detailed) or path.resolve() in seen:
                     continue
                 seen.add(path.resolve())
                 label = read_text(path.with_name(path.name.replace("_input", "_label")))
-                readings.append({"name": f"{chip} · {label or path.stem}", "celsius": value / 1000})
-        if not readings:
+                readings.append({"name": f"{chip} · {label or path.stem}", "celsius": value / 1000 if value is not None else None})
+        if not any(item['celsius'] is not None for item in readings):
             for directory in sorted((self.sys / "class/thermal").glob("thermal_zone*")):
                 value = number(read_text(directory / "temp"), -50000, 200000)
-                if value is not None:
+                if value is not None or self.detailed:
                     readings.append({"name": read_text(directory / "type") or directory.name,
-                                     "celsius": value / 1000})
+                                     "celsius": value / 1000 if value is not None else None})
         return readings
 
     def _gpus(self):
-        readings, seen, nvidia_paths = [], set(), []
+        readings, seen, nvidia_paths, pci_readings = [], set(), [], {}
+        client_devices, client_readings, nvidia_targets = {}, {}, []
         vendors = {"0x1002": "AMD", "0x8086": "Intel", "0x10de": "NVIDIA"}
         for card in sorted((self.sys / "class/drm").glob("card*")):
             if not re.fullmatch(r"card\d+", card.name):
@@ -249,42 +435,115 @@ class MetricsSampler:
             vendor = vendors.get(read_text(device / "vendor"), "GPU")
             if vendor == "NVIDIA":
                 nvidia_paths.append(device)
-            temperatures = [number(read_text(path), -50000, 200000)
+            suspended_card = read_text(device / "power/runtime_status") in ("suspended", "suspending", "resuming")
+            temperatures = [] if suspended_card else [number(read_text(path), -50000, 200000)
                             for path in device.glob("hwmon/hwmon*/temp*_input")]
             temperatures = [value / 1000 for value in temperatures if value is not None]
             reading = {
-                "name": read_text(device / "product_name") or f"{vendor} · {card.name}",
-                "percent": number(read_text(device / "gpu_busy_percent"), 0, 100),
+                "name": read_text(device / "product_name") or
+                        (self._pci_name(read_text(device / "vendor"), read_text(device / "device")) if self.detailed else None) or f"{vendor} · {card.name}",
+                "percent": None if suspended_card else number(read_text(device / "gpu_busy_percent"), 0, 100),
                 "temperature": max(temperatures) if temperatures else None,
-                "memory_used": number(read_text(device / "mem_info_vram_used"), 0),
-                "memory_total": number(read_text(device / "mem_info_vram_total"), 0),
+                "memory_used": None if suspended_card else number(read_text(device / "mem_info_vram_used"), 0),
+                "memory_total": None if suspended_card else number(read_text(device / "mem_info_vram_total"), 0),
                 "source": vendor,
+                "driver": device.joinpath("driver").resolve().name if device.joinpath("driver").exists() else None,
+                "pci_id": (read_text(device / "vendor") + ":" + read_text(device / "device")) if read_text(device / "device") else None,
+                "status": "suspended" if suspended_card else "available",
             }
+            reading['utilization_source'] = 'sysfs' if reading['percent'] is not None else None
+            reading['coverage'] = 'whole-device' if reading['percent'] is not None else None
             readings.append(reading)
-        # Avoid waking a runtime-suspended discrete GPU for a decorative meter.
-        suspended = nvidia_paths and all(read_text(path / "power/runtime_status") == "suspended" for path in nvidia_paths)
-        if self.nvidia_command and not suspended:
+            address = device.resolve().name
+            if re.fullmatch(r"[0-9a-fA-F]{4,8}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-7]", address):
+                pci_readings[tuple(int(part, 16) for part in re.split(r"[:.]", address))] = reading
+                if vendor == "NVIDIA":
+                    nvidia_targets.append((address, device, reading))
+                if self.detailed and reading['percent'] is None and reading['driver'] in ('i915', 'xe', 'amdgpu'):
+                    client_devices[address] = device
+                    client_readings[address] = reading
+        # Detailed System-page sampling only. Decorative bar/Quick sampling must
+        # neither scan /proc clients nor wake a discrete GPU for telemetry.
+        if client_devices and self.gpu_read_allowed():
+            if self.gpu_sampler is None:
+                from gpu_metrics import DrmClientSampler
+                self.gpu_sampler = DrmClientSampler(proc_root=self.proc, sys_root=self.sys, clock=self.clock)
+            for address, values in self.gpu_sampler.sample(client_devices).items():
+                reading = client_readings[address]
+                reading.update(percent=values.get('percent'), engine_percent=values.get('engine_percent', {}),
+                               utilization_source=values.get('source'), coverage=values.get('coverage'),
+                               status=values.get('status'), clients=values.get('clients'),
+                               discovery_complete=values.get('discovery_complete'),
+                               inaccessible_processes=values.get('inaccessible_processes'),
+                               unreadable_descriptors=values.get('unreadable_descriptors'))
+        # A query without --id visits every NVIDIA card, including sleeping ones.
+        # Keep that legacy fallback only when sysfs exposes no NVIDIA device.
+        if not self.nvidia_command:
+            return readings
+        targets = nvidia_targets if nvidia_paths else [(None, None, None)]
+        deadline = time.monotonic() + 0.8 if nvidia_paths else None
+        for address, device, selected in targets:
+            if not self.gpu_read_allowed():
+                break
+            if device is not None and read_text(device / "power/runtime_status") in ("suspended", "suspending", "resuming"):
+                selected.update(percent=None, temperature=None, memory_used=None, memory_total=None,
+                                status="suspended", utilization_source=None, coverage=None)
+                continue
+            timeout = deadline - time.monotonic() if deadline is not None else 0.8
+            if timeout <= 0:
+                break
             try:
-                result = self.run([self.nvidia_command,
-                                   "--query-gpu=name,utilization.gpu,temperature.gpu,memory.used,memory.total",
-                                   "--format=csv,noheader,nounits"], capture_output=True, text=True,
-                                  timeout=0.8, check=False)
+                query = "name,utilization.gpu,temperature.gpu,memory.used,memory.total"
+                if self.detailed or address is not None:
+                    query += ",pci.bus_id,driver_version"
+                command = [self.nvidia_command, "--query-gpu=" + query, "--format=csv,noheader,nounits"]
+                if address is not None:
+                    command.append("--id=" + address)
+                result = self.run(command, capture_output=True, text=True, timeout=timeout, check=False)
                 nvidia = []
                 if result.returncode == 0:
                     for fields in csv.reader(result.stdout.splitlines()):
-                        if len(fields) != 5:
+                        if len(fields) not in (5, 7):
                             continue
                         used, total = number(fields[3], 0), number(fields[4], 0)
-                        nvidia.append({"name": fields[0].strip(), "percent": number(fields[1], 0, 100),
+                        original = {}
+                        if len(fields) == 7:
+                            reported = fields[5].strip()
+                            if re.fullmatch(r"[0-9a-fA-F]{4,8}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-7]", reported):
+                                original = pci_readings.get(tuple(int(part, 16) for part in re.split(r"[:.]", reported)), {})
+                        # Never merge an unexpected response into another card,
+                        # or accept an identity-free result for a targeted query.
+                        if selected is not None and original is not selected:
+                            continue
+                        nvidia.append({**original, "name": fields[0].strip(), "percent": number(fields[1], 0, 100),
                                        "temperature": number(fields[2], -50, 200),
                                        "memory_used": int(used * 1024 ** 2) if used is not None else None,
                                        "memory_total": int(total * 1024 ** 2) if total is not None else None,
-                                       "source": "NVIDIA"})
+                                       "source": "NVIDIA", "utilization_source": "nvidia-smi",
+                                       "coverage": "whole-device", "driver": original.get("driver"),
+                                       "pci_id": original.get("pci_id"),
+                                       "driver_version": fields[6].strip() if len(fields) == 7 and fields[6].strip() not in ("", "N/A", "[N/A]") else None})
                 if nvidia:
-                    readings = [reading for reading in readings if reading["source"] != "NVIDIA"] + nvidia
+                    if selected is not None:
+                        selected.update(nvidia[0])
+                    else:
+                        readings.extend(nvidia)
             except (OSError, subprocess.SubprocessError):
                 pass
         return readings
+
+    def prime(self):
+        """Capture a baseline so the next sample can report a real CPU/network rate.
+
+        The control center calls this when the System page becomes visible, then
+        samples a fraction of a second later. It is a cheap one-shot read, not a
+        polling loop, and leaves the public sample() warmup contract unchanged.
+        """
+        if self.gpu_sampler is not None:
+            self.gpu_sampler.reset()
+        self.previous_cpu = parse_cpu(read_text(self.proc / "stat"))
+        self.previous_time = self.clock()
+        self._network(self.previous_time)
 
     def sample(self) -> dict:
         now = self.clock()
@@ -294,15 +553,58 @@ class MetricsSampler:
         try:
             usage = self.disk_usage(self.disk_path)
             disk = {"total": usage.total, "used": usage.used, "free": usage.free,
-                    "percent": 100 * usage.used / usage.total if usage.total else 0.0}
+                    "percent": 100 * usage.used / usage.total if usage.total else None}
         except OSError:
             disk = None
         uptime = read_text(self.proc / "uptime").split()
         load = [number(field, 0) for field in read_text(self.proc / "loadavg").split()[:3]]
-        return {"cpu_percent": self._cpu(), "memory": memory, "swap": swap,
+        result = {"cpu_percent": self._cpu(), "memory": memory, "swap": swap,
                 "network": network, "gpus": self._gpus(), "temperatures": self._temperatures(),
                 "disk": disk, "uptime_seconds": number(uptime[0], 0) if uptime else None,
                 "load_average": load if len(load) == 3 and None not in load else None}
+        if self.detailed:
+            result.update(system=dict(self._cached_inventory("system", 300, self._system)),
+                          cpu=self._cpu_info(),
+                          mounts=[dict(row) for row in self._cached_inventory("mounts", 10, self._mounts)],
+                          processes=self._processes(now))
+        return result
+
+
+def detailed_sections(values):
+    """Plain text inventories: missing values stay explicitly unavailable."""
+    unavailable = tr("Unavailable", "不可用")
+    show = lambda value: unavailable if value is None or value == "" else str(value)
+    size = lambda value: unavailable if value is None else format_bytes(value)
+    cpu, memory, swap = values.get("cpu") or {}, values.get("memory") or {}, values.get("swap") or {}
+    frequency = cpu.get("frequency_mhz")
+    cpu_text = "\n".join([show(cpu.get("model")),
+        tr("Physical cores: ", "物理核心：") + show(cpu.get("physical_cores")),
+        tr("Logical threads: ", "逻辑线程：") + show(cpu.get("logical_threads")),
+        tr("Current average: ", "当前平均频率：") + (f"{frequency:.0f} MHz" if frequency is not None else unavailable)])
+    memory_text = "\n".join(tr(english, chinese) + size(memory.get(key)) for key, english, chinese in
+                    (("total", "Total: ", "总计："), ("used", "Used: ", "已用："), ("available", "Available: ", "可用："),
+                     ("free", "Free: ", "空闲："), ("cached", "Cache: ", "缓存："), ("buffers", "Buffers: ", "缓冲：")))
+    memory_text += "\n" + tr("Swap used / total: ", "交换已用／总计：") + size(swap.get("used")) + " / " + size(swap.get("total"))
+    memory_text += "\n" + tr("Swap free: ", "交换空闲：") + size(swap["total"] - swap["used"] if swap.get("total") is not None and swap.get("used") is not None else None)
+    mount_text = "\n\n".join(f"{row['mount']} · {row['device']} · {row['filesystem']}\n" +
+        tr("Used / total: ", "已用／总计：") + size(row["used"]) + " / " + size(row["total"]) +
+        " · " + tr("Free: ", "可用：") + size(row["free"]) for row in values.get("mounts", [])) or unavailable
+    gpu_text = "\n\n".join(show(gpu.get("name")) + "\n" + tr("Driver: ", "驱动：") + show(gpu.get("driver")) +
+                            (" · " + gpu["driver_version"] if gpu.get("driver_version") else "") +
+                            "\nPCI " + show(gpu.get("pci_id")) +
+                            "\n" + tr("Activity: ", "活动：") + gpu_activity_text(gpu) +
+                            ''.join('\n' + name + ': ' + format_percent(percent)
+                                    for name, percent in (gpu.get('engine_percent') or {}).items()) +
+                            ('\n' + tr('Coverage: readable clients only; other users may be excluded.',
+                                       '覆盖范围：仅可读客户端，可能不含其他用户。')
+                             if gpu.get('coverage') == 'readable-clients' else '')
+                            for gpu in values.get("gpus", [])) or unavailable
+    process_text = "\n".join(f"{row['pid']}  {row['name']}\nCPU " +
+        (f"{row['cpu_percent']:.1f}%" if row["cpu_percent"] is not None else unavailable) + " · " +
+        tr("Resident: ", "驻留内存：") + size(row["memory"]) for row in values.get("processes", [])) or unavailable
+    return [(tr("CPU details", "处理器详情"), cpu_text), (tr("Memory details", "内存与交换详情"), memory_text),
+            (tr("Mounted partitions", "挂载分区"), mount_text), (tr("GPU details and activity", "显卡信息与活动"), gpu_text),
+            (tr("Top processes · CPU%, then resident memory", "占用最高的进程 · 先按 CPU，再按驻留内存"), process_text)]
 
 
 def waybar_payload(data: dict) -> dict:
@@ -332,10 +634,13 @@ def waybar_payload(data: dict) -> dict:
     chips = {}
     for temperature in data.get("temperatures", []):
         chip = temperature["name"].split(" · ", 1)[0]
-        if chip not in chips or temperature["celsius"] > chips[chip]["celsius"]:
+        value = temperature.get("celsius")
+        if chip not in chips or (value is not None and
+                                 (chips[chip].get("celsius") is None or value > chips[chip]["celsius"])):
             chips[chip] = temperature
     for _, temperature in sorted(chips.items())[:6]:
-        lines.append(f"{temperature['name']}  {temperature['celsius']:.0f}°C")
+        value = temperature.get("celsius")
+        lines.append(f"{temperature['name']}  " + (f"{value:.0f}°C" if value is not None else UNAVAILABLE))
     lines += [tr("Uptime  ", "已运行  ") + format_uptime(data.get("uptime_seconds")),
               tr("Click: system details", "点击：系统详情"), tr("— Unavailable / warming up", "— 不可用 / 采样中")]
     percentages = [value for value in [data.get("cpu_percent"), memory["percent"] if memory else None, *gpu_loads] if value is not None]

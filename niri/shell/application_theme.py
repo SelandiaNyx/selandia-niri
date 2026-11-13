@@ -144,7 +144,7 @@ def _load_journal(path: Path, config_home: Path) -> dict:
                 raise ValueError
             if "pending_text" in record and not isinstance(record["pending_text"], (str, type(None))):
                 raise ValueError
-            if record.get("kind") not in (None, "matugen-css") or (record.get("kind") and relative not in CSS_FILES):
+            if record.get("kind") not in (None, "matugen-css", "theme-css") or (record.get("kind") and relative not in CSS_FILES):
                 raise ValueError
             for section, entries in record["keys"].items():
                 if not isinstance(section, str):
@@ -317,10 +317,41 @@ def _targets(settings: dict, data_dir: Path, config_home: Path) -> tuple[dict, d
     return files, desktop, warnings
 
 
+def _without_plasma_palette(source: str, path: Path) -> str:
+    """Remove only the import of KDE's generated Breeze palette, not user CSS.
+
+    A custom colors.css (selectors, other variables, external imports or a
+    symlink) is deliberately left alone. The imported file itself is never edited.
+    """
+    try:
+        palette = _read(path.with_name("colors.css"))
+    except OSError:
+        return source
+    if not palette:
+        return source
+    palette = re.sub(r"/\*.*?\*/", "", palette, flags=re.S)
+    declaration = r"@define-color\s+([a-z_]+_breeze)\s+#[0-9a-fA-F]{6}\s*;"
+    names = set(re.findall(declaration, palette))
+    if (len(names) < 20 or not {"theme_bg_color_breeze", "theme_fg_color_breeze",
+                              "theme_base_color_breeze"} <= names or
+            re.sub(declaration, "", palette).strip()):
+        return source
+    # Mask comments without shifting offsets; even commented-out imports remain exact.
+    masked = re.sub(r"/\*.*?\*/", lambda match: re.sub(r"[^\n]", "x", match[0]), source, flags=re.S)
+    pattern = r"(?m)^[ \t]*@import\s+(?:['\"]colors\.css['\"]|url\(\s*['\"]colors\.css['\"]\s*\))\s*;[ \t]*(?:\n|$)"
+    for match in reversed(list(re.finditer(pattern, masked))):
+        source = source[:match.start()] + source[match.end():]
+    return source
+
+
+def _has_custom_css(source: str) -> bool:
+    return bool(source.replace(MIGRATED_CSS.strip(), "").strip())
+
+
 def _custom_css_warnings(config_home: Path) -> list[str]:
     present = [str(config_home / version / "gtk.css") for version in ("gtk-3.0", "gtk-4.0")
                if (config_home / version / "gtk.css").is_file() and
-               (config_home / version / "gtk.css").read_text() not in ("", MIGRATED_CSS)]
+               _has_custom_css((config_home / version / "gtk.css").read_text())]
     return (["Custom GTK CSS may override application colors / 自定义 GTK CSS 可能覆盖应用颜色: " + ", ".join(present)]
             if present else [])
 
@@ -364,19 +395,24 @@ def apply_mode(settings: dict, *, config_home: Path | None = None, state_path: P
             path = home / relative
             before = _read(path)
             previous = old["files"].get(relative)
-            if before is not None and ("GTK colors generated with Matugen" in before[:512] or
-                                       previous and before == previous["applied_text"]):
+            owned = previous and (before == previous["applied_text"] or
+                                  "pending_text" in previous and before == previous["pending_text"])
+            source = _without_plasma_palette(before, path) if before is not None else None
+            if source is not None and "GTK colors generated with Matugen" in source[:512]:
+                source = MIGRATED_CSS
+            if before is not None and (owned or source != before):
                 _safe_parent(path, home)
-                restoration = previous["before_text"] if previous and before == previous["applied_text"] else before
-                updated["files"][relative] = {"before_text": restoration, "applied_text": MIGRATED_CSS,
-                                               "keys": {}, "kind": "matugen-css"}
-                writes[path] = MIGRATED_CSS.encode()
+                restoration = previous["before_text"] if owned else before
+                updated["files"][relative] = {"before_text": restoration, "applied_text": source,
+                                               "keys": {}, "kind": "theme-css"}
+                writes[path] = source.encode()
                 originals[path] = before
-                migrated_css.append(relative)
-            elif before and before != MIGRATED_CSS:
+                if source != before:
+                    migrated_css.append(relative)
+            elif previous:
+                updated["files"][relative] = previous
+            if source and _has_custom_css(source):
                 warnings.append(f"Custom GTK CSS may override application colors / 自定义 GTK CSS 可能覆盖应用颜色: {path}")
-                if previous:
-                    updated["files"][relative] = previous
         before_gs = {}
         effective_gs = {}
         for key, value in desired_gs.items():
@@ -453,7 +489,7 @@ def restore(*, config_home: Path | None = None, state_path: Path | None = None, 
             if (current == record["applied_text"] or
                     "pending_text" in record and current == record["pending_text"]):
                 result = record["before_text"]
-            elif record.get("kind") == "matugen-css":
+            elif record.get("kind") in ("matugen-css", "theme-css"):
                 preserved.append(relative)
                 continue
             else:

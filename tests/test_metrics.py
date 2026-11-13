@@ -6,7 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "niri/shell"))
 import metrics
@@ -47,8 +47,35 @@ class MetricsTests(unittest.TestCase):
             self.write(f"sys/class/net/{name}/ifindex", str(len(name)))
         self.write("proc/net/dev", content)
 
+    def nvidia_card(self, index, address, *, status=None, identifier="0x1111"):
+        device = self.base / "sys/bus/pci/devices" / address
+        device.mkdir(parents=True)
+        for name, value in (("vendor", "0x10de"), ("device", identifier)):
+            (device / name).write_text(value)
+        if status is not None:
+            (device / "power").mkdir()
+            (device / "power/runtime_status").write_text(status)
+        driver = self.base / "sys/bus/pci/drivers/nvidia"
+        driver.mkdir(parents=True, exist_ok=True)
+        (device / "driver").symlink_to(driver)
+        card = self.base / f"sys/class/drm/card{index}"
+        card.mkdir(parents=True)
+        (card / "device").symlink_to(device)
+        return device
+
     def test_cpu_guest_time_is_not_counted_twice(self):
         self.assertEqual(metrics.parse_cpu("cpu 100 10 20 500 10 5 5 0 90 9\n"), (650, 510))
+
+    def test_prime_gives_the_first_visible_sample_real_cpu_and_network_rates(self):
+        self.network(eth0=(100, 200))
+        self.sampler.prime()
+        self.now = 10.2
+        self.write("proc/stat", "cpu 150 10 20 570 10 5 5 0 90 9\n")
+        self.network(eth0=(300, 500))
+        data = self.sampler.sample()
+        self.assertAlmostEqual(data["cpu_percent"], 50 / 120 * 100)
+        self.assertAlmostEqual(data["network"]["down_bps"], 1000)
+        self.assertAlmostEqual(data["network"]["up_bps"], 1500)
 
     def test_cpu_warmup_delta_and_counter_reset(self):
         self.assertIsNone(self.sampler.sample()["cpu_percent"])
@@ -75,6 +102,134 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(memory["used"], 250 * 1024)
         self.assertEqual(memory["percent"], 25)
         self.assertEqual(swap["percent"], 60)
+
+    def test_negative_memory_and_swap_counters_are_unavailable(self):
+        memory, swap = metrics.parse_memory("MemTotal: 1000 kB\nMemAvailable: -1 kB\nSwapTotal: 500 kB\nSwapFree: -1 kB\n")
+        self.assertIsNone(memory)
+        self.assertIsNone(swap)
+
+    def test_unknown_temperature_does_not_break_tooltip_or_hide_valid_same_chip(self):
+        data = self.sampler.sample()
+        data["temperatures"] = [{"name": "CPU · missing", "celsius": None},
+                                {"name": "CPU · package", "celsius": 55},
+                                {"name": "CPU · other", "celsius": None},
+                                {"name": "GPU · missing", "celsius": None}]
+        tooltip = metrics.waybar_payload(data)["tooltip"]
+        self.assertIn("CPU · package  55°C", tooltip)
+        self.assertIn("GPU · missing  —", tooltip)
+        self.assertNotIn("0°C", tooltip)
+
+    def test_detailed_nvidia_query_matches_pci_address_instead_of_enumeration_order(self):
+        for index, address, identifier in ((0, "0000:01:00.0", "0x1111"), (1, "0000:02:00.0", "0x2222")):
+            self.nvidia_card(index, address, identifier=identifier)
+        self.sampler.detailed = True
+        self.sampler.nvidia_command = "/fake/nvidia-smi"
+        self.sampler.run = Mock(return_value=subprocess.CompletedProcess([], 0,
+            "Second, 42, 57, 1024, 8192, 00000000:02:00.0, 590.00\nFirst, N/A, N/A, N/A, N/A, 00000000:01:00.0, N/A\n"))
+        first, second = self.sampler._gpus()
+        self.assertEqual(second["pci_id"], "0x10de:0x2222")
+        self.assertEqual(first["pci_id"], "0x10de:0x1111")
+        self.assertEqual(second["driver"], "nvidia")
+        self.assertEqual(second["driver_version"], "590.00")
+        self.assertIsNone(first["driver_version"])
+        self.assertIn("pci.bus_id,driver_version", self.sampler.run.call_args.args[0][1])
+        self.assertEqual([call.args[0][-1] for call in self.sampler.run.call_args_list],
+                         ["--id=0000:01:00.0", "--id=0000:02:00.0"])
+
+    def test_nvidia_mixed_active_and_sleeping_cards_query_only_active_pci_address(self):
+        self.nvidia_card(0, "0000:01:00.0", status="active")
+        self.nvidia_card(1, "0000:02:00.0", status="suspended", identifier="0x2222")
+        self.sampler.nvidia_command = "/fake/nvidia-smi"
+        for detailed in (False, True):
+            with self.subTest(detailed=detailed):
+                self.sampler.detailed = detailed
+                self.sampler.run = Mock(return_value=subprocess.CompletedProcess([], 0,
+                    "Active, 42, 57, 1024, 8192, 00000000:01:00.0, 590.00\n"))
+                active, sleeping = self.sampler._gpus()
+                self.sampler.run.assert_called_once()
+                command = self.sampler.run.call_args.args[0]
+                self.assertIn("--id=0000:01:00.0", command)
+                self.assertIn("pci.bus_id", command[1])
+                self.assertEqual(active["percent"], 42)
+                self.assertEqual(sleeping["pci_id"], "0x10de:0x2222")
+                self.assertEqual(sleeping["status"], "suspended")
+                self.assertIsNone(sleeping["percent"])
+                self.assertIsNone(sleeping["utilization_source"])
+
+    def test_nvidia_rechecks_runtime_state_before_each_target(self):
+        self.nvidia_card(0, "0000:01:00.0", status="active")
+        second = self.nvidia_card(1, "0000:02:00.0", status="active")
+        self.sampler.nvidia_command = "/fake/nvidia-smi"
+
+        def query(*args, **kwargs):
+            (second / "power/runtime_status").write_text("suspending")
+            return subprocess.CompletedProcess([], 0, "First, 42, 57, 1024, 8192, 0000:01:00.0, 590.00\n")
+
+        self.sampler.run = Mock(side_effect=query)
+        first, sleeping = self.sampler._gpus()
+        self.sampler.run.assert_called_once()
+        self.assertEqual(first["percent"], 42)
+        self.assertEqual(sleeping["status"], "suspended")
+        self.assertIsNone(sleeping["percent"])
+
+    def test_nvidia_targets_share_one_timeout_budget(self):
+        for index in range(3):
+            self.nvidia_card(index, f"0000:0{index + 1}:00.0", status="active")
+        self.sampler.nvidia_command = "/fake/nvidia-smi"
+        elapsed = [10.0]
+
+        def query(command, **kwargs):
+            if command[-1] == "--id=0000:01:00.0":
+                elapsed[0] += 0.5
+                return subprocess.CompletedProcess([], 0, "First, 42, 57, 1024, 8192, 0000:01:00.0, 590.00\n")
+            elapsed[0] += kwargs["timeout"]
+            raise subprocess.TimeoutExpired(command, kwargs["timeout"])
+
+        self.sampler.run = Mock(side_effect=query)
+        with patch.object(metrics.time, "monotonic", side_effect=lambda: elapsed[0]):
+            first, second, third = self.sampler._gpus()
+        self.assertEqual(self.sampler.run.call_count, 2)
+        self.assertAlmostEqual(self.sampler.run.call_args_list[0].kwargs["timeout"], 0.8)
+        self.assertAlmostEqual(self.sampler.run.call_args_list[1].kwargs["timeout"], 0.3)
+        self.assertAlmostEqual(elapsed[0], 10.8)
+        self.assertEqual(first["percent"], 42)
+        self.assertIsNone(second["percent"])
+        self.assertIsNone(third["percent"])
+
+    def test_nvidia_target_errors_do_not_retry_query_all_or_replace_sysfs_rows(self):
+        self.nvidia_card(0, "0000:01:00.0", status="active")
+        self.nvidia_card(1, "0000:02:00.0", status="suspended")
+        self.sampler.nvidia_command = "/fake/nvidia-smi"
+        failures = (OSError("missing"), subprocess.TimeoutExpired("nvidia-smi", 0.8),
+                    subprocess.CompletedProcess([], 1, "error"),
+                    subprocess.CompletedProcess([], 0, "broken\n"),
+                    subprocess.CompletedProcess([], 0, "Wrong card, 42, 57, 1024, 8192, 0000:02:00.0, 590.00\n"),
+                    subprocess.CompletedProcess([], 0, "Missing address, 42, 57, 1024, 8192\n"))
+        for failure in failures:
+            with self.subTest(failure=failure):
+                self.sampler.run = Mock(side_effect=failure) if isinstance(failure, Exception) else Mock(return_value=failure)
+                active, sleeping = self.sampler._gpus()
+                self.sampler.run.assert_called_once()
+                self.assertIn("--id=0000:01:00.0", self.sampler.run.call_args.args[0])
+                self.assertEqual(active["name"], "NVIDIA · card0")
+                self.assertIsNone(active["percent"])
+                self.assertIsNone(sleeping["percent"])
+                self.assertEqual(sleeping["status"], "suspended")
+
+    def test_known_nvidia_without_usable_pci_address_does_not_query_all(self):
+        self.write("sys/class/drm/card0/device/vendor", "0x10de")
+        self.sampler.nvidia_command = "/fake/nvidia-smi"
+        self.sampler.run = Mock()
+        self.assertEqual(len(self.sampler._gpus()), 1)
+        self.sampler.run.assert_not_called()
+
+    def test_nvidia_query_stops_when_system_page_read_is_invalidated(self):
+        self.nvidia_card(0, "0000:01:00.0", status="active")
+        self.sampler.nvidia_command = "/fake/nvidia-smi"
+        self.sampler.run = Mock()
+        self.sampler.gpu_read_allowed = lambda: False
+        self.assertIsNone(self.sampler._gpus()[0]["percent"])
+        self.sampler.run.assert_not_called()
 
     def test_memory_legacy_fallback_clamps_and_swap_disabled_is_real_zero(self):
         memory, swap = metrics.parse_memory("MemTotal: 100 kB\nMemFree: 50 kB\nCached: 60 kB\nSReclaimable: 10 kB\nShmem: 5 kB\nSwapTotal: 0 kB\nSwapFree: 0 kB\n")
@@ -187,11 +342,13 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(self.sampler.sample()["gpus"], [])
 
     def test_suspended_nvidia_gpu_is_not_woken_for_polling(self):
-        self.write("sys/class/drm/card0/device/vendor", "0x10de")
-        self.write("sys/class/drm/card0/device/power/runtime_status", "suspended")
+        for index, status in enumerate(("suspended", "suspending", "resuming")):
+            self.nvidia_card(index, f"0000:0{index + 1}:00.0", status=status)
         self.sampler.nvidia_command = "/fake/nvidia-smi"
         self.sampler.run = Mock()
-        self.assertIsNone(self.sampler.sample()["gpus"][0]["percent"])
+        gpus = self.sampler.sample()["gpus"]
+        self.assertEqual(len(gpus), 3)
+        self.assertTrue(all(gpu["percent"] is None and gpu["status"] == "suspended" for gpu in gpus))
         self.sampler.run.assert_not_called()
 
     def test_thermal_fallback_and_invalid_values(self):

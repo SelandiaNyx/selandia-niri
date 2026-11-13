@@ -2,4 +2,4 @@
 // outputs 请直接修改 outputs.kdl，避免同名屏幕重复定义。
 // 示例：
 // layout { gaps 8; }
-// binds { Mod+Return { spawn "kitty"; } }
+// binds { Mod+Return { spawn "alacritty"; } }

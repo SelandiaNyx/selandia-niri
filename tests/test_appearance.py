@@ -16,20 +16,195 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 # appearance.py uses its sibling i18n module for single-language output.
 sys.path.insert(0, str(ROOT / "niri/shell"))
-import bar_layout
 SPEC = importlib.util.spec_from_file_location("appearance", ROOT / "niri/shell/appearance.py")
 appearance = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(appearance)
 
 
+def generated_roles(files):
+    """Read the opaque generated roles back from the emitted GTK CSS."""
+    return {name: value for name, value in re.findall(
+        r"@define-color md3_(\w+) (#[0-9a-f]{6});", files["panel.css"])}
+
+
+def color_channels(color):
+    return tuple(int(color[index:index + 2], 16) / 255 for index in (1, 3, 5))
+
+
+def channel_luminance(channels):
+    linear = [c / 12.92 if c <= .04045 else ((c + .055) / 1.055) ** 2.4 for c in channels]
+    return .2126 * linear[0] + .7152 * linear[1] + .0722 * linear[2]
+
+
+def contrast_luminance(first, second):
+    high, low = sorted((first, second), reverse=True)
+    return (high + .05) / (low + .05)
+
+
+def alpha_composite(color, opacity, under):
+    """Independently model continuous alpha compositing over opaque channels."""
+    channels = tuple(f * opacity + u * (1 - opacity)
+                     for f, u in zip(color_channels(color), under))
+    rounded = "#" + "".join(f"{round(channel * 255):02x}" for channel in channels)
+    return rounded, channel_luminance(channels), channels
+
+
+def secondary_surfaces(roles, opacity):
+    """Generated surfaces with rounded 8-bit colour and continuous luminance."""
+    surfaces = []
+    for backdrop in ("#000000", "#ffffff"):
+        under = color_channels(backdrop)
+        glass_hex, glass_lum, glass = alpha_composite(roles["surface"], opacity, under)
+        drawer_hex, drawer_lum, drawer = alpha_composite(
+            roles["surface_container_low"], opacity, under)
+        surfaces.extend((
+            ("glass surface", glass_hex, glass_lum),
+            ("low surface", drawer_hex, drawer_lum),
+            ("high surface",) + alpha_composite(
+                roles["surface_container_high"], opacity, under)[:2],
+            ("standalone notification",) + alpha_composite(
+                roles["surface_container_high"], .90, under)[:2],
+            ("standalone notification hover",) + alpha_composite(
+                roles["surface_container_highest"], .94, under)[:2],
+            ("nested notification",) + alpha_composite(
+                roles["surface_container_high"], .90, drawer)[:2],
+            ("nested notification hover",) + alpha_composite(
+                roles["surface_container_highest"], .94, drawer)[:2],
+            ("panel card",) + alpha_composite(
+                roles["surface_container"], .72, glass)[:2],
+            ("panel tile",) + alpha_composite(
+                roles["surface_container"], .55, glass)[:2],
+            ("panel tabs",) + alpha_composite(
+                roles["surface_container_low"], .65, glass)[:2],
+        ))
+    for name in ("surface", "surface_container_low", "surface_container",
+                 "surface_container_high", "surface_container_highest"):
+        surfaces.append((f"opaque {name}", roles[name],
+                         channel_luminance(color_channels(roles[name]))))
+    return surfaces
+
+
 class AppearanceTests(unittest.TestCase):
+    def test_nine_collections_have_complete_light_and_dark_palettes(self):
+        self.assertEqual(len(appearance.PRESETS), 9)
+        self.assertEqual(set(appearance.PRESETS), set(appearance.LIGHT_PRESETS))
+        for preset in appearance.PRESETS:
+            for mode in ("light", "dark"):
+                with self.subTest(preset=preset, mode=mode):
+                    files = appearance.render_files({"preset": preset, "color_mode": mode}, base=self.base)
+                    self.assertEqual(set(files), set(appearance.GENERATED_FILES))
+                    self.assertIn("inset 0 1px", files["panel.css"])
+                    self.assertIn("inset 0 1px", files["swaync.css"])
+                    self.assertIn('namespace="^(launcher|selandia-.*)$"', files["theme.kdl"])
+
+    def test_default_secondary_text_reaches_4_5_on_rendered_composites(self):
+        for preset in appearance.PRESETS:
+            for mode in ("dark", "light"):
+                files = appearance.render_files({"preset": preset, "color_mode": mode}, base=self.base)
+                roles = generated_roles(files)
+                variant = roles["on_surface_variant"]
+                for surface, background, continuous in secondary_surfaces(roles, .92):
+                    with self.subTest(preset=preset, mode=mode, surface=surface):
+                        self.assertGreaterEqual(
+                            appearance._contrast(variant, background), 4.55,
+                            f"rounded {preset} {mode} {surface}: {variant} on {background}")
+                        self.assertGreaterEqual(
+                            contrast_luminance(appearance._luminance(variant), continuous), 4.55,
+                            f"continuous {preset} {mode} {surface}: {variant}")
+
+    def test_passing_secondary_role_stays_byte_identical(self):
+        for preset in appearance.PRESETS:
+            for mode in ("dark", "light"):
+                roles = appearance.semantic_roles(
+                    appearance.palette({"preset": preset, "color_mode": mode}), mode)
+                roles["on_surface_variant"] = roles["on_surface"]
+                before = dict(roles)
+                for surface, background, continuous in secondary_surfaces(roles, .92):
+                    with self.subTest(preset=preset, mode=mode, surface=surface):
+                        self.assertGreaterEqual(
+                            appearance._contrast(roles["on_surface_variant"], background), 4.5)
+                        self.assertGreaterEqual(
+                            contrast_luminance(appearance._luminance(roles["on_surface"]),
+                                               continuous), 4.5)
+                with self.subTest(preset=preset, mode=mode):
+                    self.assertEqual(appearance._readable_secondary(roles, .92),
+                                     roles["on_surface"])
+                    self.assertEqual(roles, before)
+
+    def test_seeded_wallpaper_secondary_reaches_4_5(self):
+        adjusted = False
+        for mode in ("dark", "light"):
+            settings = {"preset": "glacier", "color_mode": mode, "opacity": .92,
+                        "wallpaper_colors": True, "wallpaper_seed": "#ffff00"}
+            files = appearance.render_files(settings, base=self.base)
+            roles = generated_roles(files)
+            semantic = appearance.semantic_roles(appearance.palette(settings), mode)
+            adjusted |= roles["on_surface_variant"] != semantic["on_surface_variant"]
+            for surface, background, continuous in secondary_surfaces(roles, .92):
+                with self.subTest(mode=mode, surface=surface):
+                    self.assertGreaterEqual(
+                        appearance._contrast(roles["on_surface_variant"], background), 4.55,
+                        f"seed rounded {mode} {surface}")
+                    self.assertGreaterEqual(
+                        contrast_luminance(appearance._luminance(roles["on_surface_variant"]),
+                                           continuous), 4.55,
+                        f"seed continuous {mode} {surface}")
+        self.assertTrue(adjusted, "seeded case should exercise the correction")
+
+    def test_low_opacity_stays_bounded_and_keeps_shadow_without_full_proof(self):
+        for mode in ("dark", "light"):
+            files = appearance.render_files(
+                {"preset": "glacier", "color_mode": mode, "opacity": .20}, base=self.base)
+            roles = generated_roles(files)
+            semantic = appearance.semantic_roles(
+                appearance.palette({"preset": "glacier", "color_mode": mode}), mode)
+            self.assertEqual(roles["on_surface_variant"], roles["on_surface"])
+            start = [int(semantic["on_surface_variant"][i:i + 2], 16) for i in (1, 3, 5)]
+            anchor = [int(roles["on_surface"][i:i + 2], 16) for i in (1, 3, 5)]
+            result = [int(roles["on_surface_variant"][i:i + 2], 16) for i in (1, 3, 5)]
+            for lower, value, upper in zip(start, result, anchor):
+                self.assertGreaterEqual(value, min(lower, upper))
+                self.assertLessEqual(value, max(lower, upper))
+            self.assertIn("0.200)", files["panel.css"])
+            self.assertIn("Low-opacity legibility", files["panel.css"])
+            self.assertIn("text-shadow:", files["panel.css"])
+
+    def test_low_opacity_glyphs_have_crisp_outline_and_no_noise_without_raising_alpha(self):
+        for opacity in (.20, .25, .30):
+            files = appearance.render_files({"opacity": opacity}, base=self.base)
+            self.assertIn(f", {opacity:.3f})", files["panel.css"])
+            self.assertIn("1px 0 0", files["panel.css"])
+            self.assertNotIn("0 1px 2px", files["panel.css"])
+            panel_rule = files["theme.kdl"].split('match namespace="^selandia-.*$"',1)[1].split("\n}",1)[0]
+            self.assertIn("noise 0", panel_rule)
+            control_rule = files["theme.kdl"].split('title="^Selandia · control$"', 1)[1].split("\n}", 1)[0]
+            self.assertIn("noise 0", control_rule)
+        files = appearance.render_files({"opacity": .40}, base=self.base)
+        self.assertIn("noise 0.02", files["theme.kdl"])
+
+
+    def test_all_eighteen_palettes_parse_in_real_gtk3_css(self):
+        import gi
+        gi.require_version("Gtk", "3.0")
+        from gi.repository import Gtk
+        for preset in appearance.PRESETS:
+            for mode in ("light", "dark"):
+                files = appearance.render_files({"preset": preset, "color_mode": mode}, base=self.base)
+                for component, template in (("panel", None), ("eww", None), ("swaync", "swaync/style.css")):
+                    with self.subTest(preset=preset, mode=mode, component=component):
+                        text = files[component + ".css"]
+                        if template:
+                            text = (ROOT / "niri" / template).read_text() + "\n" + text.split("\n", 1)[1]
+                        provider = Gtk.CssProvider()
+                        provider.load_from_data(text.encode())
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="selandia-appearance-test-")
         self.addCleanup(self.temporary.cleanup)
         self.directory = Path(self.temporary.name)
         self.base = self.directory / "niri"
         self.state = self.directory / "state/appearance.json"
-        for relative in ("fuzzel/fuzzel.ini", "swaylock/config"):
+        for relative in ("fuzzel/fuzzel.ini", "swaylock/config", "swaync/config.json"):
             path = self.base / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes((ROOT / "niri" / relative).read_bytes())
@@ -50,13 +225,49 @@ class AppearanceTests(unittest.TestCase):
                 self.assertEqual(appearance.load_settings(state_path=self.state), appearance.DEFAULTS)
 
     def test_roundtrip_and_all_component_files(self):
+        import i18n
+        previous_lang = i18n.get_language()
+        i18n.set_language("zh_CN")
+        self.addCleanup(i18n.set_language, previous_lang)
+
         values = self.apply({"preset": "violet", "font": "思源黑体", "font_size": 15,
                              "mono_font": "Iosevka Term", "mono_size": 14, "opacity": 0.92})
         self.assertEqual(appearance.load_settings(state_path=self.state), values)
-        self.assertEqual(set(appearance.GENERATED_FILES), {path.name for path in (self.base / "theme").iterdir()})
+        expected_files = set(appearance.GENERATED_FILES) | {"swaync.json"}
+        self.assertEqual(expected_files, {path.name for path in (self.base / "theme").iterdir()})
         self.assertEqual(self.state.stat().st_mode & 0o777, 0o600)
         self.assertIn('font-family: "思源黑体"', (self.base / "theme/panel.css").read_text())
-        self.assertIn("font_size 14", (self.base / "theme/kitty.conf").read_text())
+        self.assertIn("size = 14", (self.base / "theme/alacritty.toml").read_text())
+        swaync = json.loads((self.base / "theme/swaync.json").read_text())
+        self.assertEqual(swaync["control-center-width"], 386)
+        self.assertEqual(swaync["control-center-width"] + 2 * (16 + 1), 420)
+        self.assertIs(swaync["control-center-exclusive-zone"], True)
+        for font_size in (12, 16, 20):
+            configured = appearance.notification_config({**values, "font_size": font_size}, base=self.base)
+            self.assertEqual(configured["control-center-margin-top"], 12)
+            self.assertIs(configured["control-center-exclusive-zone"], True)
+            self.assertEqual(configured["control-center-width"] + 2 * (16 + 1), 420)
+        self.assertEqual(swaync["control-center-margin-top"], 12)
+        self.assertEqual(swaync["control-center-margin-right"], 16)
+        self.assertEqual(swaync["control-center-margin-bottom"], 16)
+        self.assertEqual(swaync["control-center-margin-left"], 16)
+        self.assertEqual(swaync["notification-window-width"], 420)
+        self.assertEqual(swaync["widget-config"]["title"]["text"], "通知")
+        self.assertEqual(swaync["widget-config"]["title"]["button-text"], "清空")
+        self.assertEqual(swaync["widget-config"]["dnd"]["text"], "勿扰")
+        self.assertEqual(swaync["text-empty"], "暂无通知")
+        self.assertEqual(swaync["timeout"], 6)
+        self.assertTrue(swaync["fit-to-screen"])
+        self.assertFalse(swaync["layer-shell-cover-screen"])
+
+        # Also validate explicit English rendering
+        from ui_assets import render as render_ui_assets
+        i18n.set_language("en_US")
+        en_swaync = render_ui_assets(base=self.base, settings=values)["swaync.json"]
+        self.assertEqual(en_swaync["widget-config"]["title"]["text"], "Notifications")
+        self.assertEqual(en_swaync["widget-config"]["title"]["button-text"], "Clear")
+        self.assertEqual(en_swaync["widget-config"]["dnd"]["text"], "Do not disturb")
+        self.assertEqual(en_swaync["text-empty"], "All caught up")
 
     def test_old_preferences_gain_dark_mode_without_losing_user_choices(self):
         self.state.parent.mkdir()
@@ -91,16 +302,10 @@ class AppearanceTests(unittest.TestCase):
         # layout helper, which is where the compositor query used to hide.
         with patch("subprocess.run", forbidden):
             files = appearance.render_files(dict(appearance.DEFAULTS), base=self.base)
-        self.assertIn("waybar.css", files)
-        self.assertIn("/* Bar layout: ", files["waybar.css"])
+        self.assertIn("eww.css", files)
+        self.assertNotIn("waybar.css", files)
+        self.assertNotIn("kitty.conf", files)
 
-    def test_the_layout_comes_from_the_generated_bar_configuration(self):
-        (self.base / "theme").mkdir(exist_ok=True)
-        compact = bar_layout.build(json.loads((ROOT / "niri/waybar/config.jsonc").read_text()), "compact")
-        (self.base / "theme/waybar.jsonc").write_text(json.dumps(compact))
-        rendered = appearance.render_files(dict(appearance.DEFAULTS), base=self.base)
-        self.assertIn("/* Bar layout: compact */", rendered["waybar.css"])
-        self.assertIn("#workspaces button.empty", rendered["waybar.css"])
 
     def test_color_mode_and_motion_values_are_validated(self):
         for values in ({"color_mode": "auto"}, {"color_mode": None}, {"reduced_motion": "false"}, {"reduced_motion": 1}):
@@ -109,15 +314,10 @@ class AppearanceTests(unittest.TestCase):
 
     def run_restore_cli(self, contents=None):
         script = self.base / "shell/appearance.py"
-        script.parent.mkdir(exist_ok=True)
-        shutil.copyfile(ROOT / "niri/shell/appearance.py", script)
-        # appearance.py renders single-language output, so its sibling helper
-        # belongs to the copied tree as well.
-        shutil.copyfile(ROOT / "niri/shell/i18n.py", self.base / "shell/i18n.py")
-        # The bar stylesheet is layout-aware and the fonts are unit-converted,
-        # so those helpers belong in the copied tree as well.
-        for helper in ("bar_layout.py", "bar_fit.py", "font_scale.py"):
-            shutil.copyfile(ROOT / "niri/shell" / helper, self.base / "shell" / helper)
+        script.parent.mkdir(parents=True, exist_ok=True)
+        # Copy complete niri/shell sources into the private base tree
+        for helper in (ROOT / "niri/shell").glob("*.py"):
+            shutil.copyfile(helper, self.base / "shell" / helper.name)
         state_home = self.directory / "cli-state"
         saved = state_home / "selandia-niri/appearance.json"
         if contents is not None:
@@ -132,7 +332,7 @@ class AppearanceTests(unittest.TestCase):
         result, saved = self.run_restore_cli('{"preset":"violet","font_size":15}')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(saved.read_text())["preset"], "violet")
-        self.assertIn(appearance.PRESETS["violet"]["accent"], (self.base / "theme/waybar.css").read_text())
+        self.assertIn(appearance.PRESETS["violet"]["accent"], (self.base / "theme/eww.css").read_text())
 
     def test_restore_cli_without_preferences_does_not_create_state_or_assets(self):
         result, saved = self.run_restore_cli()
@@ -142,18 +342,18 @@ class AppearanceTests(unittest.TestCase):
 
     def test_restore_cli_preserves_invalid_preferences_and_current_assets(self):
         self.apply({"preset": "graphite"})
-        original = (self.base / "theme/waybar.css").read_bytes()
+        original = (self.base / "theme/eww.css").read_bytes()
         result, saved = self.run_restore_cli("malformed prefs")
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(saved.read_text(), "malformed prefs")
-        self.assertEqual((self.base / "theme/waybar.css").read_bytes(), original)
+        self.assertEqual((self.base / "theme/eww.css").read_bytes(), original)
 
     def test_font_and_numeric_injection_rejected_before_writes(self):
         unsafe = ({"font": 'Inter"; color: red'}, {"mono_font": "Mono\ninclude other.conf"},
                   {"font": "Inter:size=999"}, {"font": "Iosevka\\u0022"}, {"font": "A\x00B"},
                   {"font": ""}, {"font": "A" * 81}, {"opacity": "0.8"}, {"opacity": True},
                   {"opacity": float("nan")}, {"mono_size": float("inf")}, {"font_size": 8},
-                  {"mono_size": 25}, {"opacity": 0.64}, {"preset": []}, {"other": "value"})
+                  {"mono_size": 25}, {"opacity": 0.19}, {"preset": []}, {"other": "value"})
         before = self.snapshot()
         for values in unsafe:
             with self.subTest(values=values), self.assertRaises(ValueError):
@@ -165,6 +365,16 @@ class AppearanceTests(unittest.TestCase):
             with self.subTest(font=font):
                 values = appearance.validate_settings({"font": font, "font_size": 20, "mono_size": 8, "opacity": 1})
                 self.assertEqual(values["font"], font)
+
+    def test_twenty_percent_opacity_persists_without_resetting_other_preferences(self):
+        values = {**appearance.DEFAULTS, "preset": "rose", "color_mode": "light", "opacity": .20, "font": "Noto Sans"}
+        self.apply(values)
+        self.assertEqual(appearance.load_settings(state_path=self.state), appearance.validate_settings(values))
+        for filename in ("panel.css", "eww.css", "swaync.css"):
+            self.assertIn("0.200)", (self.base / "theme" / filename).read_text())
+        css = (self.base / "theme/panel.css").read_text()
+        self.assertIn("Low-opacity legibility", css)
+        self.assertIn("text-shadow:", css)
 
     def test_preserves_original_sources_and_unknown_launcher_options(self):
         original = self.base / "fuzzel/fuzzel.ini"
@@ -186,7 +396,8 @@ class AppearanceTests(unittest.TestCase):
                 for name, contents in files.items():
                     self.assertIn(palette["accent"].lstrip("#"), contents, name)
                     self.assertNotIn(str(self.directory), contents)
-                self.assertTrue(files["waybar.css"].startswith('@import "../waybar/style.css";'))
+                self.assertIn("window.background, window", files["eww.css"])
+                self.assertIn(".segment", files["eww.css"])
                 self.assertTrue(files["swaync.css"].startswith('@import "../swaync/style.css";'))
 
     def test_panel_widget_rules_do_not_leak_into_native_dialogs(self):
@@ -220,6 +431,10 @@ class AppearanceTests(unittest.TestCase):
         expected = appearance.render_files(appearance.DEFAULTS, base=self.base)
         for name, contents in expected.items():
             self.assertEqual((self.base / "theme" / name).read_text(), contents)
+        from ui_assets import render as render_ui_assets
+        expected_ui = render_ui_assets(base=self.base, settings=appearance.DEFAULTS)
+        for name, value in expected_ui.items():
+            self.assertEqual(json.loads((self.base / "theme" / name).read_text()), value)
 
     def test_symlink_destination_refused_without_touching_target(self):
         self.apply({})

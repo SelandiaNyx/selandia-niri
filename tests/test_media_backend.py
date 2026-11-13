@@ -221,8 +221,14 @@ class MediaTests(unittest.TestCase):
                 return ()
             return original(*args, **kwargs)
         self.call_mock.side_effect = ignored
-        with patch.object(media.time, "monotonic", side_effect=[0, 1]):
+        clock = [0.]
+        def advance(seconds):
+            clock[0] += seconds
+        with patch.object(media.time, "monotonic", side_effect=lambda: clock[0]), \
+                patch.object(media.time, "sleep", side_effect=advance):
             state = media.action(self.identifier(), "pause")
+        self.assertGreaterEqual(clock[0], .6)
+        self.assertLess(clock[0], .7)
         self.assertEqual(state["status"], "Playing")
         self.assertTrue(state["action_pending"])
         self.assertEqual(self.actions, [(":1.21", "Pause")])

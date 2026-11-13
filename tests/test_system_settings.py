@@ -1,5 +1,6 @@
 """Validate native system settings without changing host services or defaults."""
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -11,6 +12,14 @@ import system_settings as settings
 
 
 class SystemSettingsTests(unittest.TestCase):
+    def setUp(self):
+        private = tempfile.TemporaryDirectory(prefix="selandia-system-settings-")
+        self.addCleanup(private.cleanup)
+        patcher = patch.dict(os.environ, XDG_CONFIG_HOME=str(Path(private.name) / "config"),
+                             XDG_STATE_HOME=str(Path(private.name) / "state"))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_network_names_with_colons_are_preserved_and_only_uuid_is_executed(self):
         identifier = "12345678-1234-1234-1234-123456789abc"
         with patch.object(settings, "run", return_value=identifier + r":Office\: WiFi:802-11-wireless:wlan0") as run:
@@ -208,6 +217,51 @@ class SystemSettingsTests(unittest.TestCase):
             settings.toggle_startup(target.name, True, home=root)
             self.assertIn("Hidden=false", target.read_text())
 
+    def test_external_startup_shows_hidden_launcher_and_user_override(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            home, system = root / "user", root / "system"
+            for folder in (home, system):
+                (folder / "autostart").mkdir(parents=True)
+            source = system / "autostart/org.fcitx.Fcitx5.desktop"
+            original = "[Desktop Entry]\nType=Application\nName=Fcitx 5\nExec=fcitx5\nNoDisplay=true\n"
+            source.write_text(original)
+            entries = settings.external_startup(home=home, config_dirs=[system])
+            self.assertEqual(len(entries), 1)
+            self.assertTrue(entries[0]["enabled"])
+            self.assertEqual(entries[0]["path"], str(source))
+            self.assertEqual(entries[0]["name"], "Fcitx 5")
+            override = home / "autostart" / source.name
+            override.write_text(original + "Hidden=true\n")
+            entries = settings.external_startup(home=home, config_dirs=[system])
+            self.assertEqual(len(entries), 1)
+            self.assertFalse(entries[0]["enabled"])
+            self.assertEqual(entries[0]["source"], "user")
+            self.assertEqual(source.read_text(), original)
+
+    def test_external_startup_respects_niri_visibility_and_managed_entries(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            home = Path(temporary)
+            directory = home / "autostart"
+            directory.mkdir()
+            for name, suffix in (("plasma", "OnlyShowIn=KDE;\n"), ("other", "NotShowIn=niri;\n"),
+                                 ("niri", "OnlyShowIn=niri;\n"), ("managed", "")):
+                (directory / (name + ".desktop")).write_text(
+                    "[Desktop Entry]\nType=Application\nName=" + name + "\nExec=true\n" + suffix)
+            entries = settings.external_startup(home=home, config_dirs=[], owned_ids={"managed.desktop"})
+            self.assertEqual([entry["id"] for entry in entries], ["niri.desktop"])
+
+    def test_unavailable_startup_executable_does_not_break_inventory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            home = Path(temporary)
+            directory = home / "autostart"
+            directory.mkdir()
+            (directory / "missing.desktop").write_text(
+                "[Desktop Entry]\nType=Application\nName=Old application\nExec=selandia-nonexistent-test\n"
+                "TryExec=/selandia-nonexistent-test\n")
+            entries = settings.external_startup(home=home, config_dirs=[])
+            self.assertEqual(entries[0]["name"], "Old application")
+
     def test_startup_refuses_foreign_entries_and_path_traversal(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -247,6 +301,51 @@ class SystemSettingsTests(unittest.TestCase):
                 settings.toggle_startup("selandia-niri-app.desktop", False, home=root)
             self.assertEqual(original.read_text(), content)
 
+    def test_startup_removal_deletes_only_the_managed_entry(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "autostart").mkdir()
+            target = root / "autostart/selandia-niri-app.desktop"
+            target.write_text("[Desktop Entry]\nName=Managed\nX-Selandia-Niri-Managed=true\nHidden=false\n")
+            other = root / "autostart/selandia-niri-other.desktop"
+            other.write_text("[Desktop Entry]\nName=Other\nX-Selandia-Niri-Managed=true\n")
+            unrelated = root / "autostart/other.desktop"
+            unrelated.write_text("[Desktop Entry]\nName=User\n")
+            settings.remove_startup(target.name, home=root)
+            self.assertFalse(target.exists())
+            self.assertTrue(other.exists())
+            self.assertTrue(unrelated.exists())
+
+    def test_startup_removal_refuses_foreign_names_symlinks_and_missing_entries(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "autostart").mkdir()
+            foreign = root / "autostart/selandia-niri-app.desktop"
+            foreign.write_text("[Desktop Entry]\nName=User-owned\nHidden=false\n")
+            original = root / "original.desktop"
+            content = "[Desktop Entry]\nName=Original\nX-Selandia-Niri-Managed=true\n"
+            original.write_text(content)
+            link = root / "autostart/selandia-niri-link.desktop"
+            link.symlink_to(original)
+            for identifier in (foreign.name, "selandia-niri-link.desktop", "../app.desktop",
+                               "selandia-niri-missing.desktop", "other.desktop"):
+                with self.subTest(identifier=identifier), self.assertRaises(ValueError):
+                    settings.remove_startup(identifier, home=root)
+            self.assertIn("Hidden=false", foreign.read_text())
+            self.assertTrue(link.is_symlink())
+            self.assertEqual(original.read_text(), content)
+
+    def test_startup_removal_reports_a_failed_unlink_instead_of_claiming_success(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "autostart").mkdir()
+            target = root / "autostart/selandia-niri-app.desktop"
+            target.write_text("[Desktop Entry]\nName=Managed\nX-Selandia-Niri-Managed=true\n")
+            with patch.object(Path, "unlink", side_effect=OSError("read-only file system")):
+                with self.assertRaises(RuntimeError) as raised:
+                    settings.remove_startup(target.name, home=root)
+            self.assertIn("read-only file system", str(raised.exception))
+
     def test_service_state_distinguishes_masked_from_target_started_static_units(self):
         def result(argv, **_):
             return "masked" if "clipboard" in argv[-1] else "static" if "is-enabled" in argv else "active"
@@ -255,6 +354,23 @@ class SystemSettingsTests(unittest.TestCase):
         self.assertFalse(state["clipboard"]["enabled"])
         self.assertTrue(state["bar"]["enabled"])
         self.assertTrue(state["bar"]["active"])
+
+    def test_service_state_does_not_treat_empty_failed_reads_as_disabled(self):
+        for broken_command in ("is-enabled", "is-active"):
+            def result(argv, **_):
+                return "" if broken_command in argv else "static" if "is-enabled" in argv else "active"
+            with self.subTest(command=broken_command), patch.object(settings, "run", side_effect=result):
+                with self.assertRaises(RuntimeError):
+                    settings.service_state()
+
+    def test_service_state_keeps_disabled_and_static_units_manageable(self):
+        for enabled_state, expected in (("disabled", True), ("static", True), ("masked-runtime", False),
+                                        ("not-found", False)):
+            with self.subTest(state=enabled_state), patch.object(settings, "run", side_effect=(
+                    lambda argv, **_: enabled_state if "is-enabled" in argv else "inactive")):
+                state = settings.service_state()
+            self.assertEqual(state["bar"]["enabled"], expected)
+            self.assertFalse(state["bar"]["active"])
 
     def test_network_escapes_do_not_change_literal_device_names(self):
         self.assertEqual(settings._nm_fields(r"id:中文 \\ Office\: WiFi:wireless:--"),

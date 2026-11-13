@@ -10,8 +10,8 @@ hotkey-overlay { skip-at-startup; }
 // A readable preview on high-density displays / 高分屏上的清晰预览。
 output "winit" { scale 1.5; }
 binds {
-    Mod+Return hotkey-overlay-title="终端" { spawn "kitty"; }
-    Mod+Space hotkey-overlay-title="启动器" { spawn "fuzzel"; }
+    Mod+Return hotkey-overlay-title="终端" { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launch terminal"; }
+    Mod+Space hotkey-overlay-title="启动器" { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" launcher"; }
     Mod+L hotkey-overlay-title=null { toggle-overview; }
     Mod+Shift+Escape hotkey-overlay-title="退出预览" { quit skip-confirmation=true; }
 }

@@ -7,6 +7,7 @@ use the same unique D-Bus owner instead of playerctl's changing default player.
 """
 from concurrent.futures import ThreadPoolExecutor
 import json
+import math
 import re
 import time
 
@@ -85,6 +86,10 @@ def _snapshot(name, owner, properties, identity):
               "status": status, "title": _text(metadata.get("xesam:title")), "artist": artist,
               "album": _text(metadata.get("xesam:album")), "art_url": _text(metadata.get("mpris:artUrl"), 8192),
               "can_control": controlled}
+    length, position, rate = metadata.get('mpris:length'), properties.get('Position'), properties.get('Rate', 1.0)
+    result.update(length=length if type(length) is int and length > 0 else None,
+                  position=position if type(position) is int and position >= 0 else None,
+                  rate=float(rate) if type(rate) in (int, float) and math.isfinite(rate) else 1.0)
     for output, prop in (("can_play", "CanPlay"), ("can_pause", "CanPause"),
                          ("can_next", "CanGoNext"), ("can_previous", "CanGoPrevious")):
         # Track navigation and pause are independent MPRIS capabilities.
@@ -96,6 +101,7 @@ def _read_player(connection, name, owner=None):
     owner = owner or _owner(connection, name)
     properties, = _call(connection, owner, PROPERTIES, "GetAll",
                         GLib.Variant("(s)", (PLAYER_INTERFACE,)), "(a{sv})")
+    position_at = time.monotonic()
     try:
         root, = _call(connection, owner, PROPERTIES, "GetAll",
                      GLib.Variant("(s)", (ROOT_INTERFACE,)), "(a{sv})")
@@ -105,7 +111,7 @@ def _read_player(connection, name, owner=None):
         identity = ""
     if _owner(connection, name) != owner:
         raise RuntimeError("Media player restarted; refresh and select again · 播放器已重启，请刷新后重新选择")
-    return _snapshot(name, owner, properties, identity)
+    return {**_snapshot(name, owner, properties, identity), 'position_at': position_at}
 
 
 def read_state(preferred=None):

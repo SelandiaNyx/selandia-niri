@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# 嵌套预览不接管当前桌面的服务或环境。
-session_state=$(systemctl --user show --property=ActiveState --value niri.service)
-if [[ "$session_state" != active && "$session_state" != activating ]]; then
+# 活跃服务本身不能证明身份；IPC 和 Wayland 必须属于其 MainPID。
+base=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
+if ! python3 -B "$base/shell/session_identity.py"; then
     printf '%s\n' '桌面组件仅在 niri-session 正式会话中启动。' >&2
     exit 0
 fi
-base=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 python3 -B "$base/shell/language_settings.py" sync-session
 python3 -B "$base/shell/ui_assets.py"
 systemctl --user unset-environment XDG_MENU_PREFIX

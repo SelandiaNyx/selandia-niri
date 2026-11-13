@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import base64
+import session_settings
 
 from appearance import BASE, _commit, preferences_path
 from i18n import tr
@@ -194,6 +196,12 @@ def service_state():
     for group, units in MANAGED_UNITS.items():
         states = [run(["systemctl", "--user", "is-enabled", unit], check=False) for unit in units]
         active = [run(["systemctl", "--user", "is-active", unit], check=False) for unit in units]
+        if any(not value for value in states + active):
+            # is-enabled/is-active also return nonzero for legitimate states
+            # such as masked/inactive. An empty reply, however, is not a state
+            # and commonly means that the user bus could not be reached.
+            raise RuntimeError(tr("Could not read desktop services. Check the user session and try again.",
+                                  "无法读取桌面服务状态，请检查用户会话后重试。"))
         result[group] = {"enabled": all(value not in ("masked", "masked-runtime", "not-found", "") for value in states),
                          "active": all(value == "active" for value in active)}
     return result
@@ -203,11 +211,13 @@ def set_service(group, enabled):
     if group not in MANAGED_UNITS or not isinstance(enabled, bool):
         raise ValueError(tr("Unknown desktop service.", "未知的桌面服务。"))
     units = MANAGED_UNITS[group]
-    if enabled:
-        run(["systemctl", "--user", "unmask", *units])
-        run(["systemctl", "--user", "start", *units])
-    else:
-        run(["systemctl", "--user", "mask", "--now", *units])
+    desired = {"systemd/user/" + unit: None if enabled else {"link": "/dev/null"} for unit in units}
+    with session_settings.record_changes(config_home(), desired):
+        if enabled:
+            run(["systemctl", "--user", "unmask", *units])
+            run(["systemctl", "--user", "start", *units])
+        else:
+            run(["systemctl", "--user", "mask", "--now", *units])
 
 
 def time_state():
@@ -241,7 +251,51 @@ def set_ntp(enabled):
     _timedate("SetNTP", "(bb)", (enabled, True))
 
 
-def startup_state(*, home=None):
+def external_startup(*, home=None, config_dirs=None, owned_ids=()):
+    """Read effective XDG entries; a user file overrides a system file by name.
+
+    NoDisplay hides a launcher, not an autostart. Existing third-party entries
+    are displayed with their source and never claimed by our write/delete API.
+    """
+    home = Path(home or config_home())
+    if config_dirs is None:
+        config_dirs = [Path(value) for value in os.environ.get("XDG_CONFIG_DIRS", "/etc/xdg").split(":")
+                       if value and Path(value).is_absolute()]
+    effective = {}
+    for root in reversed([home, *map(Path, config_dirs)]):
+        for path in sorted((root / "autostart").glob("*.desktop")):
+            effective[path.name] = path
+    result = []
+    for identifier, path in sorted(effective.items()):
+        if identifier in owned_ids:
+            continue
+        config = configparser.ConfigParser(interpolation=None, strict=False)
+        config.optionxform = str
+        try:
+            config.read(path)
+            entry = config["Desktop Entry"]
+            only = set(filter(None, entry.get("OnlyShowIn", "").split(";")))
+            excluded = set(filter(None, entry.get("NotShowIn", "").split(";")))
+            if only and "niri" not in only or "niri" in excluded:
+                continue
+            if entry.get("Type", "Application") != "Application":
+                continue
+            try:
+                app = _gio().DesktopAppInfo.new_from_filename(str(path))
+            except TypeError:
+                # Gio rejects entries with a missing TryExec or incomplete
+                # launcher fields. They still have useful autostart metadata.
+                app = None
+            name = app.get_display_name() if app else entry.get("Name", path.stem)
+            result.append({"id": identifier, "name": name, "path": str(path),
+                           "source": "user" if path.parent == home / "autostart" else "system",
+                           "enabled": entry.get("Hidden", "false").lower() != "true"})
+        except (OSError, KeyError, configparser.Error):
+            continue
+    return result
+
+
+def startup_state(*, home=None, config_dirs=None):
     Gio = _gio()
     directory = Path(home or config_home()) / "autostart"
     owned = []
@@ -259,7 +313,9 @@ def startup_state(*, home=None):
             continue
     apps = {app.get_id(): app.get_display_name() for app in Gio.AppInfo.get_all()
             if app.get_id() and app.should_show()}
-    return {"entries": owned, "applications": sorted(apps.items(), key=lambda pair: pair[1].casefold())}
+    return {"entries": owned, "applications": sorted(apps.items(), key=lambda pair: pair[1].casefold()),
+            "external_entries": external_startup(home=home, config_dirs=config_dirs,
+                                                 owned_ids={item["id"] for item in owned})}
 
 
 def add_startup(identifier, *, home=None):
@@ -289,25 +345,63 @@ def add_startup(identifier, *, home=None):
             raise ValueError(tr("An unrelated startup entry already uses this name.", "同名启动项已被其他配置使用。"))
     stream = io.StringIO()
     config.write(stream, space_around_delimiters=False)
-    _commit({path: stream.getvalue().encode()})
+    contents = stream.getvalue().encode()
+    value = {"bytes": base64.b64encode(contents).decode(), "mode": path.stat().st_mode & 0o7777 if path.exists() else 0o644}
+    with session_settings.record_changes(path.parent.parent, {str(path.relative_to(path.parent.parent)): value}):
+        _commit({path: contents})
 
 
-def toggle_startup(identifier, enabled, *, home=None):
-    if (not isinstance(enabled, bool) or not isinstance(identifier, str)
-            or not identifier.startswith("selandia-niri-") or not DESKTOP_ID.fullmatch(identifier)):
+def _managed_startup(identifier, home=None):
+    """Resolve one entry this project owns; foreign names never resolve.
+
+    Every managed entry is named ``selandia-niri-*.desktop``, so a name without
+    that prefix, a name with a path separator, and a symbolic link are all
+    refused before anything is read, rewritten or deleted.
+    """
+    if (not isinstance(identifier, str) or not identifier.startswith("selandia-niri-")
+            or not DESKTOP_ID.fullmatch(identifier)):
         raise ValueError(tr("Invalid managed startup entry.", "托管启动项无效。"))
     path = Path(home or config_home()) / "autostart" / identifier
     if path.is_symlink():
-        raise ValueError(tr("Startup entry is a symbolic link.", "启动项是符号链接，不能覆盖。"))
+        raise ValueError(tr("Startup entry is a symbolic link.", "启动项是符号链接。"))
+    return path
+
+
+def _owned_startup(path):
     config = configparser.ConfigParser(interpolation=None, strict=False)
     config.optionxform = str
     config.read(path)
     if config.get("Desktop Entry", "X-Selandia-Niri-Managed", fallback="") != "true":
         raise ValueError(tr("This startup entry is not managed by Niri settings.", "此启动项不由 Niri 设置管理。"))
+    return config
+
+
+def toggle_startup(identifier, enabled, *, home=None):
+    if not isinstance(enabled, bool):
+        raise ValueError(tr("Invalid managed startup entry.", "托管启动项无效。"))
+    path = _managed_startup(identifier, home)
+    config = _owned_startup(path)
     config["Desktop Entry"]["Hidden"] = str(not enabled).lower()
     stream = io.StringIO()
     config.write(stream, space_around_delimiters=False)
-    _commit({path: stream.getvalue().encode()})
+    contents = stream.getvalue().encode()
+    value = {"bytes": base64.b64encode(contents).decode(), "mode": path.stat().st_mode & 0o7777}
+    with session_settings.record_changes(path.parent.parent, {str(path.relative_to(path.parent.parent)): value}):
+        _commit({path: contents})
+
+
+def remove_startup(identifier, *, home=None):
+    """Delete one entry this project created; a user's own file is never removed."""
+    path = _managed_startup(identifier, home)
+    if not path.is_file():
+        raise ValueError(tr("This startup entry no longer exists.", "此启动项已不存在。"))
+    _owned_startup(path)
+    try:
+        with session_settings.record_changes(path.parent.parent, {str(path.relative_to(path.parent.parent)): None}):
+            path.unlink()
+    except OSError as error:
+        raise RuntimeError(tr("Could not remove the startup entry: ", "无法移除启动项：")
+                           + str(error)) from error
 
 
 def _nm_fields(line):

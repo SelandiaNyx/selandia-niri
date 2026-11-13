@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import signal
 from pathlib import Path
 import subprocess
 import sys
@@ -107,6 +108,79 @@ class LanguageSettingsTests(unittest.TestCase):
         language.restore(**self.options)
         self.assertFalse(self.path("environment").exists())
         self.assertFalse(self.path("niri").exists())
+
+    def test_second_restore_failure_can_retry_and_preserves_original_modes(self):
+        for key, mode in (("environment", 0o600), ("niri", 0o640)):
+            self.write(self.path(key), "original " + key)
+            self.path(key).chmod(mode)
+        self.apply()
+        write = language._write
+        def fail(path, value, **options):
+            if Path(path) == self.path("niri"):
+                raise OSError("second restore failed")
+            return write(path, value, **options)
+        with patch.object(language, "_write", side_effect=fail):
+            with self.assertRaisesRegex(OSError, "second restore"):
+                language.restore(**self.options)
+        result = language.restore(**self.options)
+        self.assertEqual(result["conflicts"], [])
+        for key, mode in (("environment", 0o600), ("niri", 0o640)):
+            self.assertEqual(self.path(key).read_text(), "original " + key)
+            self.assertEqual(self.path(key).stat().st_mode & 0o777, mode)
+        self.assertFalse(self.state.with_name("language-backup.json").exists())
+
+    def test_restore_progress_write_failure_recognizes_already_restored_file(self):
+        self.apply()
+        journal = self.state.with_name("language-backup.json")
+        write = language._write
+        def fail(path, value, **options):
+            if Path(path) == journal:
+                raise OSError("progress save failed")
+            return write(path, value, **options)
+        with patch.object(language, "_write", side_effect=fail):
+            with self.assertRaises(OSError):
+                language.restore(**self.options)
+        self.assertFalse(self.path("environment").exists())
+        self.assertEqual(language.restore(**self.options)["conflicts"], [])
+        self.assertFalse(journal.exists())
+
+    def test_legacy_backup_without_modes_remains_restorable(self):
+        self.write(self.path("environment"), "legacy original")
+        self.apply()
+        journal = self.state.with_name("language-backup.json")
+        data = json.loads(journal.read_text())
+        for record in data["files"].values():
+            record.pop("before_mode", None)
+        journal.write_text(json.dumps(data))
+        self.assertEqual(language.restore(**self.options)["conflicts"], [])
+        self.assertEqual(self.path("environment").read_text(), "legacy original")
+
+    def test_sigkill_after_restoration_before_progress_save_is_retryable(self):
+        for key in ("environment", "niri"):
+            self.write(self.path(key), "original " + key)
+            self.path(key).chmod(0o600)
+        self.apply()
+        driver = '''import os,signal,sys
+from pathlib import Path
+sys.path.insert(0,sys.argv[1])
+import language_settings as language
+write=language._write
+def interrupted(path,value,**options):
+    write(path,value,**options)
+    if Path(path)==Path(sys.argv[2])/"environment.d/90-selandia-language.conf":
+        os.kill(os.getpid(),signal.SIGKILL)
+language._write=interrupted
+language.restore(config_home=Path(sys.argv[2]),niri_home=Path(sys.argv[3]),state_path=Path(sys.argv[4]))
+'''
+        result = subprocess.run([sys.executable, "-B", "-c", driver,
+                                 str(Path(language.__file__).parent), str(self.config),
+                                 str(self.niri), str(self.state)], capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, -signal.SIGKILL, result.stderr)
+        self.assertTrue(self.state.with_name("language-backup.json").exists())
+        self.assertEqual(language.restore(**self.options)["conflicts"], [])
+        for key in ("environment", "niri"):
+            self.assertEqual(self.path(key).read_text(), "original " + key)
+            self.assertEqual(self.path(key).stat().st_mode & 0o777, 0o600)
 
     def test_apply_preserves_foreign_edits(self):
         self.apply()
@@ -225,6 +299,38 @@ class LanguageSettingsTests(unittest.TestCase):
         result = language.restore_saved(**self.apply_options)
         self.assertEqual(result["locale"], "zh_CN.UTF-8")
         self.run_mock.assert_not_called()
+
+    def test_project_move_rebinds_owned_language_file_and_restores_original(self):
+        original = "// original language placeholder\n"
+        self.write(self.path("niri"), original)
+        self.path("niri").chmod(0o640)
+        self.apply()
+        old = self.niri
+        self.niri = self.root / "moved project's/niri"
+        self.niri.parent.mkdir()
+        old.rename(self.niri)
+        self.options["niri_home"] = self.niri
+        self.apply_options["niri_home"] = self.niri
+        language.restore_saved(**self.apply_options)
+        data = json.loads(self.state.with_name("language-backup.json").read_text())
+        self.assertEqual(data["files"]["niri"]["path"], str(self.path("niri")))
+        self.assertEqual(language.restore(**self.options)["conflicts"], [])
+        self.assertEqual(self.path("niri").read_text(), original)
+        self.assertEqual(self.path("niri").stat().st_mode & 0o777, 0o640)
+
+    def test_project_move_preserves_changed_destination_and_legacy_record(self):
+        self.apply()
+        journal = self.state.with_name("language-backup.json")
+        before = journal.read_bytes()
+        moved = self.root / "moved/niri"
+        moved.parent.mkdir()
+        self.niri.rename(moved)
+        target = moved / "conf/language.kdl"
+        target.write_text("// user's relocated language rule\n")
+        with self.assertRaises(ValueError):
+            language.restore(**{**self.options, "niri_home": moved})
+        self.assertEqual(target.read_text(), "// user's relocated language rule\n")
+        self.assertEqual(journal.read_bytes(), before)
 
     def test_restore_saved_repairs_deleted_managed_user_file(self):
         self.apply()

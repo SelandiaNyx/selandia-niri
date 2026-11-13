@@ -1,7 +1,24 @@
 __pycache__/
 *.pyc
 *.pyo
+dist/
 # Evidence images are snapshots: already-tracked ones stay tracked, new ones are
 # added deliberately with `git add -f`.
 .validation/*.png
 .validation/fix-summary.err
+
+# Local ABI-specific compatibility backend; portable exports rebuild from source.
+.local/wallpaper-engine/
+# Durable review and rollback worktrees; remove only after publication is verified.
+.staging/
+
+# Temporary validation runs and snapshots
+.validation/*/
+.validation/*.log
+.validation/*.txt
+.validation/bar-tokio-matrix/
+.validation/daily-improve-*/
+
+# Staging, transient probes and build outputs
+agy-eligibility-fix/
+*.log

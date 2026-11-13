@@ -1,308 +1,627 @@
-/* Compact Niri control center. Palette comes from the user's generated theme;
- * keep these rules scoped so native dialogs and other panels stay independent. */
+/* Material Design 3 treatment for the floating settings, quick controls,
+ * native settings navigation and the power submenu.
+ *
+ * This file owns layout and component composition only.  Colour roles, type
+ * scale and the generated palette live in appearance.py (theme/panel.css); the
+ * fallbacks in shell/style.css keep this file readable when that asset is
+ * temporarily missing.  All rules are scoped so native dialogs stay opaque. */
+
+/* ---- Window shell ------------------------------------------------------- */
+window.glass-window.control-center-window { border-radius: 26px; }
 window.glass-window.control-center-window .glass-surface {
+    padding: 1px;
+    border: 1px solid alpha(@md3_primary, .18);
     border-radius: 26px;
-    border-color: alpha(@ink, .18);
-    box-shadow: inset 0 1px alpha(@ink, .17), inset 0 -1px alpha(@cyan, .045);
+    background-image: linear-gradient(180deg, alpha(@md3_primary, .06), transparent 24%);
+    box-shadow: inset 0 0 0 1px alpha(@md3_on_surface, .10),
+                inset 0 1px alpha(@md3_on_surface, .08),
+                0 28px 72px alpha(black, .38);
+}
+window.glass-window.control-center-window .panel-frame {
+    border: 1px solid alpha(@md3_primary, .16);
+    border-radius: 26px;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px alpha(@md3_primary, .06);
 }
 window.glass-window.control-center-window .panel-header,
 window.glass-window.control-center-window .control-header {
-    padding: 15px 18px 12px;
-    border-bottom: 1px solid alpha(@ink, .075);
+    padding: 16px 20px 14px;
+    background-image: linear-gradient(180deg, alpha(@md3_surface_container, .40), transparent);
+    border-bottom: 1px solid @md3_outline;
 }
-window.glass-window.control-center-window .panel-content { padding: 12px 14px 14px; }
+window.glass-window.control-center-window .panel-content { padding: 16px 18px 18px; }
 window.glass-window.control-center-window .control-heading {
-    font-size: 1.5em;
+    color: @md3_on_surface;
+    font-size: 1.55em;
     font-weight: 700;
-    letter-spacing: -.35px;
-    color: @ink;
+    letter-spacing: -.4px;
 }
 window.glass-window.control-center-window .control-caption {
-    font-size: .85em;
-    font-weight: 400;
-    color: @muted;
+    color: @md3_on_surface_variant;
+    font-size: .84em;
+    font-weight: 500;
+    letter-spacing: .02em;
 }
-window.glass-window.control-center-window .control-clock { font-size: 1.25em; font-weight: 600; letter-spacing: 0; }
+window.glass-window.control-center-window .control-clock {
+    color: @md3_on_surface;
+    font-size: 1.2em;
+    font-weight: 600;
+    letter-spacing: -.2px;
+}
 window.glass-window.control-center-window button.close-button {
-    min-width: 28px;
-    min-height: 28px;
-    border-color: alpha(@ink, .12);
-    background: alpha(@ink, .035);
-    color: @muted;
+    min-width: 32px;
+    min-height: 32px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: @md3_on_surface_variant;
+    font-size: 1.1em;
 }
+window.glass-window.control-center-window button.close-button:hover {
+    color: @md3_on_surface;
+    background: alpha(@md3_on_surface, .10);
+    border-color: @md3_outline;
+    border-radius: 999px;
+}
+window.glass-window.control-center-window button.close-button:active,
+window.glass-window.control-center-window button.close-button:checked {
+    border-radius: 999px;
+    background: alpha(@md3_primary, .20);
+    color: @md3_primary;
+}
+
+/* ---- Segmented navigation ---------------------------------------------- */
 window.glass-window.control-center-window .control-tabs {
-    padding: 3px;
-    border-radius: 13px;
-    border-color: alpha(@ink, .08);
-    background: alpha(@ink, .025);
+    padding: 4px;
+    border: 1px solid @md3_outline_variant;
+    border-radius: 14px;
+    background: alpha(@md3_surface_container_low, .65);
 }
 window.glass-window.control-center-window .control-tabs button {
-    min-height: 26px;
-    padding: 4px 3px;
-    border-radius: 10px;
-    color: @muted;
+    min-height: 28px;
+    padding: 5px 6px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    color: @md3_on_surface_variant;
+    background: transparent;
+    box-shadow: none;
     font-size: .9em;
 }
-window.glass-window.control-center-window .control-tabs button:checked {
-    color: @ink;
-    background: alpha(@cyan, .14);
-    border-color: alpha(@cyan, .25);
-    box-shadow: inset 0 1px alpha(@ink, .06);
+window.glass-window.control-center-window .control-tabs button:hover {
+    color: @md3_on_surface;
+    background: alpha(@md3_primary, .08);
 }
-window.glass-window.control-center-window .quick-overview { padding: 0; }
+window.glass-window.control-center-window .control-tabs button:checked,
+window.glass-window.control-center-window .control-tabs button:active,
+window.glass-window.control-center-window .control-tabs button:selected {
+    border-radius: 999px;
+    color: @md3_on_primary_container;
+    background: @md3_primary_container;
+    border-color: alpha(@md3_primary, .34);
+    box-shadow: none;
+}
 
-/* A pill has two distinct targets: the left toggles, the chevron opens detail. */
+/* ---- Quick overview ----------------------------------------------------- */
+window.glass-window.control-center-window .quick-overview { padding: 0; }
+/* A pill has two targets: the left toggles, the chevron opens detail. */
 window.glass-window.control-center-window .quick-tile {
-    min-height: 61px;
-    border: 1px solid alpha(@ink, .12);
+    min-height: 64px;
+    border: 1px solid @md3_outline_variant;
     border-radius: 18px;
-    background: alpha(@ink, .045);
-    transition: background-color 180ms ease-out, border-color 180ms ease-out;
-    box-shadow: inset 0 1px alpha(@ink, .045);
+    background: alpha(@md3_surface_container, .62);
+    box-shadow: inset 0 1px alpha(@md3_on_surface, .04);
+    transition: background-color 160ms ease-out, border-color 160ms ease-out;
 }
-window.glass-window.control-center-window .quick-tile.active {
-    border-color: alpha(@cyan, .3);
-    background-color: alpha(@cyan, .15);
+window.glass-window.control-center-window .quick-tile:hover {
+    background: alpha(@md3_surface_container_high, .72);
+    border-color: @md3_outline;
+}
+window.glass-window.control-center-window .quick-tile.active,
+window.glass-window.control-center-window .quick-tile:checked,
+window.glass-window.control-center-window .quick-tile:active {
+    border-radius: 18px;
+    border-color: alpha(@md3_primary, .42);
+    background-color: @md3_primary_container;
+    background-image: linear-gradient(150deg, alpha(@md3_primary, .16), transparent 70%);
+    box-shadow: inset 0 1px alpha(@md3_on_primary_container, .08);
 }
 window.glass-window.control-center-window button.quick-toggle {
-    padding: 9px 9px;
     min-width: 0;
-    min-height: 40px;
-    background: transparent;
+    min-height: 42px;
+    padding: 9px;
     border: none;
-    border-radius: 17px;
+    border-radius: 18px;
+    background: transparent;
     box-shadow: none;
-    color: @ink;
+    color: @md3_on_surface;
 }
-window.glass-window.control-center-window button.quick-toggle:hover {
-    background: alpha(@ink, .065);
-}
+window.glass-window.control-center-window button.quick-toggle:hover { background: alpha(@md3_on_surface, .06); }
 window.glass-window.control-center-window button.quick-toggle:focus {
-    box-shadow: inset 0 0 0 1px alpha(@cyan, .8);
+    outline: none;
+    box-shadow: inset 0 0 0 2px @md3_primary;
 }
 window.glass-window.control-center-window .quick-icon {
     min-width: 18px;
     min-height: 18px;
     padding: 8px;
-    border-radius: 50%;
-    color: @ink;
-    background: alpha(@ink, .1);
-    transition: background-color 180ms ease-out, color 180ms ease-out;
+    border-radius: 999px;
+    color: @md3_primary;
+    background: alpha(@md3_primary, .12);
+    transition: background-color 160ms ease-out, color 160ms ease-out;
 }
 window.glass-window.control-center-window .quick-tile.active .quick-icon {
-    color: @on_accent;
-    background: @cyan;
+    color: @md3_on_primary;
+    background: @md3_primary;
 }
 window.glass-window.control-center-window .quick-title {
-    color: @ink;
+    color: @md3_on_surface;
     font-size: 1em;
     font-weight: 600;
 }
-window.glass-window.control-center-window .quick-state {
-    color: @muted;
-    font-size: .78em;
-}
-window.glass-window.control-center-window .quick-tile.active .quick-state {
-    color: alpha(@ink, .82);
-}
+window.glass-window.control-center-window .quick-state { color: @md3_on_surface_variant; font-size: .78em; }
+window.glass-window.control-center-window .quick-tile.active .quick-state { color: @md3_on_primary_container; }
 window.glass-window.control-center-window button.quick-disclosure {
     min-width: 25px;
     min-height: 32px;
     padding: 5px 3px;
     margin: 8px 5px 8px 0;
     border: none;
-    border-left: 1px solid alpha(@ink, .11);
+    border-left: 1px solid @md3_outline;
     border-radius: 0 12px 12px 0;
-    color: @muted;
+    color: @md3_on_surface_variant;
     background: transparent;
     box-shadow: none;
 }
 window.glass-window.control-center-window button.quick-disclosure:hover,
 window.glass-window.control-center-window button.quick-disclosure:focus {
-    color: @ink;
-    background: alpha(@cyan, .12);
+    color: @md3_on_primary_container;
+    background: alpha(@md3_primary, .12);
 }
 
-/* Media is a peer of connectivity, visible immediately when the panel opens. */
+/* ---- Media -------------------------------------------------------------- */
 window.glass-window.control-center-window .media-card {
     min-height: 146px;
-    padding: 11px 12px;
-    border: 1px solid alpha(@cyan, .2);
-    border-radius: 19px;
-    background: linear-gradient(145deg, alpha(@violet, .15), alpha(@cyan, .055));
-    box-shadow: inset 0 1px alpha(@ink, .08);
+    padding: 12px;
+    border: 1px solid @md3_outline_variant;
+    border-radius: 20px;
+    background: alpha(@md3_surface_container, .72);
+    background-image: linear-gradient(150deg, alpha(@md3_secondary, .10), transparent 68%);
+    box-shadow: inset 0 1px alpha(@md3_on_surface, .05);
 }
 window.glass-window.control-center-window .media-cover {
-    min-width: 40px;
-    min-height: 40px;
-    border-radius: 10px;
-    color: @cyan;
-    background: linear-gradient(135deg, alpha(@cyan, .2), alpha(@violet, .1));
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 14px;
+    color: @md3_on_secondary_container;
+    background: @md3_secondary_container;
 }
-window.glass-window.control-center-window .media-heading {
-    color: @ink;
-    font-size: 1em;
-    font-weight: 600;
-}
+window.glass-window.control-center-window .media-heading { color: @md3_on_surface; font-size: 1em; font-weight: 600; }
 window.glass-window.control-center-window .media-subtitle,
-window.glass-window.control-center-window .media-state {
-    color: @muted;
-    font-size: .78em;
-}
-window.glass-window.control-center-window .media-card.playing .media-state { color: @cyan; }
-window.glass-window.control-center-window .media-error { color: @danger; font-size: .8em; }
+window.glass-window.control-center-window .media-state { color: @md3_on_surface_variant; font-size: .78em; }
+window.glass-window.control-center-window .media-card.playing .media-state { color: @md3_primary; }
+window.glass-window.control-center-window .media-error { color: @md3_error; font-size: .8em; font-weight: 600; }
 window.glass-window.control-center-window .media-source button {
-    min-height: 17px;
-    padding: 3px 6px;
-    border: 1px solid alpha(@ink, .09);
-    border-radius: 8px;
-    color: @muted;
-    background: alpha(@ink, .025);
+    min-height: 20px;
+    padding: 3px 8px;
+    border: 1px solid @md3_outline_variant;
+    border-radius: 999px;
+    color: @md3_on_surface_variant;
+    background: alpha(@md3_surface_container_high, .55);
     box-shadow: none;
     font-size: .78em;
 }
 window.glass-window.control-center-window .media-source button:hover {
-    color: @ink;
-    background: alpha(@ink, .07);
+    color: @md3_on_surface;
+    border-color: alpha(@md3_primary, .35);
+    background: alpha(@md3_primary, .10);
 }
 window.glass-window.control-center-window button.media-transport {
-    min-width: 28px;
-    min-height: 28px;
+    min-width: 30px;
+    min-height: 30px;
     padding: 4px;
     border: none;
-    border-radius: 50%;
-    color: @ink;
+    border-radius: 999px;
+    color: @md3_on_surface_variant;
     background: transparent;
     box-shadow: none;
 }
 window.glass-window.control-center-window button.media-transport:hover {
-    background: alpha(@ink, .12);
+    color: @md3_on_surface;
+    background: alpha(@md3_on_surface, .10);
 }
 window.glass-window.control-center-window button.media-play {
-    min-width: 36px;
-    min-height: 36px;
+    min-width: 38px;
+    min-height: 38px;
     padding: 4px;
-    border: 1px solid alpha(@ink, .25);
-    border-radius: 50%;
-    color: @on_accent;
-    background: @ink;
-    box-shadow: 0 2px 5px alpha(black, .2);
+    border: 1px solid @md3_primary;
+    border-radius: 999px;
+    color: @md3_on_primary;
+    background: @md3_primary;
+    box-shadow: 0 2px 5px alpha(black, .22);
 }
-window.glass-window.control-center-window button.media-play:hover {
-    background: @cyan;
-    border-color: @cyan;
-}
-window.glass-window.control-center-window button.media-play:disabled {
-    opacity: .36;
-    box-shadow: none;
-}
+window.glass-window.control-center-window button.media-play:hover { background: alpha(@md3_primary, .86); }
+window.glass-window.control-center-window button.media-play:disabled { opacity: .38; box-shadow: none; }
 
-/* Broad, easy-to-grab sliders retain a precise percentage at the trailing edge. */
+/* ---- Sliders ------------------------------------------------------------ */
 window.glass-window.control-center-window .quick-slider-card {
-    padding: 10px 13px;
-    border: 1px solid alpha(@ink, .105);
-    border-radius: 18px;
-    background: alpha(@ink, .045);
-    box-shadow: inset 0 1px alpha(@ink, .025);
+    padding: 10px 14px;
+    border: 1px solid @md3_outline_variant;
+    border-radius: 20px;
+    background: alpha(@md3_surface_container, .62);
+    background-image: linear-gradient(180deg, alpha(@md3_primary, .035), transparent);
+    box-shadow: inset 0 1px alpha(@md3_on_surface, .03);
 }
-window.glass-window.control-center-window .quick-slider-label {
-    font-size: .95em;
-    font-weight: 600;
-    color: @ink;
-}
+window.glass-window.control-center-window .quick-slider-label { color: @md3_on_surface; font-size: .94em; font-weight: 600; }
 window.glass-window.control-center-window .quick-slider-value {
-    font-size: .85em;
+    color: @md3_primary;
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: .84em;
     font-weight: 600;
-    color: @cyan;
 }
-window.glass-window.control-center-window .quick-slider-caption { color: @muted; font-size: .8em; }
-window.glass-window.control-center-window button.quick-slider-icon.muted { color: @cyan; background: alpha(@cyan, .15); }
-window.glass-window.control-center-window .quick-slider-icon {
-    min-width: 20px;
-    min-height: 20px;
-    color: @ink;
-}
+window.glass-window.control-center-window .quick-slider-caption { color: @md3_on_surface_variant; font-size: .78em; }
 window.glass-window.control-center-window button.quick-slider-icon {
     padding: 5px;
     min-width: 22px;
     min-height: 22px;
     border: none;
-    border-radius: 9px;
+    border-radius: 999px;
     background: transparent;
     box-shadow: none;
+    color: @md3_on_surface;
 }
-window.glass-window.control-center-window button.quick-slider-icon:hover {
-    background: alpha(@ink, .1);
+window.glass-window.control-center-window button.quick-slider-icon:hover { background: alpha(@md3_primary, .10); }
+window.glass-window.control-center-window button.quick-slider-icon.muted {
+    color: @md3_on_primary;
+    background: @md3_primary;
 }
-window.glass-window.control-center-window .quick-slider-card scale {
-    padding: 7px 1px;
+window.glass-window.control-center-window .quick-slider-card scale { padding: 6px 0; min-height: 14px; }
+window.glass-window.control-center-window .quick-slider-card scale trough {
+    min-height: 6px;
+    border: none;
+    border-radius: 999px;
+    background-color: alpha(@md3_surface_sunken, .85);
+}
+window.glass-window.control-center-window .quick-slider-card scale highlight {
+    min-height: 6px;
+    border: none;
+    border-radius: 999px;
+    background-color: @md3_primary;
+    background-image: none;
+}
+window.glass-window.control-center-window .quick-slider-card scale slider {
+    min-width: 16px;
     min-height: 16px;
+    margin: -5px;
+    border: 1px solid alpha(@md3_on_surface, .65);
+    border-radius: 999px;
+    background-color: @md3_on_surface;
+    box-shadow: none;
 }
 window.glass-window.control-center-window .quick-slider-card button.quick-disclosure {
     min-height: 24px;
     margin: 0;
     padding: 2px 3px;
 }
-window.glass-window.control-center-window .quick-slider-card scale trough {
-    min-height: 8px;
-    border-radius: 8px;
-    background: alpha(@ink, .11);
+window.glass-window.control-center-window button.quick-slider-action {
+    min-width: 20px;
+    min-height: 20px;
+    padding: 2px;
+    margin: 0 0 0 4px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: @md3_on_surface_variant;
+    box-shadow: none;
 }
-window.glass-window.control-center-window .quick-slider-card scale highlight {
-    min-height: 8px;
-    border-radius: 8px;
-    background: linear-gradient(to right, alpha(@violet, .9), @cyan);
+window.glass-window.control-center-window button.quick-slider-action:hover {
+    color: @md3_primary;
+    background: alpha(@md3_primary, .12);
+    border-color: alpha(@md3_primary, .24);
 }
-window.glass-window.control-center-window .quick-slider-card scale slider {
-    min-width: 16px;
-    min-height: 16px;
-    margin: -5px;
-    border: 1px solid alpha(@ink, .85);
-    border-radius: 50%;
-    background: @ink;
-    box-shadow: 0 1px 4px alpha(black, .3);
+window.glass-window.control-center-window .quick-details { padding: 3px 4px; color: @md3_on_surface_variant; font-size: .85em; }
+window.glass-window.control-center-window .quick-details > title { min-height: 26px; padding: 1px 3px; }
+window.glass-window.control-center-window .quick-details > title:hover { color: @md3_on_surface; }
+window.glass-window.control-center-window .quick-details .card { padding: 10px; border-radius: 20px; }
+window.glass-window.control-center-window button.quick-details {
+    min-height: 26px;
+    padding: 3px 6px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    color: @md3_on_surface_variant;
+    box-shadow: none;
+}
+window.glass-window.control-center-window button.quick-details:hover,
+window.glass-window.control-center-window button.quick-details:checked,
+window.glass-window.control-center-window button.quick-details:active {
+    color: @md3_on_primary_container;
+    background-color: @md3_primary_container;
+    border-color: alpha(@md3_primary, .30);
 }
 
-window.glass-window.control-center-window .quick-details {
-    padding: 3px 4px;
-    color: @muted;
-    font-size: .85em;
-}
-window.glass-window.control-center-window .quick-details > title {
-    min-height: 26px;
-    padding: 1px 3px;
-}
-window.glass-window.control-center-window .quick-details > title:hover { color: @ink; }
-window.glass-window.control-center-window .quick-details .card {
-    padding: 10px;
-    border-radius: 12px;
-}
-window.glass-window.control-center-window .quick-footer {
-    padding-top: 7px;
-    border-top: 1px solid alpha(@ink, .08);
-}
+/* ---- Footer utilities --------------------------------------------------- */
+window.glass-window.control-center-window .quick-footer { padding-top: 10px; border-top: 1px solid @md3_outline; }
 window.glass-window.control-center-window button.quick-utility {
     min-width: 32px;
-    min-height: 32px;
-    padding: 6px 7px;
+    min-height: 34px;
+    padding: 6px 8px;
+    border: 1px solid @md3_outline;
     border-radius: 12px;
-    border-color: alpha(@ink, .1);
-    color: @muted;
-    background: alpha(@ink, .025);
+    color: @md3_on_surface_variant;
+    background: alpha(@md3_surface_container, .62);
     box-shadow: none;
-    font-size: .82em;
+    font-size: .84em;
+    font-weight: 500;
 }
 window.glass-window.control-center-window button.quick-utility:hover {
-    color: @ink;
-    border-color: alpha(@cyan, .35);
-    background: alpha(@cyan, .1);
+    color: @md3_on_primary_container;
+    border-color: alpha(@md3_primary, .45);
+    background: @md3_primary_container;
 }
 window.glass-window.control-center-window button.quick-utility.power-button {
-    color: @danger;
-    border-color: alpha(@danger, .2);
+    color: @md3_error;
+    border-color: alpha(@md3_error, .24);
+    background: alpha(@md3_error, .06);
+}
+window.glass-window.control-center-window button.quick-utility.power-button:hover {
+    color: @md3_on_error_container;
+    border-color: alpha(@md3_error, .55);
+    background: @md3_error_container;
 }
 
-/* Keyboard focus is visible on every interactive target, including icon buttons. */
+/* ---- Settings navigation ------------------------------------------------ */
+window.glass-window.control-center-window .settings-sidebar {
+    padding-right: 16px;
+    border-right: 1px solid @md3_outline;
+    background-image: linear-gradient(180deg, alpha(@md3_primary, .035), transparent 45%);
+}
+window.glass-window.control-center-window .settings-navigation { background: transparent; }
+window.glass-window.control-center-window .settings-navigation row {
+    padding: 9px 12px;
+    margin: 2px 0;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    color: @md3_on_surface_variant;
+    background: transparent;
+    transition: background-color 140ms ease-out, border-color 140ms ease-out;
+}
+window.glass-window.control-center-window .settings-navigation row:hover {
+    color: @md3_on_surface;
+    background: alpha(@md3_primary, .09);
+    border-radius: 12px;
+}
+window.glass-window.control-center-window .settings-navigation row:selected,
+window.glass-window.control-center-window .settings-navigation row:active {
+    border-radius: 12px;
+    color: @md3_on_primary_container;
+    background: @md3_primary_container;
+    background-image: linear-gradient(90deg, alpha(@md3_primary, .20), transparent);
+    border-color: alpha(@md3_primary, .45);
+    box-shadow: inset 0 0 0 1px alpha(@md3_primary, .20);
+    font-weight: 600;
+}
+window.glass-window.control-center-window .settings-navigation row.nav-group-row {
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+window.glass-window.control-center-window .settings-navigation row.nav-group-row:hover {
+    background: transparent;
+}
+window.glass-window.control-center-window .settings-navigation .nav-group {
+    color: @md3_on_surface_variant;
+    font-size: .70em;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 10px 12px 4px;
+}
+window.glass-window.control-center-window .settings-navigation label { font-size: .92em; }
+window.glass-window.control-center-window .settings-page-title {
+    color: @md3_on_surface;
+    font-size: 1.4em;
+    font-weight: 700;
+    letter-spacing: -.25px;
+    padding: 2px 0 10px;
+}
+window.glass-window.control-center-window .card {
+    padding: 16px;
+    border-radius: 20px;
+    border: 1px solid @md3_outline_variant;
+    background-color: alpha(@md3_surface_container, .55);
+    box-shadow: inset 0 1px alpha(@md3_on_surface, .04);
+}
+
+/* ---- Metrics and system pages ------------------------------------------ */
+window.glass-window.control-center-window .metric-card {
+    padding: 14px 16px;
+    border: 1px solid @md3_outline_variant;
+    border-radius: 20px;
+    background: alpha(@md3_surface_container, .62);
+    background-image: linear-gradient(180deg, alpha(@md3_primary, .04), transparent 72%);
+    box-shadow: inset 0 1px alpha(@md3_on_surface, .04);
+}
+window.glass-window.control-center-window .metric-value,
+window.glass-window.control-center-window .network-rate {
+    color: @md3_primary;
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 1.55em;
+    font-weight: 700;
+    letter-spacing: -.3px;
+}
+window.glass-window.control-center-window .metric-progress trough {
+    min-height: 5px;
+    border: none;
+    border-radius: 999px;
+    background-color: alpha(@md3_surface_sunken, .85);
+}
+window.glass-window.control-center-window .metric-progress progress {
+    min-height: 5px;
+    border: none;
+    border-radius: 999px;
+    background-color: @md3_primary;
+    background-image: none;
+}
+window.glass-window.control-center-window .spec-key { color: @md3_on_surface_variant; font-size: .84em; font-weight: 500; padding: 4px 0; }
+window.glass-window.control-center-window .spec-value {
+    color: @md3_on_surface;
+    font-family: "JetBrainsMono Nerd Font", "Adwaita Sans", sans-serif;
+    font-size: .88em;
+    padding: 4px 0;
+}
+window.glass-window.control-center-window .application-audio {
+    padding: 14px 16px;
+    border: 1px solid @md3_outline_variant;
+    border-radius: 20px;
+    background: alpha(@md3_surface_container, .62);
+    box-shadow: inset 0 1px alpha(@md3_on_surface, .04);
+}
+window.glass-window.control-center-window .application-audio scale trough {
+    min-height: 6px;
+    border-radius: 999px;
+    background-color: alpha(@md3_surface_sunken, .85);
+}
+window.glass-window.control-center-window .application-audio scale highlight {
+    min-height: 6px;
+    border-radius: 999px;
+    background-color: @md3_primary;
+    background-image: none;
+}
+
+/* ---- Status chips ------------------------------------------------------- */
+window.glass-window.control-center-window .live-badge {
+    color: @md3_on_primary_container;
+    background: @md3_primary_container;
+    border: 1px solid alpha(@md3_primary, .30);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: .7em;
+    font-weight: 600;
+    letter-spacing: .08em;
+}
+window.glass-window.control-center-window .pulse-card {
+    padding: 12px 16px;
+    border: 1px solid @md3_outline_variant;
+    border-radius: 20px;
+    background-color: alpha(@md3_surface_container, .62);
+    background-image: linear-gradient(90deg, alpha(@md3_primary, .06), transparent 55%);
+    box-shadow: inset 0 1px alpha(@md3_on_surface, .05);
+}
+window.glass-window.control-center-window .pulse-item { padding: 0 10px; border-left: 1px solid @md3_outline; }
+window.glass-window.control-center-window .pulse-item:first-child { padding-left: 0; border-left: none; }
+window.glass-window.control-center-window .pulse-label {
+    color: @md3_on_surface_variant;
+    font-size: .68em;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+}
+window.glass-window.control-center-window .pulse-value {
+    color: @md3_on_surface;
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 1.04em;
+    font-weight: 600;
+    letter-spacing: -.2px;
+}
+window.glass-window.control-center-window .pulse-item:first-child .pulse-value { color: @md3_primary; }
+
+/* ---- Popovers ----------------------------------------------------------- */
+popover.control-popover {
+    color: @md3_on_surface;
+    background-color: @md3_surface_container_high;
+    border: 1px solid @md3_outline;
+    border-radius: 20px;
+    box-shadow: 0 12px 32px alpha(black, .28);
+}
+popover.control-popover label { color: @md3_on_surface; }
+popover.control-popover button {
+    color: @md3_on_primary_container;
+    border-color: alpha(@md3_primary, .30);
+    background: @md3_primary_container;
+}
+
+/* ---- Power menu --------------------------------------------------------- */
+window.glass-window.power-menu-window .glass-surface {
+    border: 1px solid alpha(@md3_primary, .18);
+    border-radius: 26px;
+    box-shadow: inset 0 0 0 1px alpha(@md3_on_surface, .10), 0 18px 48px alpha(black, .34);
+}
+window.glass-window.power-menu-window .panel-header {
+    padding: 14px 16px 11px;
+    border-bottom: 1px solid @md3_outline;
+}
+window.glass-window.power-menu-window .panel-content { padding: 12px; }
+window.glass-window.power-menu-window .control-heading {
+    color: @md3_on_surface;
+    font-size: 1.2em;
+    font-weight: 700;
+    letter-spacing: -.2px;
+}
+window.glass-window.power-menu-window button.close-button {
+    min-width: 28px;
+    min-height: 28px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: @md3_on_surface_variant;
+}
+window.glass-window.power-menu-window button.power-action {
+    padding: 12px 14px;
+    border: 1px solid @md3_outline_variant;
+    border-radius: 18px;
+    color: @md3_on_surface;
+    background: alpha(@md3_surface_container, .62);
+    box-shadow: none;
+}
+window.glass-window.power-menu-window button.power-action:hover,
+window.glass-window.power-menu-window button.power-action:focus {
+    border-color: alpha(@md3_primary, .40);
+    background: @md3_primary_container;
+    color: @md3_on_primary_container;
+    box-shadow: inset 0 0 0 1px alpha(@md3_primary, .22);
+}
+window.glass-window.power-menu-window button.power-action.danger { color: @md3_error; }
+window.glass-window.power-menu-window button.power-action.danger:hover,
+window.glass-window.power-menu-window button.power-action.danger:focus {
+    border-color: alpha(@md3_error, .55);
+    background: @md3_error_container;
+    color: @md3_on_error_container;
+    box-shadow: inset 0 0 0 1px alpha(@md3_error, .28);
+}
+window.glass-window.power-menu-window .power-note {
+    color: @md3_on_surface_variant;
+    font-size: .8em;
+    padding: 0 4px 2px 6px;
+}
+window.glass-window.power-menu-window .power-question {
+    color: @md3_on_surface;
+    font-size: 1.02em;
+    font-weight: 600;
+}
+window.glass-window.power-menu-window .power-actions { padding: 0; }
+window.glass-window.power-menu-window .power-action-row { padding: 0; }
+window.glass-window.power-menu-window button.text-button {
+    color: @md3_on_surface_variant;
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+}
+window.glass-window.power-menu-window button.text-button:hover,
+window.glass-window.power-menu-window button.text-button:focus {
+    color: @md3_on_surface;
+    background: alpha(@md3_on_surface, .08);
+    border-color: @md3_outline;
+    box-shadow: inset 0 0 0 2px @md3_primary;
+}
+window.glass-window.power-menu-window .power-confirm { padding: 4px 2px 2px; }
+window.glass-window.power-menu-window button.accent-button {
+    color: @md3_on_primary;
+    background: @md3_primary;
+    border-color: @md3_primary;
+    font-weight: 700;
+}
+
+/* ---- Interaction states ------------------------------------------------- */
 window.glass-window.control-center-window button,
 window.glass-window.control-center-window scale slider {
     transition: background-color 150ms ease-out, border-color 150ms ease-out,
@@ -310,81 +629,28 @@ window.glass-window.control-center-window scale slider {
 }
 window.glass-window.control-center-window button:focus,
 window.glass-window.control-center-window combobox:focus button,
-window.glass-window.control-center-window scale:focus trough,
-window.glass-window.control-center-window checkbutton:focus check {
-    outline: 2px solid alpha(@cyan, .9);
-    outline-offset: -2px;
+window.glass-window.control-center-window checkbutton:focus check,
+window.glass-window.control-center-window entry:focus,
+window.glass-window.control-center-window spinbutton:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 2px @md3_primary;
+    border-color: @md3_primary;
 }
-window.glass-window.control-center-window button.quick-details {
-    min-height: 26px;
-    border-color: transparent;
-    background: transparent;
-    color: @muted;
-    box-shadow: none;
-    padding: 3px 6px;
-}
-window.glass-window.control-center-window button.quick-details:hover,
-window.glass-window.control-center-window button.quick-details:checked {
-    color: @ink;
-    background-color: alpha(@ink, .055);
-}
-popover.control-popover {
-    color: @ink;
-    background-color: @on_accent;
-    border: 1px solid alpha(@ink, .18);
-    border-radius: 15px;
-    box-shadow: 0 8px 24px alpha(black, .2);
-}
-popover.control-popover label { color: @ink; }
-popover.control-popover button {
-    color: @ink;
-    border-color: alpha(@cyan, .3);
-    background: alpha(@cyan, .13);
-}
-window.glass-window.reduce-motion * { transition: none; }
-
-/* Desktop settings: stable navigation, searchable categories, roomy forms. */
-window.glass-window.control-center-window .panel-content { padding: 14px 18px 18px; }
-window.glass-window.control-center-window .settings-sidebar {
-    padding-right: 14px;
-    border-right: 1px solid alpha(@ink, .1);
-}
-window.glass-window.control-center-window .settings-navigation {
-    background: transparent;
-}
-window.glass-window.control-center-window .settings-navigation row {
-    padding: 10px 8px;
-    margin: 2px 0;
-    border: 1px solid transparent;
-    border-radius: 10px;
-    color: @muted;
-    background: transparent;
-    transition: background-color 140ms ease-out;
-}
-window.glass-window.control-center-window .settings-navigation row:hover {
-    color: @ink;
-    background: alpha(@ink, .065);
+window.glass-window.control-center-window scale:focus trough { outline: none; box-shadow: 0 0 0 2px alpha(@md3_primary, .45); }
+window.glass-window.control-center-window button:disabled { opacity: .38; }
+window.glass-window.control-center-window button.accent-button:focus { box-shadow: inset 0 0 0 2px @md3_on_primary; }
+window.glass-window.control-center-window .settings-navigation row:focus {
+    border-radius: 12px;
+    outline: none;
+    box-shadow: inset 0 0 0 2px @md3_primary;
 }
 window.glass-window.control-center-window .settings-navigation row:selected {
-    color: @ink;
-    background: alpha(@cyan, .15);
-    border-color: alpha(@cyan, .25);
+    border-radius: 12px;
+    border-color: alpha(@md3_primary, .50);
+    box-shadow: inset 0 0 0 2px alpha(@md3_primary, .34);
 }
-window.glass-window.control-center-window .settings-navigation row:focus {
-    outline: 2px solid alpha(@cyan, .8);
-    outline-offset: -2px;
-}
-window.glass-window.control-center-window .settings-navigation label { font-size: .9em; }
-window.glass-window.control-center-window .settings-page-title {
-    color: @ink;
-    font-size: 1.35em;
-    font-weight: 600;
-    padding: 3px 0 8px;
-}
-window.glass-window.control-center-window .card { padding: 14px; }
-window.glass-window.control-center-window scrollbar slider {
-    min-width: 5px;
-    min-height: 28px;
-    border-radius: 5px;
-    background-color: alpha(@ink, .2);
-}
+window.glass-window.control-center-window .quick-tile button.quick-toggle:checked,
+window.glass-window.control-center-window .quick-tile button.quick-toggle:active { border-radius: 18px; }
+window.glass-window.control-center-window button.close-button:checked,
+window.glass-window.control-center-window button.close-button:active { border-radius: 999px; }
+window.glass-window.reduce-motion * { transition: none; }

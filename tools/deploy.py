@@ -9,6 +9,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from transactions import Transaction, atomic_bytes, file_value
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
@@ -39,15 +41,30 @@ MANAGED_PATHS = {
     "xdg-desktop-portal/niri-portals.conf",
 }
 REQUIRED_SOURCES = (
+    "tools/run_tests.py",
+    "niri/shell/notification_events.py", "niri/shell/notification_policy.py", "niri/shell/notification_rules.py", "niri/shell/notification_history.py",
+    "niri/shell/audio_events.py", "niri/shell/media_events.py", "niri/shell/calendar_widget.py",
+    "niri/eww/input_region.rs", "niri/shell/eww_input.py",
+    "tools/protocols/wlr-virtual-pointer.xml",
+    "niri/shell/component_preferences.py", "niri/shell/bar_backend.py", "niri/shell/island.py", "niri/shell/niri_events.py", "niri/assets/icons/empty.svg",
+    "niri/anyrun/config.ron", "niri/anyrun/style.css",
+    "niri/theme/eww.css", "niri/theme/anyrun.css", "niri/theme/alacritty.toml",
     "control.sh", "install.sh", "check.sh", "packages.txt",
+    "tools/export_config.py", "tools/lifecycle.py", "tools/transactions.py", "docs/INSTALL.md",
     "systemd/selandia-niri@.service.in", "systemd/selandia-niri.target",
     "systemd/selandia-lock@.service.in", "niri/shell/lock_client.py",
     "portals/niri-portals.conf", "niri/config.kdl", "niri/preview.kdl", "niri/monitor.kdl",
     "niri/assets/selandia-glass.svg", "niri/assets/icons/input-keyboard-symbolic.svg",
-    "niri/kitty/kitty.conf",
-    "niri/shell/style.css", "niri/shell/panel.py", "niri/shell/shortcuts.py",
-    "niri/shell/ai_backend.py", "niri/swaync/config.json", "niri/swaync/style.css",
-    "niri/waybar/config.jsonc", "niri/waybar/style.css", "niri/scripts/desktop",
+    "niri/shell/style.css", "niri/shell/panel.py", "niri/shell/surface_registry.py",
+    "niri/shell/navigation_catalog.py", "niri/shell/page_host.py", "niri/shell/drawers.py",
+    "niri/shell/background_tasks.py", "niri/shell/gpu_metrics.py",
+    "niri/shell/shortcuts.py",
+    "niri/shell/ai_backend.py", "niri/shell/ai_store.py", "niri/shell/wallpaper_audio.py", "niri/shell/engine_compatibility.py",
+    "niri/swaync/config.json", "niri/swaync/style.css",
+    "niri/scripts/desktop",
+    "niri/shell/application_audio.py", "niri/shell/panel_geometry.py",
+    "niri/shell/system_info.py", "niri/shell/wallpaper_playlist.py",
+    "niri/shell/wallpaper_options.py", "niri/shell/wallpaper_preferences.py", "niri/shell/wallpaper_remote.py", "niri/shell/wallpaper_fade.py",
     "niri/scripts/components", "niri/scripts/start-session", "niri/swayidle/sleep.conf",
     "niri/swayidle/config", "niri/swaylock/config", "niri/fuzzel/fuzzel.ini",
     "niri/conf/binds.kdl", "niri/conf/local.kdl", "niri/conf/windows.kdl",
@@ -59,18 +76,20 @@ REQUIRED_SOURCES = (
     "niri/shell/application_theme.py", "niri/shell/panel_motion.py",
     "niri/shell/settings_navigation.py", "niri/shell/scroll_guard.py", "niri/shell/i18n.py",
     "niri/shell/system_settings.py", "niri/shell/system_controls.py", "niri/shell/ui_assets.py",
+    "niri/shell/session_settings.py",
+    "niri/shell/session_identity.py",
     "niri/shell/language_settings.py", "niri/shell/language_controls.py", "niri/conf/language.kdl",
     "niri/shell/desktop_settings.py", "niri/shell/desktop_controls.py", "niri/conf/desktop-settings.kdl",
     "niri/shell/media_backend.py", "niri/shell/media_controls.py",
     "niri/shell/bluetooth_policy.py", "niri/shell/bluetooth_controls.py",
     "niri/shell/sleep_guard.py",
     "niri/shell/power_actions.py",
-    "niri/shell/bar_layout.py",
-    "niri/shell/bar_fit.py",
+    "niri/shell/power_menu.py",
+    "niri/shell/wallpaper.py", "niri/shell/wallpaper_controls.py",
     "niri/shell/font_scale.py",
     "niri/shell/lock_session.py",
-    "niri/theme/panel.css", "niri/theme/waybar.css", "niri/theme/swaync.css",
-    "niri/theme/fuzzel.ini", "niri/theme/kitty.conf", "niri/theme/swaylock.conf",
+    "niri/theme/panel.css", "niri/theme/swaync.css",
+    "niri/theme/fuzzel.ini", "niri/theme/swaylock.conf",
 )
 
 
@@ -108,23 +127,67 @@ def matches(path, spec):
 
 
 def write_spec(path, spec):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if "link" in spec:
-        path.symlink_to(spec["link"])
+    if ACTIVE_TRANSACTION is not None:
+        ACTIVE_TRANSACTION.create(path, spec)
     else:
-        path.write_text(spec["text"])
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if "link" in spec:
+            path.symlink_to(spec["link"])
+        else:
+            atomic_bytes(path, spec["text"].encode(), 0o644)
 
 
 def save_manifest(data):
-    handle, name = tempfile.mkstemp(prefix="manifest-", dir=STATE)
+    contents = (json.dumps(data, ensure_ascii=False, indent=2) + "\n").encode()
+    if ACTIVE_TRANSACTION is None:
+        atomic_bytes(MANIFEST, contents)
+    else:
+        import base64
+        ACTIVE_TRANSACTION.replace(MANIFEST, file_value(MANIFEST),
+                                   {"bytes": base64.b64encode(contents).decode(), "mode": 0o600})
+
+
+ACTIVE_TRANSACTION = None
+
+
+def transaction_path():
+    return STATE / "deployment-transaction.json"
+
+
+def transaction_allowed(path):
+    if path == MANIFEST or path in {CONFIG / name for name in MANAGED_PATHS}:
+        return True
     try:
-        with os.fdopen(handle, "w") as out:
-            json.dump(data, out, ensure_ascii=False, indent=2)
-            out.write("\n")
-        os.replace(name, MANIFEST)
-    finally:
-        if os.path.exists(name):
-            os.unlink(name)
+        relative = path.relative_to(STATE)
+    except ValueError:
+        return False
+    return (len(relative.parts) > 1 and relative.parts[0].startswith(("backup-", "removed-"))
+            and str(Path(*relative.parts[1:])) in MANAGED_PATHS | {"install.json"})
+
+
+def transaction(metadata=None):
+    return Transaction(transaction_path(), {"source": str(ROOT), "config": str(CONFIG)},
+                       allowed=transaction_allowed, metadata=metadata)
+
+
+def recover(*, restart=True, commit=False):
+    if not transaction_path().exists():
+        return
+    pending = transaction()
+    if commit or pending.data["phase"] == "committed":
+        pending.commit()
+    else:
+        def restore_services(saved):
+            if restart and saved.get("was_active"):
+                subprocess.run(["systemctl", "--user", "start", "selandia-niri.target"], check=True, timeout=15)
+        pending.rollback(restore_services)
+    reload_units()
+
+
+def check_coordinator(*, defer=False):
+    if not defer and (STATE / "lifecycle-transaction.json").exists():
+        raise RuntimeError(tr("Coordinated setup needs recovery; retry control.sh install or uninstall.",
+                              "存在需要恢复的完整安装事务；请重试 control.sh install 或 uninstall。"))
 
 
 @contextmanager
@@ -145,10 +208,10 @@ def deployment_lock():
 def reload_units():
     # Configuration installation does not start desktop components.
     try:
-        result = subprocess.run(["systemctl", "--user", "daemon-reload"], check=False)
+        result = subprocess.run(["systemctl", "--user", "daemon-reload"], check=False, timeout=15)
         if not result.returncode:
             return
-    except FileNotFoundError:
+    except (FileNotFoundError, subprocess.TimeoutExpired):
         pass
     print(tr("User systemd unavailable; run systemctl --user daemon-reload after login.", "当前无法连接用户 systemd；请登录后运行 systemctl --user daemon-reload。"))
 
@@ -190,8 +253,11 @@ def read_manifest(*, allow_missing=False):
     return data
 
 
-def preflight():
+def preflight(*, coordinated=False):
     """Check sources and protected edits without creating state or touching services."""
+    if transaction_path().exists() or (not coordinated and (STATE / "lifecycle-transaction.json").exists()):
+        print(tr("Interrupted setup will be recovered before changes.", "将先恢复中断的部署事务，再执行改动。"))
+        return json.loads(MANIFEST.read_text()) if MANIFEST.exists() else {"entries": {}}
     missing = [str(ROOT / relative) for relative in REQUIRED_SOURCES
                if not (ROOT / relative).is_file()]
     if missing:
@@ -220,6 +286,23 @@ def preview_install():
 
 
 def preview_uninstall():
+    if transaction_path().exists() or (STATE / "lifecycle-transaction.json").exists():
+        print(tr("Would recover interrupted setup before calculating removal.", "将先恢复中断的部署事务，再计算卸载操作。"))
+        return
+    sys.path.insert(0, str(ROOT / "niri/shell"))
+    try:
+        import session_settings
+    except ModuleNotFoundError as error:
+        if error.name != "session_settings":
+            raise
+        print(tr("Session settings helper unavailable; their original-state records remain preserved. Restore the source to preview those settings.",
+                 "会话设置模块缺失；保留其原状态记录，恢复源码后才能预览这些条目。"))
+    else:
+        _data, restored, preserved = session_settings.restoration_plan(CONFIG, STATE / session_settings.JOURNAL)
+        for relative in restored:
+            print(tr("Would restore session setting: ", "将恢复项目会话设置：") + str(CONFIG / relative))
+        for relative in preserved:
+            print(tr("Preserve edited or unrecorded session setting: ", "保留手工编辑或无原状态记录的会话设置：") + str(CONFIG / relative))
     if not MANIFEST.exists():
         print(tr("Nothing to restore.", "没有本项目的安装记录，无需回退。"))
         return
@@ -237,6 +320,9 @@ def preview_uninstall():
 
 
 def status():
+    if transaction_path().exists() or (STATE / "lifecycle-transaction.json").exists():
+        print(tr("Interrupted setup needs recovery.", "存在中断的部署事务，需要恢复。"))
+        return 1
     data = preflight()
     if not MANIFEST.exists():
         print(tr("Not installed.", "尚未安装本项目的配置。"))
@@ -258,78 +344,94 @@ def status():
     return 0 if healthy else 1
 
 
-def install():
-    old = preflight()
+def install(*, defer=False):
+    global ACTIVE_TRANSACTION
+    check_coordinator(defer=defer)
+    recover()
+    old = preflight(coordinated=defer)
     STATE.mkdir(parents=True, exist_ok=True)
-    transaction = Path(tempfile.mkdtemp(prefix="backup-", dir=STATE))
+    backup_directory = Path(tempfile.mkdtemp(prefix="backup-", dir=STATE))
     entries = dict(old["entries"])
-    changes = []
+    pending = transaction({"action": "install"})
+    ACTIVE_TRANSACTION = pending
     try:
         for relative, spec in desired().items():
             target = CONFIG / relative
             if relative in entries and matches(target, spec):
                 continue
-            backup = transaction / relative if exists(target) else None
+            backup = backup_directory / relative if exists(target) else None
             if backup:
                 backup.parent.mkdir(parents=True, exist_ok=True)
-                shutil.move(str(target), str(backup))
-            changes.append((target, backup))
+                pending.move(target, backup)
+            pending.create_intent(target, spec)
             write_spec(target, spec)
             original = entries[relative]["original"] if relative in entries else (str(backup) if backup else None)
             entries[relative] = {"original": original, "installed": spec}
             print(tr("Install: ", "安装：") + str(target))
         save_manifest({"source": str(ROOT), "entries": entries})
     except BaseException:
-        for target, backup in reversed(changes):
-            if target.is_symlink() or target.is_file():
-                target.unlink()
-            if backup and exists(backup):
-                shutil.move(str(backup), str(target))
+        pending.rollback()
         raise
-    reload_units()
+    finally:
+        ACTIVE_TRANSACTION = None
+    if not defer:
+        pending.commit()
+        reload_units()
     print(tr("Configuration ready; backup record: ", "配置已就绪，备份记录：") + str(MANIFEST))
     print(tr("Log out when ready, then select Niri at login.", "保存工作后注销，在登录界面选择 Niri。"))
 
 
-def uninstall():
+def uninstall(*, defer=False):
+    check_coordinator(defer=defer)
+    recover()
     if not MANIFEST.exists():
         print(tr("Nothing to restore.", "没有本项目的安装记录，无需回退。"))
         return
     data = read_manifest(allow_missing=True)
     try:
-        result = subprocess.run(["systemctl", "--user", "stop", "selandia-niri.target"], check=False)
+        was_active = subprocess.run(["systemctl", "--user", "is-active", "--quiet", "selandia-niri.target"], check=False, timeout=5).returncode == 0
     except FileNotFoundError as error:
+        raise RuntimeError(tr("Cannot stop desktop services: systemctl is missing; configuration was not changed.",
+                              "无法停止桌面服务：缺少 systemctl；配置未改动。")) from error
+    state_times = (STATE.stat().st_atime_ns, STATE.stat().st_mtime_ns)
+    pending = transaction({"action": "uninstall", "was_active": was_active})
+    pending.save()  # Includes service state before stop, even before the first file move.
+    try:
+        result = subprocess.run(["systemctl", "--user", "stop", "selandia-niri.target"], check=False, timeout=15)
+    except FileNotFoundError as error:
+        pending.rollback()
+        os.utime(STATE, ns=state_times)
         raise RuntimeError(tr("Cannot stop desktop services: systemctl is missing. Restore systemd and retry as your desktop user; "
                               "configuration was not changed.", "无法停止桌面服务：缺少 systemctl。请恢复 systemd 后以桌面用户重试；配置未改动。")) from error
     if result.returncode:
+        pending.rollback()
+        os.utime(STATE, ns=state_times)
         raise RuntimeError(tr("Could not stop desktop services; configuration was not changed. "
                               "Check systemctl --user status selandia-niri.target from your desktop login, then retry.",
                               "无法停止桌面服务，配置未改动。请在桌面用户会话检查 systemctl --user status selandia-niri.target 后重试。"))
     archive = Path(tempfile.mkdtemp(prefix="removed-", dir=STATE))
-    changes = []
     try:
         for relative, entry in data["entries"].items():
             target = CONFIG / relative
             saved = archive / relative if exists(target) else None
             if saved:
                 saved.parent.mkdir(parents=True, exist_ok=True)
-                shutil.move(str(target), str(saved))
+                pending.move(target, saved)
             original = Path(entry["original"]) if entry["original"] else None
-            changes.append((target, saved, original))
             if original:
                 target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.move(str(original), str(target))
+                pending.move(original, target)
             print(tr("Restore: ", "回退：") + str(target))
-        shutil.move(str(MANIFEST), str(archive / "install.json"))
+        pending.move(MANIFEST, archive / "install.json")
     except BaseException:
-        for target, saved, original in reversed(changes):
-            if original and exists(target):
-                original.parent.mkdir(parents=True, exist_ok=True)
-                shutil.move(str(target), str(original))
-            if saved and exists(saved):
-                shutil.move(str(saved), str(target))
+        def restore_services(metadata):
+            if metadata.get("was_active") and not defer:
+                subprocess.run(["systemctl", "--user", "start", "selandia-niri.target"], check=True, timeout=15)
+        pending.rollback(restore_services)
         raise
-    reload_units()
+    if not defer:
+        pending.commit()
+        reload_units()
     print(tr("Original configuration restored; removed files: ", "已恢复原配置，移除的配置保留在：") + str(archive))
     print(tr("Packages, wallpaper choice and clipboard data preserved.", "保留软件包、壁纸选择和剪贴板数据。"))
 
@@ -352,10 +454,13 @@ def main():
         return status()
     if os.geteuid() == 0:
         raise RuntimeError(tr("Run as your desktop user; do not run this script with sudo.", "请以当前桌面用户运行安装脚本，不要 sudo 整个脚本。"))
-    if mode not in {"install", "uninstall"}:
+    if mode not in {"install", "uninstall", "recover"}:
         raise RuntimeError(tr("Unknown operation: ", "未知操作：") + mode)
     with deployment_lock():
-        if mode == "install":
+        if mode == "recover":
+            check_coordinator()
+            recover()
+        elif mode == "install":
             install()
         else:
             uninstall()

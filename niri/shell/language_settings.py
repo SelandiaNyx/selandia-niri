@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import re
 import shlex
+import stat
 import subprocess
 import sys
 import tempfile
@@ -70,6 +71,7 @@ def _write(path, value, *, mode=0o600):
     if value is None:
         if path.exists():
             path.unlink()
+            _sync_directory(path.parent)
         return
     descriptor, temporary = tempfile.mkstemp(prefix="." + path.name + ".", dir=path.parent)
     try:
@@ -79,9 +81,18 @@ def _write(path, value, *, mode=0o600):
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, path)
+        _sync_directory(path.parent)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
+
+
+def _sync_directory(path):
+    descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
 
 
 def _json(value):
@@ -177,11 +188,24 @@ def _journal(path, paths):
     if not isinstance(data, dict) or data.get("version") != 1 or not isinstance(data.get("files"), dict):
         raise ValueError(_message("Invalid language backup", "语言设置备份无效"))
     for key, record in data["files"].items():
-        if (key not in paths or not isinstance(record, dict) or record.get("path") != str(paths[key])
+        if (key not in paths or not isinstance(record, dict)
                 or not isinstance(record.get("before"), (str, type(None)))
                 or not isinstance(record.get("applied"), str)
+                or "before_mode" in record and record["before_mode"] is not None and
+                   (type(record["before_mode"]) is not int or not 0 <= record["before_mode"] <= 0o7777)
                 or "pending" in record and not isinstance(record["pending"], str)):
             raise ValueError(_message("Invalid language backup", "语言设置备份无效"))
+        if record.get("path") != str(paths[key]):
+            old = Path(record["path"]) if isinstance(record.get("path"), str) else None
+            # Rebind only this known source-relative file, after checking the
+            # copied destination against our saved versions. Never follow the
+            # old path or migrate environment.d to a different config home.
+            if (key != "niri" or old is None or not old.is_absolute() or ".." in old.parts or
+                    old.parts[-3:] != ("niri", "conf", "language.kdl") or
+                    not record["applied"].startswith("// Managed by Selandia Niri language settings.\n") or
+                    _read(paths[key]) not in (*_managed_versions(record), record["before"])):
+                raise ValueError(_message("Invalid language backup or edited relocated file", "语言设置备份无效，或迁移后的文件已被修改"))
+            record["path"] = str(paths[key])
     return data
 
 
@@ -238,6 +262,8 @@ def apply_session_locale(locale, *, config_home=None, niri_home=None, state_path
     with _lock(state_path):
         data = _journal(journal_path, paths)
         originals = {key: _read(path) for key, path in paths.items()}
+        original_modes = {key: stat.S_IMODE(path.stat().st_mode) if path.exists() else None
+                          for key, path in paths.items()}
         previous_preferences = _read(state_path)
         previous_journal = _read(journal_path)
         for key, path in paths.items():
@@ -246,6 +272,7 @@ def apply_session_locale(locale, *, config_home=None, niri_home=None, state_path
                 raise RuntimeError(_message("A managed language file was edited; keep your changes or restore it before applying: ",
                                             "语言配置已被手动修改，请处理改动后再应用：") + str(path))
             data["files"][key] = {"path": str(path), "before": old["before"] if old else originals[key],
+                                  "before_mode": old.get("before_mode", 0o644) if old else original_modes[key],
                                   "applied": old["applied"] if old else desired[key], "pending": desired[key]}
         try:
             _write(journal_path, _json(data))
@@ -259,7 +286,7 @@ def apply_session_locale(locale, *, config_home=None, niri_home=None, state_path
             _write(journal_path, _json(data))
         except Exception:
             for key, path in paths.items():
-                _write(path, originals[key], mode=0o644)
+                _write(path, originals[key], mode=original_modes[key] or 0o644)
             _write(state_path, previous_preferences)
             _write(journal_path, previous_journal)
             raise
@@ -279,12 +306,17 @@ def restore(*, config_home=None, niri_home=None, state_path=None):
         data = _journal(journal_path, paths)
         for key, record in list(data["files"].items()):
             path = paths[key]
-            if _read(path) not in _managed_versions(record):
+            current = _read(path)
+            if current not in (*_managed_versions(record), record["before"]):
                 conflicts.append(str(path))
                 continue
-            _write(path, record["before"], mode=0o644)
+            mode = record.get("before_mode")
+            if current != record["before"] or (current is not None and mode is not None and
+                                                stat.S_IMODE(path.stat().st_mode) != mode):
+                _write(path, record["before"], mode=mode if mode is not None else 0o644)
             restored.append(str(path))
             del data["files"][key]
+            _write(journal_path, _json(data))
         if not conflicts:
             values = read_preferences(state_path=state_path)
             values["session_locale"] = ""
