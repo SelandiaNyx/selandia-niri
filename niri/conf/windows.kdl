@@ -33,7 +33,7 @@ window-rule {
 // The bundled terminal launchers use transparent backgrounds with native blur.
 // 专用终端使用原生毛玻璃，不影响其他应用的不透明度。
 window-rule {
-    match app-id=r#"^(Alacritty|alacritty|selandia-terminal)$"#
+    match app-id=r#"^(Alacritty|alacritty|selandia-terminal|selandia-settings|selandia-monitor)$"#
     background-effect {
         blur true
         xray true

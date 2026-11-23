@@ -1,17 +1,17 @@
-// Selandia · Obsidian Precision · 黑曜精工
-// One steel-blue accent, matte slate surfaces, Adwaita Sans + JetBrains Mono.
+// Selandia · Liquid Glass · 液态琉璃
+// Dual-tone luminous gradients, frosted translucency, Adwaita Sans + JetBrains Mono.
 // 原生背景模糊；xray 复用壁纸缓存，保持文字清晰并降低渲染开销。
 blur {
     passes 3
-    offset 3.0
+    offset 3.8
     noise 0.0
-    saturation 1.1
+    saturation 1.28
 }
 layout {
     gaps 16
     center-focused-column "on-overflow"
     always-center-single-column
-    background-color "#0a0e14"
+    background-color "#090d16"
     default-column-width { proportion 0.5; }
     preset-column-widths {
         proportion 0.33333
@@ -21,24 +21,24 @@ layout {
     }
     focus-ring {
         width 2
-        active-color "#4c9eff"
-        inactive-color "#26334226"
-        urgent-color "#f87171"
+        active-gradient from="#5ee7ff" to="#a78bfa" angle=135
+        inactive-color "#6482a830"
+        urgent-color "#fb7185"
     }
     border { off; }
     shadow {
         on
-        softness 36
+        softness 40
         spread 3
-        offset x=0 y=10
-        color "#00000066"
+        offset x=0 y=12
+        color "#00000072"
     }
     tab-indicator {
         position "top"
         gaps-between-tabs 6
         corner-radius 8
-        active-color "#4c9eff"
-        inactive-color "#f0f4f822"
+        active-gradient from="#5ee7ff" to="#a78bfa" angle=90
+        inactive-color "#f1f6ff24"
     }
 }
 animations {
@@ -50,7 +50,7 @@ animations {
 }
 overview {
     zoom 0.4
-    backdrop-color "#0a0e14"
+    backdrop-color "#090d16"
 }
 
 layer-rule {
@@ -59,17 +59,17 @@ layer-rule {
     match namespace="^(launcher|selandia-.*)$"
     // Niri 26.04 also uses this radius for the compositor's blur geometry.
     // 与面板外框保持一致，避免圆角外露出矩形模糊区域。
-    geometry-corner-radius 18
+    geometry-corner-radius 24
     background-effect {
         blur true
         xray true
-        saturation 1.1
+        saturation 1.28
         noise 0.0
     }
 }
 layer-rule {
     match namespace="^(selandia-bar-.*|selandia-island)$"
-    geometry-corner-radius 18
+    geometry-corner-radius 22
 }
 layer-rule {
     match namespace="^launcher$"

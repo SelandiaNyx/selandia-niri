@@ -1,48 +1,51 @@
 /* Structural GTK3 fallback for the Selandia shell.
  *
- * Load order is style.css -> control_center.css -> generated theme/panel.css.
+ * Load order is style.css -> generated theme/panel.css -> control_center.css.
  * Colour roles and type sizes are defined here only so the window still looks
  * coherent if the generated stylesheet is missing; appearance.py writes the
- * authoritative MD3 values and loads last.  Every widget selector stays scoped
+ * authoritative MD3 @define-color roles in theme/panel.css and control_center.css
+ * layers component-specific composition on top.  Every widget selector stays scoped
  * to window.glass-window (or a native dialog) so GTK's font chooser keeps its
  * own opaque surface. */
-@define-color md3_primary #78d3f8;
-@define-color md3_on_primary #003546;
-@define-color md3_primary_container #004d64;
-@define-color md3_on_primary_container #bee9ff;
-@define-color md3_secondary #6bb3ff;
-@define-color md3_on_secondary #05101a;
-@define-color md3_secondary_container #314b69;
-@define-color md3_on_secondary_container #f0f4f8;
-@define-color md3_surface #111418;
-@define-color md3_surface_container_low #191c20;
-@define-color md3_surface_container #1e2227;
-@define-color md3_surface_container_high #282c32;
-@define-color md3_surface_container_highest #30353c;
-@define-color md3_surface_sunken #0e131a;
-@define-color md3_on_surface #e1e3e8;
-@define-color md3_on_surface_variant #8a929a;
-@define-color md3_outline rgba(225, 227, 232, 0.140);
-@define-color md3_outline_variant rgba(225, 227, 232, 0.060);
-@define-color md3_error #ffb4ab;
-@define-color md3_on_error #690005;
-@define-color md3_error_container #5d3a42;
-@define-color md3_on_error_container #e1e3e8;
-@define-color md3_inverse_surface #e1e3e8;
-@define-color md3_inverse_on_surface #111418;
+@define-color md3_primary #5ee7ff;
+@define-color md3_on_primary #04131c;
+@define-color md3_primary_container #1b3852;
+@define-color md3_on_primary_container #f1f6ff;
+@define-color md3_secondary #a78bfa;
+@define-color md3_on_secondary #04131c;
+@define-color md3_secondary_container #302854;
+@define-color md3_on_secondary_container #f1f6ff;
+@define-color md3_surface #090d16;
+@define-color md3_surface_container_low #0e1420;
+@define-color md3_surface_container #131c2c;
+@define-color md3_surface_container_high #192338;
+@define-color md3_surface_container_highest #222e47;
+@define-color md3_surface_sunken #060910;
+@define-color md3_on_surface #f1f6ff;
+@define-color md3_on_surface_variant #9ab0cc;
+@define-color md3_outline rgba(241, 246, 255, 0.140);
+@define-color md3_outline_variant rgba(241, 246, 255, 0.060);
+@define-color md3_error #fb7185;
+@define-color md3_on_error #090d16;
+@define-color md3_error_container #4a2334;
+@define-color md3_on_error_container #f1f6ff;
+@define-color md3_inverse_surface #f1f6ff;
+@define-color md3_inverse_on_surface #090d16;
 /* Compatibility aliases used by the rest of the shell templates. */
-@define-color ink #e1e3e8;
-@define-color muted #8a929a;
-@define-color cyan #78d3f8;
-@define-color violet #6bb3ff;
-@define-color accent #78d3f8;
-@define-color secondary #6bb3ff;
-@define-color surface #1e2227;
-@define-color surface_raised #282c32;
-@define-color bg #111418;
-@define-color border #454b52;
-@define-color on_accent #003546;
-@define-color danger #ffb4ab;
+@define-color ink #f1f6ff;
+@define-color muted #9ab0cc;
+@define-color cyan #5ee7ff;
+@define-color violet #a78bfa;
+@define-color accent #5ee7ff;
+@define-color secondary #a78bfa;
+@define-color surface #111827;
+@define-color surface_raised #192338;
+@define-color bg #090d16;
+@define-color border #6482a8;
+@define-color on_accent #04131c;
+@define-color danger #fb7185;
+@define-color success #34d399;
+@define-color warning #fbbf24;
 
 window.glass-window * {
     font-family: "Adwaita Sans", "Noto Sans CJK SC", "Noto Sans", sans-serif;
@@ -51,11 +54,11 @@ window.glass-window * {
 window.glass-window { background: transparent; color: @md3_on_surface; }
 window.glass-window .glass-surface {
     color: @md3_on_surface;
-    background-color: alpha(@md3_surface, .92);
-    background-image: none;
-    border: 1px solid @md3_outline;
+    background-color: alpha(@md3_surface, .78);
+    background-image: linear-gradient(148deg, alpha(@md3_primary, .13), alpha(@md3_secondary, .06) 38%, transparent 74%);
+    border: 1px solid alpha(@md3_primary, .28);
     border-radius: 26px;
-    box-shadow: inset 0 1px alpha(@md3_on_surface, .08), 0 18px 48px rgba(0, 0, 0, .30);
+    box-shadow: inset 0 1px alpha(white, .18), inset 0 -1px alpha(@md3_secondary, .10), 0 22px 56px rgba(0, 0, 0, .34);
 }
 window.glass-window .panel-header { padding: 18px 20px 14px; border-bottom: 1px solid @md3_outline; }
 window.glass-window .panel-content { padding: 16px 20px 20px; }
@@ -153,21 +156,6 @@ window.glass-window button.close-button {
 window.glass-window button.close-button:hover { color: @md3_on_surface; background-color: alpha(@md3_on_surface, .08); border-color: @md3_outline; }
 window.glass-window button.close-button:checked,
 window.glass-window button.close-button:active { border-radius: 999px; }
-window.glass-window button.tile { padding: 13px 14px; border-radius: 18px; min-height: 83px; }
-window.glass-window button.tile.active,
-window.glass-window button.tile:checked,
-window.glass-window button.tile:active {
-    border-radius: 18px;
-    color: @md3_on_primary_container;
-    background-color: @md3_primary_container;
-    background-image: none;
-    border-color: alpha(@md3_primary, .48);
-}
-window.glass-window .tile-icon { color: @md3_on_surface_variant; font-size: 16.25px; }
-window.glass-window .active .tile-icon,
-window.glass-window .active .tile-state { color: @md3_on_primary_container; }
-window.glass-window .tile-title { color: @md3_on_surface; font-size: 12px; font-weight: 600; }
-window.glass-window .tile-state { color: @md3_on_surface_variant; font-size: 9px; }
 window.glass-window .control-tabs { padding: 4px; border: 1px solid @md3_outline_variant; border-radius: 14px; background-color: alpha(@md3_surface_container_low, .65); }
 window.glass-window .control-tabs button {
     color: @md3_on_surface_variant;
@@ -321,15 +309,6 @@ window.glass-window scrollbar slider:hover { background-color: alpha(@md3_on_sur
 window.glass-window scrollbar slider:active { background-color: @md3_primary; }
 window.glass-window scrolledwindow,
 window.glass-window viewport { background: transparent; border: none; }
-
-/* Calendar: existing core hooks only.  No agenda or event surface is added. */
-window.glass-window calendar.glass-calendar {
-    color: @md3_on_surface;
-    background-color: alpha(@md3_surface_container, .55);
-    border: 1px solid @md3_outline_variant;
-    border-radius: 20px;
-    padding: 10px 12px;
-}
 
 /* Calendar 的真源在 appearance.py 模板（生成 niri/theme/panel.css）。
    此文件不再重复声明日历规则，避免被后加载的生成物覆盖成“假真源”。 */
