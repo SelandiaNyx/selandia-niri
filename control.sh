@@ -297,7 +297,12 @@ fi
 if "$preview"; then
     if ((${#required_aur_missing[@]})); then
         helper=paru
-        command -v paru >/dev/null || helper=yay
+        if ! command -v paru >/dev/null; then
+            helper=yay
+            if ! command -v yay >/dev/null; then
+                printf '%s\n' "$(tr 'Neither paru nor yay was found; install an AUR helper or build with makepkg -si first.' '未检测到 paru 或 yay；请先安装 AUR 助手或使用 makepkg -si 构建。')"
+            fi
+        fi
         printf '%s' "$(tr 'Required AUR transaction: ' '必需 AUR 事务：')"
         printf '%q ' "$helper" -S --needed -- "${required_aur_missing[@]}"
         printf '\n'
@@ -312,7 +317,12 @@ fi
 if ! "$skip_packages" && "$inventory_ok"; then
     if ((${#required_aur_missing[@]})); then
         helper=paru
-        command -v paru >/dev/null || helper=yay
+        if ! command -v paru >/dev/null; then
+            helper=yay
+            if ! command -v yay >/dev/null; then
+                printf '%s\n' "$(tr 'Neither paru nor yay was found; install an AUR helper or build with makepkg -si first.' '未检测到 paru 或 yay；请先安装 AUR 助手或使用 makepkg -si 构建。')" >&2
+            fi
+        fi
         printf '%s\n' "$(tr 'Required Rust components; enter your sudo password in this terminal when prompted.' '必需 Rust 组件：出现 sudo 提示时，请在当前终端输入密码。')"
         printf '%q ' "$helper" -S --needed -- "${required_aur_missing[@]}"
         printf '\n'

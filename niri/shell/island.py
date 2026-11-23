@@ -306,7 +306,8 @@ def listen():
                                     policy.receive({'action':'show','kind':'volume'},now)
                                 previous_audio=current_audio
                             state.update(values)
-                    except Exception as error:print(str(error),file=sys.stderr)
+                    except Exception as error:
+                        print(str(error), file=sys.stderr)
                     gate.start(now,pool,function)
                 if now>=progress_at:
                     state.update(playback.values(now));progress_at=now+1

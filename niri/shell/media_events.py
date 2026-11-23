@@ -157,7 +157,8 @@ class MediaChanges:
                 # Explicit close and bus disconnect wake the loop immediately.
                 # This slower safety check only covers callers setting stopping.
                 timer = GLib.timeout_source_new(1000)
-                timer.set_callback(check); timer.attach(context)
+                timer.set_callback(check)
+                timer.attach(context)
                 if not self.done():
                     loop.run()
                 if time.monotonic() - connected_at > 5:

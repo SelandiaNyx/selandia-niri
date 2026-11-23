@@ -78,6 +78,8 @@ python_files = sorted(path for directory in ("tools", "tests", "niri/shell")
 with tempfile.TemporaryDirectory(prefix="selandia-check-") as temporary:
     for index, path in enumerate(python_files):
         py_compile.compile(str(path), cfile=str(Path(temporary) / f"{index}.pyc"), doraise=True)
+if shutil.which("ruff"):
+    subprocess.run(["ruff", "check", "--quiet", "--select=F,E9", *map(str, python_files)], check=True, timeout=15)
 print(tr("Python syntax OK: {} files", "Python 语法检查通过：{} 个文件").format(len(python_files)))
 
 # This import probe creates no UI and does not need an accessibility connection.

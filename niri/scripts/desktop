@@ -20,7 +20,7 @@ base=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 # user locale. Skip the Python re-exec when no session_locale is configured or
 # for pure control hotkeys that never spawn user apps.
 case "${1:-}" in
-    volume|brightness|notification-toggle|bar-toggle|reload|theme-reload|lock|sleep|idle-toggle|bar-backend|daily-components) ;;
+    volume|brightness|notification-toggle|bar-toggle|reload|theme-reload|lock|sleep|power|clipboard|clipboard-clear|idle-toggle|bar-backend|daily-components) ;;
     *)
         lang_state=${XDG_STATE_HOME:-$HOME/.local/state}/selandia-niri/language.json
         if [[ "${SELANDIA_LANGUAGE_WRAPPED:-0}" != 1 && -f "$base/shell/language_settings.py" && -r "$lang_state" ]]; then

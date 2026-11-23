@@ -55,7 +55,7 @@ unsafe fn colors(widget:*mut c_void,values:&mut Vec<String>){unsafe {
 unsafe fn stacks(widget:*mut c_void,values:&mut Vec<String>){unsafe {
     if g_type_check_instance_is_a(widget,gtk_stack_get_type())!=0 {
         let name=gtk_stack_get_visible_child_name(widget);
-        let selected=if name.is_null(){String::new()}else{std::ffi::CStr::from_ptr(name).to_string_lossy().into_owned()};
+        let selected=if name.is_null(){String::new()}else{std::ffi::CStr::from_ptr(name).to_string_lossy().replace('\\',"\\\\").replace('"',"\\\"")};
         let(mut min,mut nat)=(0,0);gtk_widget_get_preferred_height_for_width(widget,gtk_widget_get_allocated_width(widget),&mut min,&mut nat);
         values.push(format!("{{\"selected\":\"{}\",\"homogeneous\":{},\"min\":{},\"nat\":{}}}",selected,gtk_stack_get_homogeneous(widget),min,nat));
     }

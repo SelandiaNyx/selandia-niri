@@ -23,10 +23,10 @@ binds {
     Mod+Shift+N hotkey-overlay-title=null { spawn "playerctl" "next"; }
     Mod+Shift+B hotkey-overlay-title=null { spawn "playerctl" "previous"; }
     Mod+Shift+P hotkey-overlay-title=null { spawn "playerctl" "play-pause"; }
-    Mod+Slash hotkey-overlay-title="Shortcut library · 快捷键指南" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" shortcuts"; }
-    Mod+Shift+Slash hotkey-overlay-title="Native shortcuts · 原生快捷键提示" repeat=false { show-hotkey-overlay; }
-    Mod+I hotkey-overlay-title="Control Center · 控制中心" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" control"; }
-    Mod+A hotkey-overlay-title="AI sidebar · AI 侧栏" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" ai"; }
+    Mod+Slash hotkey-overlay-title="快捷键指南" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" shortcuts"; }
+    Mod+Shift+Slash hotkey-overlay-title="原生快捷键提示" repeat=false { show-hotkey-overlay; }
+    Mod+I hotkey-overlay-title="控制中心" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" control"; }
+    Mod+A hotkey-overlay-title="AI 侧栏" repeat=false { spawn-sh "\"${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/desktop\" ai"; }
     Mod+Tab hotkey-overlay-title="工作区总览" repeat=false { toggle-overview; }
     Mod+Q hotkey-overlay-title="关闭窗口" repeat=false { close-window; }
     Mod+F hotkey-overlay-title="全屏" repeat=false { fullscreen-window; }
