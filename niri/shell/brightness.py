@@ -18,6 +18,10 @@ import sys
 import threading
 import time
 
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+from i18n import tr
+
 
 SYSFS = Path("/sys")
 DEVICES = Path("/dev")
@@ -42,12 +46,12 @@ def _run(arguments):
                                 timeout=COMMAND_TIMEOUT,
                                 env=dict(os.environ, LC_ALL="C.UTF-8"))
     except subprocess.TimeoutExpired as error:
-        raise RuntimeError("Brightness request timed out · 亮度操作超时；请检查显示器 DDC/CI") from error
+        raise RuntimeError(tr("Brightness request timed out; check monitor DDC/CI", "亮度操作超时；请检查显示器 DDC/CI")) from error
     except OSError as error:
-        raise RuntimeError(f"Brightness command unavailable · 亮度命令不可用: {error}") from error
+        raise RuntimeError(tr("Brightness command unavailable: ", "亮度命令不可用: ") + str(error)) from error
     if result.returncode:
         detail = (result.stderr or result.stdout).strip()[-400:]
-        raise RuntimeError("Brightness request failed · 亮度操作失败" + (f": {detail}" if detail else ""))
+        raise RuntimeError(tr("Brightness request failed", "亮度操作失败") + (f": {detail}" if detail else ""))
     return result.stdout.strip()
 
 
@@ -55,10 +59,10 @@ def parse_vcp(output):
     """ddcutil --brief getvcp 10 returns decimal current and maximum values."""
     match = re.search(r"^VCP\s+10\s+C\s+(\d+)\s+(\d+)\s*$", output, re.MULTILINE)
     if not match:
-        raise RuntimeError("Brightness VCP 0x10 unavailable; enable DDC/CI in the monitor menu · 显示器未返回亮度；请在屏幕菜单启用 DDC/CI")
+        raise RuntimeError(tr("Brightness VCP 0x10 unavailable; enable DDC/CI in the monitor menu", "显示器未返回亮度；请在屏幕菜单启用 DDC/CI"))
     current, maximum = map(int, match.groups())
     if maximum <= 0 or current > maximum:
-        raise RuntimeError("Invalid monitor brightness range · 显示器返回的亮度范围无效")
+        raise RuntimeError(tr("Invalid monitor brightness range", "显示器返回的亮度范围无效"))
     return current, maximum
 
 
@@ -82,7 +86,7 @@ def _discover():
     for backlight in sorted((SYSFS / "class/backlight").glob("*")):
         if not (backlight / "brightness").exists():
             continue
-        devices.append({"id": f"backlight:{backlight.name}", "label": f"Built-in · 内置屏幕 ({backlight.name})",
+        devices.append({"id": f"backlight:{backlight.name}", "label": tr("Built-in", "内置屏幕") + f" ({backlight.name})",
                         "backend": "backlight", "output": "", "name": backlight.name,
                         "path": str(backlight), "percent": None, "available": False, "reason": ""})
     has_backlight = bool(devices)
@@ -107,27 +111,27 @@ def _discover():
 def _read_device(device):
     if device["backend"] == "backlight":
         if not shutil.which("brightnessctl"):
-            raise RuntimeError("Install brightnessctl with ./control.sh repair · 请运行 ./control.sh repair 安装 brightnessctl")
+            raise RuntimeError(tr("Install brightnessctl with: ", "请安装 brightnessctl：") + "./control.sh repair")
         path = Path(device["path"])
         try:
             current, maximum = int(_text(path / "brightness")), int(_text(path / "max_brightness"))
         except ValueError as error:
-            raise RuntimeError("Backlight brightness unavailable · 无法读取内置屏幕亮度") from error
+            raise RuntimeError(tr("Backlight brightness unavailable", "无法读取内置屏幕亮度")) from error
         if maximum <= 0 or current < 0 or current > maximum:
-            raise RuntimeError("Invalid backlight range · 内置背光范围无效")
+            raise RuntimeError(tr("Invalid backlight range", "内置背光范围无效"))
     else:
         if not shutil.which("ddcutil"):
-            raise RuntimeError("Install ddcutil with ./control.sh repair · 请运行 ./control.sh repair 安装 ddcutil")
+            raise RuntimeError(tr("Install ddcutil with: ", "请安装 ddcutil：") + "./control.sh repair")
         bus = device["bus"]
         if bus is None:
-            raise RuntimeError("No DDC bus for this connector · 此接口未提供 DDC 总线；请检查连接线或转接器")
+            raise RuntimeError(tr("No DDC bus for this connector", "此接口未提供 DDC 总线；请检查连接线或转接器"))
         node = DEVICES / f"i2c-{bus}"
         if not node.exists():
             if not (SYSFS / "module/i2c_dev").exists():
-                raise RuntimeError("Load i2c-dev: sudo modprobe i2c-dev · 请加载 I²C 内核模块：sudo modprobe i2c-dev")
-            raise RuntimeError(f"{node} unavailable · I²C 设备不可访问；请检查显示器连接与设备访问权限")
+                raise RuntimeError(tr("Load i2c-dev: ", "请加载 I²C 内核模块：") + "sudo modprobe i2c-dev")
+            raise RuntimeError(f"{node}: " + tr("I²C device unavailable; check monitor connection and permissions", "I²C 设备不可访问；请检查显示器连接与设备访问权限"))
         if not os.access(node, os.R_OK | os.W_OK):
-            raise RuntimeError(f"No read/write access to {node}; re-login after installing ddcutil · 无 I²C 读写权限；安装 ddcutil 后请重新登录以应用 udev 权限")
+            raise RuntimeError(tr(f"No read/write access to {node}; re-login after installing ddcutil", f"无 {node} 的 I²C 读写权限；安装 ddcutil 后请重新登录以应用 udev 权限"))
         current, maximum = parse_vcp(_run(["ddcutil", "--noconfig", "--bus", str(bus), "--brief", "getvcp", "10"]))
     device.update(percent=round(current / maximum * 100), current=current, maximum=maximum,
                   available=True, reason="")
@@ -159,21 +163,21 @@ def read_state(force=False):
             _cache[device["id"]] = (time.monotonic(), copy.deepcopy(device), identity)
         reason = "" if any(device["available"] for device in devices) else (
             "\n".join(f'{device["label"]}: {device["reason"]}' for device in devices)
-            or "No connected brightness device · 未检测到可调亮度的屏幕")
+            or tr("No connected brightness device", "未检测到可调亮度的屏幕"))
         return {"devices": devices, "reason": reason}
 
 
 def set_percent(device_id, value):
     """Validate a currently attached device, then set verified hardware brightness."""
     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value <= 100:
-        raise ValueError("Brightness must be 0–100% · 亮度必须在 0–100% 范围内")
+        raise ValueError(tr("Brightness must be 0–100%", "亮度必须在 0–100% 范围内"))
     if not isinstance(device_id, str) or not device_id:
-        raise ValueError("Select a brightness device · 请选择亮度设备")
+        raise ValueError(tr("Select a brightness device", "请选择亮度设备"))
     with _lock:
         devices = _discover()
         device = next((item for item in devices if item["id"] == device_id), None)
         if device is None:
-            raise RuntimeError("Selected display disconnected or replaced · 所选屏幕已断开或被替换，请重新选择")
+            raise RuntimeError(tr("Selected display disconnected or replaced", "所选屏幕已断开或被替换，请重新选择"))
         # Read the live maximum; never assume monitors use a 0–100 VCP range.
         # Reuse a very fresh cached reading (e.g., from step()) to avoid double DDC I2C.
         identity = (device.get("bus"), device.get("path"))
@@ -192,7 +196,7 @@ def set_percent(device_id, value):
             # Recheck EDID/bus after the read so a hotplug cannot redirect a write.
             current = next((item for item in _discover() if item["id"] == device_id), None)
             if current is None or current["bus"] != device["bus"]:
-                raise RuntimeError("Display connection changed; retry · 显示器连接已变化，请重试")
+                raise RuntimeError(tr("Display connection changed; retry", "显示器连接已变化，请重试"))
             _run(["ddcutil", "--noconfig", "--bus", str(device["bus"]), "--verify", "setvcp", "10", str(target)])
             device.update(current=target, percent=round(target / device["maximum"] * 100))
         _cache[device_id] = (time.monotonic(), copy.deepcopy(device), identity)
@@ -219,16 +223,16 @@ def _focused_output():
 
 def step(direction, device_id=None):
     if direction not in ("up", "down"):
-        raise ValueError("Use up or down · 请使用 up 或 down")
+        raise ValueError(tr("Use up or down", "请使用 up 或 down"))
     with _lock:
         discovered = _discover()
         if not discovered:
-            raise RuntimeError("No connected brightness device · 未检测到可调亮度的屏幕")
+            raise RuntimeError(tr("No connected brightness device", "未检测到可调亮度的屏幕"))
         target = None
         if device_id:
             target = next((item for item in discovered if item["id"] == device_id), None)
             if target is None:
-                raise RuntimeError("Selected brightness device unavailable · 所选亮度设备不可用")
+                raise RuntimeError(tr("Selected brightness device unavailable", "所选亮度设备不可用"))
         else:
             focused = _focused_output()
             target = next((item for item in discovered if item["output"] == focused), None)
@@ -257,12 +261,12 @@ def step(direction, device_id=None):
         if device is None and len(devices) == 1:
             device = devices[0]
         if device is None:
-            raise RuntimeError(state["reason"] or "Select a monitor in Control Center · 请在控制中心选择显示器")
+            raise RuntimeError(state["reason"] or tr("Select a monitor in Control Center", "请在控制中心选择显示器"))
     return set_percent(device["id"], max(0, min(100, device["percent"] + (5 if direction == "up" else -5))))
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Hardware brightness · 硬件亮度控制")
+    parser = argparse.ArgumentParser(description=tr("Hardware brightness", "硬件亮度控制"))
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("get")
     stepping = commands.add_parser("step")

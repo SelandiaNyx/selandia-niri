@@ -1,3 +1,13 @@
+## 2026-11-24 · Argon × Opus 联合解耦重构、i18n 棘轮与单测补强
+
+完成 `Panel` 巨型类向 `panel_{ai,appearance,audio,quick,support,system}.py` 六个职责模块的拆分，以及 `appearance.py:render_files` 向 `RENDERERS` 独立目标渲染器的拆分（2,160 组配置差分测试 100% 逐字节一致）。同步 `niri/fuzzel/fuzzel.ini`、`niri/swaync/config.json`、`niri/swaync/style.css` 基础回退模板，补齐 `desktop` 脚本 `power|clipboard|clipboard-clear` 免重入快路径、`control.sh` 缺失 AUR 助手提示与 `input_region.rs` JSON 转义。
+
+完成 `audio_backend.py`、`brightness.py`、`display_backend.py` 全部双语字面量向 `tr(en, zh)` 的迁移，并新增 `tests/test_i18n_ratchet.py` 与 `tests/test_shell_controls_coverage.py`（直接覆盖 9 个 UI/控制模块），静默壁纸单测的 `log_rotation` 控制台噪音。全量自检 `./check.sh` 与 1,038 项单元测试全部通过（0 失败、0 错误、1 项环境跳过），并重新导出干净分享包。
+
+## 2026-11-23 · 液态琉璃视觉升级、事件驱动优化与回归加固
+
+默认不透明度调整为 `0.78`，九套深浅配色全面升级为双色液态琉璃渐变并修复 GTK3 样式层叠顺序；`check.sh` 与 `reload_components.py` 新增 GTK4 CSS `parsing-error` 信号拦截；`lifecycle.py` 同步 `THEMES` 完整生成列表；`wallpaper.py`、`island.py`、`metrics.py` 与配置加载热路径完成事件驱动与 stat 缓存优化，新增 `tests/test_optimizations_regressions.py`。工作区清理 10.9 GB 历史暂存与未引用验证产物，保留全部文档引用证据与外部备份 `~/Selandia-Niri-Backup-20261123/`。
+
 ## 2026-10-19 · 控制中心打磨、完整 smoke 与首样本指标
 
 补齐全量 smoke：设置页自 2026-10-15 起是普通 Control Center 窗口，探针改为按 PID 检测；display_probe 在缩放后重新读取当前 mode，完整隔离 smoke 恢复通过。声音页首次进入显示“正在检测…”下拉占位，Quick 手动刷新按钮在请求期间禁用，System 页进入时建立指标基线并 50ms 后首采，侧栏宽度从 190 调整到 215px。新增标题栏时钟、prime 首样本和 Quick 音量 `N/A` 回归。

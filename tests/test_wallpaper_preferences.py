@@ -132,6 +132,9 @@ class PreferencesTransactionsTests(unittest.TestCase):
         self.image=self.root/'image.svg';self.image.write_text('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="50"><rect width="80" height="50" fill="red"/></svg>')
         w.save_settings({'selection':{'path':str(self.image),'mode':'preview','fallback':''},'audio':{'muted':True,'volume':23},'playlist':legacy()})
         self.before=w.load_settings()
+        self.rotation_events = []
+        stack_log = patch.object(w, 'log_rotation', side_effect=lambda event, **values: self.rotation_events.append((event, values)))
+        stack_log.start(); self.addCleanup(stack_log.stop)
 
     def test_invalid_new_sections_cannot_reset_selection_or_audio(self):
         raw=json.loads((w.state_dir()/'wallpaper.json').read_text())

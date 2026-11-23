@@ -316,8 +316,10 @@ class WallpaperTests(unittest.TestCase):
         server = MagicMock()
         server.poll.side_effect = SystemExit(0)
         with patch.object(wallpaper, "PlaylistRenderer", return_value=supervisor), \
-             patch.object(wallpaper.wallpaper_remote, "Server", return_value=server):
+             patch.object(wallpaper.wallpaper_remote, "Server", return_value=server), \
+             patch.object(wallpaper, "log_rotation") as log_rot:
             with self.assertRaises(SystemExit): wallpaper.run()
+        log_rot.assert_called_once_with("startup-fallback", error="fixture failed")
         self.assertIsNone(supervisor.replace.call_args.args[0]["selection"])
         self.assertEqual(supervisor.replace.call_args.args[0]["display"]["mode"], "fill")
         supervisor.close.assert_called_once(); server.close.assert_called_once()

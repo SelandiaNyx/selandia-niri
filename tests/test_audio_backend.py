@@ -7,12 +7,18 @@ import unittest
 from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "niri/shell"))
 
+import i18n
+
 spec = importlib.util.spec_from_file_location("audio_backend", Path(__file__).resolve().parents[1] / "niri/shell/audio_backend.py")
 audio = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(audio)
 
 
 class AudioTests(unittest.TestCase):
+    def setUp(self):
+        i18n.set_language("en_US")
+        self.addCleanup(i18n.set_language, None)
+
     def read_fixture(self, sinks=(), sources=(), cards=(), default_sink="", default_source="", advanced=False):
         data = {"sinks": list(sinks), "sources": list(sources), "cards": list(cards)}
         defaults = {"get-default-sink": default_sink, "get-default-source": default_source}
@@ -23,9 +29,11 @@ class AudioTests(unittest.TestCase):
         return state
 
     def test_missing_localized_descriptions_have_readable_fallbacks(self):
-        self.assertEqual(audio._description({"name": "analog-output-headphones", "description": "(null)"}), "Headphones · 耳机")
+        self.assertEqual(audio._description({"name": "analog-output-headphones", "description": "(null)"}), "Headphones")
         self.assertIn("Analog stereo", audio._description({"name": "output:analog-stereo+input:analog-stereo"}))
         self.assertEqual(audio._description({"name": "vendor.device", "description": "USB speakers"}), "USB speakers")
+        i18n.set_language("zh_CN")
+        self.assertEqual(audio._description({"name": "analog-output-headphones", "description": "(null)"}), "耳机")
     def test_volume_averages_channels_and_distinguishes_missing_data(self):
         self.assertEqual(audio._volume({"left": {"value_percent": "25%"}, "right": {"value_percent": "75%"}}), 50)
         self.assertEqual(audio._volume({"mono": {"value": 32768}}), 50)

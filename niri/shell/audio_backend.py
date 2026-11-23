@@ -3,7 +3,12 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 import math
 import os
+from pathlib import Path
 import subprocess
+import sys
+
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 from i18n import tr
 
 
@@ -12,10 +17,10 @@ def _run(*arguments):
         result = subprocess.run(["pactl", *arguments], capture_output=True, text=True,
                                 timeout=6, env=dict(os.environ, LC_ALL="C.UTF-8"))
     except (OSError, subprocess.SubprocessError) as error:
-        raise RuntimeError(f"Audio service unavailable · 音频服务不可用: {error}") from error
+        raise RuntimeError(tr("Audio service unavailable: ", "音频服务不可用: ") + str(error)) from error
     if result.returncode:
         raise RuntimeError((result.stderr or result.stdout).strip()[-500:]
-                           or "Audio command failed · 音频操作失败")
+                           or tr("Audio command failed", "音频操作失败"))
     return result.stdout.strip()
 
 
@@ -23,21 +28,21 @@ def _list(kind):
     try:
         result = json.loads(_run("--format=json", "list", kind))
     except ValueError as error:
-        raise RuntimeError("Invalid audio service response · 音频服务返回无效数据") from error
+        raise RuntimeError(tr("Invalid audio service response", "音频服务返回无效数据")) from error
     if not isinstance(result, list) or any(not isinstance(item, dict) for item in result):
-        raise RuntimeError("Invalid audio device list · 音频设备列表无效")
+        raise RuntimeError(tr("Invalid audio device list", "音频设备列表无效"))
     return result
 
 
 def _name(value):
     if not isinstance(value, str) or not value or value.startswith("-") or any(ord(c) < 32 for c in value):
-        raise ValueError("Invalid device identifier · 设备标识无效")
+        raise ValueError(tr("Invalid device identifier", "设备标识无效"))
     return value
 
 
 def _kind(value):
     if value not in ("sink", "source"):
-        raise ValueError("Unknown audio device type · 音频设备类型无效")
+        raise ValueError(tr("Unknown audio device type", "音频设备类型无效"))
     return value
 
 
@@ -47,23 +52,23 @@ def _description(item):
                   properties.get("node.description")):
         if isinstance(value, str) and value and value != "(null)":
             return value
-    name = item.get("name") or "Unknown device · 未知设备"
+    name = item.get("name") or tr("Unknown device", "未知设备")
     labels = {
-        "off": "Off · 关闭声卡", "pro-audio": "Pro Audio · 专业音频",
-        "analog-output-headphones": "Headphones · 耳机", "analog-output-speaker": "Speakers · 扬声器",
-        "analog-output-lineout": "Line out · 音频输出", "analog-input-mic": "Microphone · 麦克风",
-        "analog-input-front-mic": "Front microphone · 前置麦克风", "analog-input-rear-mic": "Rear microphone · 后置麦克风",
-        "analog-input-linein": "Line in · 音频输入", "iec958-stereo-output": "S/PDIF output · 数字音频输出",
-        "a2dp-sink": "Bluetooth stereo · 蓝牙立体声", "headset-head-unit": "Headset call mode · 耳麦通话模式",
+        "off": tr("Off", "关闭声卡"), "pro-audio": tr("Pro Audio", "专业音频"),
+        "analog-output-headphones": tr("Headphones", "耳机"), "analog-output-speaker": tr("Speakers", "扬声器"),
+        "analog-output-lineout": tr("Line out", "音频输出"), "analog-input-mic": tr("Microphone", "麦克风"),
+        "analog-input-front-mic": tr("Front microphone", "前置麦克风"), "analog-input-rear-mic": tr("Rear microphone", "后置麦克风"),
+        "analog-input-linein": tr("Line in", "音频输入"), "iec958-stereo-output": tr("S/PDIF output", "数字音频输出"),
+        "a2dp-sink": tr("Bluetooth stereo", "蓝牙立体声"), "headset-head-unit": tr("Headset call mode", "耳麦通话模式"),
     }
     if name in labels:
         return labels[name]
-    modes = {"analog-stereo": "Analog stereo · 模拟立体声", "hdmi-stereo": "HDMI stereo · HDMI 立体声",
-             "iec958-stereo": "Digital stereo · 数字立体声", "analog-surround-51": "Surround 5.1 · 5.1 环绕声",
-             "analog-surround-71": "Surround 7.1 · 7.1 环绕声"}
+    modes = {"analog-stereo": tr("Analog stereo", "模拟立体声"), "hdmi-stereo": tr("HDMI stereo", "HDMI 立体声"),
+             "iec958-stereo": tr("Digital stereo", "数字立体声"), "analog-surround-51": tr("Surround 5.1", "5.1 环绕声"),
+             "analog-surround-71": tr("Surround 7.1", "7.1 环绕声")}
     parts = name.split("+")
     if all(part.startswith(("output:", "input:")) and part.split(":", 1)[1] in modes for part in parts):
-        return " + ".join(modes[part.split(":", 1)[1]] + (" (Out/出)" if part.startswith("output:") else " (In/入)")
+        return " + ".join(modes[part.split(":", 1)[1]] + (tr(" (Out)", " (出)") if part.startswith("output:") else tr(" (In)", " (入)"))
                           for part in parts)
     return name
 
@@ -149,13 +154,13 @@ def _device(item, default=""):
         if pcm is not None:
             description += f" · PCM {pcm}"
     reason = {
-        "monitor": "Playback monitor, not a microphone · 播放监听源，并非麦克风",
-        "virtual": "Virtual audio route · 虚拟音频通道",
-        "pro": "Raw Pro Audio endpoint; jack status may be unknown · 专业音频原始通道，插孔状态可能未知",
+        "monitor": tr("Playback monitor, not a microphone", "播放监听源，并非麦克风"),
+        "virtual": tr("Virtual audio route", "虚拟音频通道"),
+        "pro": tr("Raw Pro Audio endpoint; jack status may be unknown", "专业音频原始通道，插孔状态可能未知"),
         "hardware": "",
     }[kind]
     if availability == "unavailable":
-        reason = "Active port is disconnected · 当前端口未连接" if active else "All ports are disconnected · 所有端口均未连接"
+        reason = tr("Active port is disconnected", "当前端口未连接") if active else tr("All ports are disconnected", "所有端口均未连接")
     return {"name": item["name"], "description": description,
             "volume": _volume(item.get("volume")), "mute": bool(item.get("mute", False)),
             "ports": ports, "active_port": active_port,
@@ -258,13 +263,13 @@ def set_default(kind, name):
 def set_volume(kind, name, percent):
     value = float(percent)
     if not math.isfinite(value) or not 0 <= value <= 100:
-        raise ValueError("Volume must be 0–100% · 音量范围为 0–100%")
+        raise ValueError(tr("Volume must be 0–100%", "音量范围为 0–100%"))
     return _run(f"set-{_kind(kind)}-volume", _name(name), f"{value:.0f}%")
 
 
 def set_mute(kind, name, muted):
     if not isinstance(muted, bool):
-        raise ValueError("Mute must be true or false · 静音状态必须是布尔值")
+        raise ValueError(tr("Mute must be true or false", "静音状态必须是布尔值"))
     return _run(f"set-{_kind(kind)}-mute", _name(name), "1" if muted else "0")
 
 
@@ -323,6 +328,7 @@ def move_streams(kind, name):
         except RuntimeError as error:
             failures.append(str(error))
     if failures:
-        raise RuntimeError(f"Moved {moved} streams; some apps could not move · 已移动 {moved} 路，部分应用切换失败: "
+        raise RuntimeError(tr(f"Moved {moved} streams; some apps could not move: ",
+                              f"已移动 {moved} 路，部分应用切换失败: ")
                            + failures[0])
     return moved

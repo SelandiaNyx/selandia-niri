@@ -20,6 +20,10 @@ import tempfile
 import time
 import uuid
 
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+from i18n import tr
+
 BASE = Path(__file__).resolve().parent.parent
 CONFIRM_SECONDS = 15
 GENERATED = Path("conf/display-settings.kdl")
@@ -36,15 +40,15 @@ def _run(*arguments):
     try:
         result = subprocess.run(["niri", *arguments], capture_output=True, text=True, timeout=5)
     except (OSError, subprocess.SubprocessError) as error:
-        raise RuntimeError(f"Niri unavailable · 无法连接 Niri: {error}") from error
+        raise RuntimeError(tr("Niri unavailable: ", "无法连接 Niri: ") + str(error)) from error
     if result.returncode:
-        raise RuntimeError((result.stderr or result.stdout).strip()[-1500:] or "Niri command failed · Niri 操作失败")
+        raise RuntimeError((result.stderr or result.stdout).strip()[-1500:] or tr("Niri command failed", "Niri 操作失败"))
     return result.stdout
 
 
 def _name(name):
     if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}", name):
-        raise ValueError("Invalid output connector · 屏幕接口名称无效")
+        raise ValueError(tr("Invalid output connector", "屏幕接口名称无效"))
     return name
 
 
@@ -90,35 +94,35 @@ def read_outputs():
                             "modes": modes, "current": current, "vrr_supported": bool(item.get("vrr_supported"))})
         return sorted(outputs, key=lambda output: output["name"])
     except (ValueError, TypeError, KeyError, AttributeError) as error:
-        raise RuntimeError("Invalid Niri output response · Niri 屏幕信息无效") from error
+        raise RuntimeError(tr("Invalid Niri output response", "Niri 屏幕信息无效")) from error
 
 
 def validate_settings(values):
     keys = {"mode", "scale", "max_bpc", "transform", "x", "y", "vrr"}
     if not isinstance(values, dict) or set(values) != keys:
-        raise ValueError("Incomplete display settings · 屏幕设置不完整")
+        raise ValueError(tr("Incomplete display settings", "屏幕设置不完整"))
     result = dict(values)
     mode = values["mode"]
     match = re.fullmatch(r"([0-9]{2,5})[xX*×]([0-9]{2,5})(?:@([0-9]{1,4}(?:\.[0-9]{1,3})?)(?:Hz)?)?", mode.strip(), re.I) if isinstance(mode, str) else None
     if not match:
-        raise ValueError("Use WIDTHxHEIGHT@Hz, e.g. 1920x1080@60 · 格式为 1920x1080@60")
+        raise ValueError(tr("Use WIDTHxHEIGHT@Hz, e.g. 1920x1080@60", "格式为 1920x1080@60"))
     width, height = int(match[1]), int(match[2])
     refresh = float(match[3]) if match[3] else None
     if not 320 <= width <= 32768 or not 200 <= height <= 32768 or (refresh is not None and not 1 <= refresh <= 1000):
-        raise ValueError("Display mode is outside supported limits · 分辨率或刷新率超出范围")
+        raise ValueError(tr("Display mode is outside supported limits", "分辨率或刷新率超出范围"))
     result["mode"] = f"{width}x{height}" + (f"@{refresh:.3f}".rstrip("0").rstrip(".") if refresh is not None else "")
     scale = values["scale"]
     if isinstance(scale, bool) or not isinstance(scale, (int, float)) or not math.isfinite(scale) or not 0.5 <= scale <= 4:
-        raise ValueError("Scale must be 50–400% · 缩放范围为 50–400%")
+        raise ValueError(tr("Scale must be 50–400%", "缩放范围为 50–400%"))
     result["scale"] = round(float(scale), 3)
     depth = values["max_bpc"]
     if depth is not None and (not isinstance(depth, int) or isinstance(depth, bool) or depth not in DEPTHS):
-        raise ValueError("Maximum BPC must be Auto, 6, 8, 10, 12, 14 or 16 · 最大位深无效")
+        raise ValueError(tr("Maximum BPC must be Auto, 6, 8, 10, 12, 14 or 16", "最大位深无效"))
     if values["transform"] not in TRANSFORMS or not isinstance(values["vrr"], bool):
-        raise ValueError("Invalid rotation or VRR · 旋转或可变刷新率设置无效")
+        raise ValueError(tr("Invalid rotation or VRR", "旋转或可变刷新率设置无效"))
     for key in ("x", "y"):
         if isinstance(values[key], bool) or not isinstance(values[key], int) or not -65536 <= values[key] <= 65536:
-            raise ValueError("Position must be an integer from −65536 to 65536 · 屏幕位置超出范围")
+            raise ValueError(tr("Position must be an integer from −65536 to 65536", "屏幕位置超出范围"))
     return result
 
 
@@ -144,7 +148,7 @@ def _read_json(path, default=None):
     except FileNotFoundError:
         return default
     except (ValueError, OSError) as error:
-        raise RuntimeError(f"Cannot read display state · 无法读取屏幕设置: {path}") from error
+        raise RuntimeError(tr("Cannot read display state: ", "无法读取屏幕设置: ") + str(path)) from error
 
 
 def _saved():
@@ -154,7 +158,7 @@ def _saved():
             raise ValueError("version")
         return {_name(name): validate_settings(values) for name, values in data["outputs"].items()}
     except (KeyError, TypeError, ValueError) as error:
-        raise RuntimeError("Invalid saved display settings · 已保存的屏幕设置无效") from error
+        raise RuntimeError(tr("Invalid saved display settings", "已保存的屏幕设置无效")) from error
 
 
 _DEFAULT_RUN = _run
@@ -205,7 +209,7 @@ def read_state():
 def _atomic(path, contents):
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.is_symlink():
-        raise RuntimeError(f"Refusing a replaced settings path · 设置路径已被替换: {path}")
+        raise RuntimeError(tr("Refusing a replaced settings path: ", "设置路径已被替换: ") + str(path))
     descriptor, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     try:
         with os.fdopen(descriptor, "w") as stream:
@@ -236,7 +240,7 @@ def _digest(text):
 
 def _contents(path):
     if path.is_symlink():
-        raise RuntimeError(f"Refusing a replaced settings path · 设置路径已被替换: {path}")
+        raise RuntimeError(tr("Refusing a replaced settings path: ", "设置路径已被替换: ") + str(path))
     try:
         return path.read_text()
     except FileNotFoundError:
@@ -247,7 +251,7 @@ def _validate_config(contents):
     main = (BASE / "config.kdl").read_text()
     includes = re.findall(r'^\s*include\s+"([^"]+)"', main, re.M)
     if not includes or includes[0] != str(GENERATED):
-        raise RuntimeError("Display include must be first in config.kdl · 屏幕设置必须置于配置首个 include")
+        raise RuntimeError(tr("Display include must be first in config.kdl", "屏幕设置必须置于配置首个 include"))
     with tempfile.TemporaryDirectory(prefix="selandia-display-validate-") as temporary:
         staged = Path(temporary) / "niri"
         _copy_kdl_tree(BASE, staged)
@@ -268,7 +272,7 @@ def _spawn_watchdog(token):
         ready, _, _ = select.select([reader], [], [], 3)
         if not ready or os.read(reader, 1) != b"1":
             process.terminate()
-            raise RuntimeError("Rollback timer did not start · 自动恢复计时器未能启动")
+            raise RuntimeError(tr("Rollback timer did not start", "自动恢复计时器未能启动"))
     finally:
         os.close(reader)
         if writer >= 0:
@@ -309,7 +313,7 @@ def _rollback(transaction):
             _atomic(target, transaction["previous_contents"])
         _restore_runtime(transaction)
     elif current != transaction["previous_contents"]:
-        raise RuntimeError("Display file was edited during preview; edits preserved · 预览期间屏幕文件被手动修改，已保留改动")
+        raise RuntimeError(tr("Display file was edited during preview; edits preserved", "预览期间屏幕文件被手动修改，已保留改动"))
     (_state_dir() / "pending.json").unlink(missing_ok=True)
 
 
@@ -324,7 +328,7 @@ def begin_apply(name, settings):
     settings = validate_settings(settings)
     outputs = {output["name"]: output for output in read_outputs()}
     if name not in outputs or outputs[name]["current"] is None:
-        raise ValueError("Choose an active connected display · 请选择已连接且启用的屏幕")
+        raise ValueError(tr("Choose an active connected display", "请选择已连接且启用的屏幕"))
     output = outputs[name]
     modes = output["modes"]
     if "@" not in settings["mode"]:
@@ -332,11 +336,11 @@ def begin_apply(name, settings):
         if matches:
             settings["mode"] = max(matches, key=lambda mode: mode["refresh_rate"])["mode"]
     if settings["mode"] not in {mode["mode"] for mode in modes}:
-        raise ValueError("This mode is not reported by the display; choose an exact listed refresh rate · 屏幕不支持该模式，请选择列表中的准确刷新率")
+        raise ValueError(tr("This mode is not reported by the display; choose an exact listed refresh rate", "屏幕不支持该模式，请选择列表中的准确刷新率"))
     if settings["vrr"] and not output["vrr_supported"]:
-        raise ValueError("This display does not report VRR support · 此屏幕未报告可变刷新率支持")
+        raise ValueError(tr("This display does not report VRR support", "此屏幕未报告可变刷新率支持"))
     if settings["max_bpc"] is not None and not max_bpc_supported():
-        raise ValueError("This Niri version does not support max-bpc; upgrade Niri first · 当前 Niri 不支持位深设置，需先升级 Niri")
+        raise ValueError(tr("This Niri version does not support max-bpc; upgrade Niri first", "当前 Niri 不支持位深设置，需先升级 Niri"))
     with _lock():
         pending = _read_json(_state_dir() / "pending.json")
         if pending:
@@ -345,16 +349,16 @@ def begin_apply(name, settings):
             elif pending["deadline"] <= time.time():
                 _rollback(pending)
             else:
-                raise RuntimeError("Confirm or revert the previous preview first · 请先确认或恢复上一次屏幕预览")
+                raise RuntimeError(tr("Confirm or revert the previous preview first", "请先确认或恢复上一次屏幕预览"))
         saved = _saved()
         previous = _contents(BASE / GENERATED)
         if previous not in (None, render_settings(saved)):
-            raise RuntimeError("Generated display settings were edited; edits preserved · 自动生成的屏幕配置被手动修改，已保留改动")
+            raise RuntimeError(tr("Generated display settings were edited; edits preserved", "自动生成的屏幕配置被手动修改，已保留改动"))
         updated = {**saved, name: settings}
         contents = render_settings(updated)
         _validate_config(contents)
         if _contents(BASE / GENERATED) != previous:
-            raise RuntimeError("Display file changed during validation · 校验期间屏幕配置已变更")
+            raise RuntimeError(tr("Display file changed during validation", "校验期间屏幕配置已变更"))
         token = uuid.uuid4().hex
         pending = {"version": 1, "token": token, "deadline": time.time() + CONFIRM_SECONDS,
                    "output": name, "previous_contents": previous, "applied_hash": _digest(contents),
@@ -382,7 +386,7 @@ def confirm(token):
             _rollback(pending)
             return False
         if _digest(_contents(BASE / GENERATED)) != pending["applied_hash"]:
-            raise RuntimeError("Display settings changed during preview · 预览期间屏幕配置已变更")
+            raise RuntimeError(tr("Display settings changed during preview", "预览期间屏幕配置已变更"))
         pending["phase"] = "confirmed"
         _write_json(_state_dir() / "pending.json", pending)
         _finish_confirmation(pending)

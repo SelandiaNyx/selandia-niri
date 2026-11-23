@@ -13,6 +13,9 @@ import unittest
 from unittest.mock import patch
 
 MODULE = Path(__file__).resolve().parents[1] / "niri/shell/display_backend.py"
+sys.path.insert(0, str(MODULE.parent))
+import i18n
+
 spec = importlib.util.spec_from_file_location("display_backend", MODULE)
 display = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(display)
@@ -29,6 +32,8 @@ VALUES = {"mode": "1920x1080@60", "scale": 1.0, "max_bpc": None, "transform": "n
 
 class NativeDisplayTests(unittest.TestCase):
     def setUp(self):
+        i18n.set_language("en_US")
+        self.addCleanup(i18n.set_language, None)
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)

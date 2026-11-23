@@ -2,10 +2,13 @@
 import importlib.util
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "niri/shell"))
+import i18n
 
 spec = importlib.util.spec_from_file_location("brightness", Path(__file__).resolve().parents[1] / "niri/shell/brightness.py")
 brightness = importlib.util.module_from_spec(spec)
@@ -14,6 +17,8 @@ spec.loader.exec_module(brightness)
 
 class BrightnessTests(unittest.TestCase):
     def setUp(self):
+        i18n.set_language("en_US")
+        self.addCleanup(i18n.set_language, None)
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)

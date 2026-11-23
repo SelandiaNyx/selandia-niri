@@ -1,6 +1,26 @@
 # 批次交接说明（Handover for Codex）
 
-## 2026-11-13 当前批次
+## 2026-11-24 · Argon × Opus 联合架构解耦、i18n 棘轮与回归加固批次
+
+- **核心模块解耦（M1 & M2）**：
+  - 将 2,400+ 行的 `Panel` 巨型类按职责拆分为 [`niri/shell/panel_ai.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/panel_ai.py)、[`niri/shell/panel_appearance.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/panel_appearance.py)、[`niri/shell/panel_audio.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/panel_audio.py)、[`niri/shell/panel_quick.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/panel_quick.py)、[`niri/shell/panel_system.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/panel_system.py) 与共享工具模块 [`niri/shell/panel_support.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/panel_support.py)，`panel.py` 缩减至 ~850 行并保持所有旧符号重导出兼容；新模块均已登记至 [`tools/deploy.py`](file:///home/SelandiaNyx/Selandia's%20Niri/tools/deploy.py) `REQUIRED_SOURCES`。
+  - 将 [`niri/shell/appearance.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/appearance.py) 中 515 行的 `render_files()` 拆分为共享上下文 `_render_context()` 与 8 个按目标组件分发的纯渲染函数（`RENDERERS`），经 2,160 组参数矩阵差分校验输出 **100% 逐字节一致**。
+- **回退模板对齐与脚本/Rust 加固（A2, A3, A4, A5, A6.2）**：
+  - 同步基础回退模板 [`niri/fuzzel/fuzzel.ini`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/fuzzel/fuzzel.ini)（`Adwaita Sans:pixelsize=14`、圆角 26 与琉璃冰川色板）、[`niri/swaync/config.json`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/swaync/config.json)（386/420 宽度与 `control-center-exclusive-zone: true`）及 [`niri/swaync/style.css`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/swaync/style.css) 顶部 `@define-color` 默认值。
+  - [`niri/scripts/desktop`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/scripts/desktop) 将 `power|clipboard|clipboard-clear` 纳入免 `language_settings.py exec` 包装的快速路径；[`niri/conf/binds.kdl`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/conf/binds.kdl) 统一 `hotkey-overlay-title` 为单语中文；[`control.sh`](file:///home/SelandiaNyx/Selandia's%20Niri/control.sh) 在 `paru` 与 `yay` 均缺失时给出明确安装指引；[`niri/eww/input_region.rs`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/eww/input_region.rs) 对 `stacks()` 探测 JSON 的 `selected` 字段转义 `\` 与 `"`。
+- **i18n 显式迁移、测试覆盖补齐与静默化（M3, M4, L1, L2）**：
+  - 将 [`niri/shell/audio_backend.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/audio_backend.py)、[`niri/shell/brightness.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/brightness.py)、[`niri/shell/display_backend.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/display_backend.py) 中全部 75 处内联 `"English · 中文"` 字符串迁移为显式 `tr(en, zh)`，并新增 [`tests/test_i18n_ratchet.py`](file:///home/SelandiaNyx/Selandia's%20Niri/tests/test_i18n_ratchet.py) 锁定全库剩余双语字面量上限（169 处，严禁回升）。
+  - 新增 [`tests/test_shell_controls_coverage.py`](file:///home/SelandiaNyx/Selandia's%20Niri/tests/test_shell_controls_coverage.py) 直接覆盖 `wallpaper_controls`、`quick_controls`、`application_audio`、`bluetooth_controls`、`drawers`、`language_controls`、`scroll_guard`、`surface_registry` 与 `wallpaper_preferences`；拦截壁纸轮播单测中的 `log_rotation` stderr JSON 输出以保持测试输出整洁。
+- **已知历史技术债记录（Worktree / Fresh Clone 证据依赖）**：
+  - `tests/test_documentation.py` 会校验 `README.md` / `VALIDATION.md` / `HANDOVER.md` 中的全部相对链接（含 `.validation/daily-improve-*/` 等被 `.gitignore` 忽略的本地验证目录）。在全新 `git clone` 或新建 `git worktree` 中需复制或跳过未跟踪的 `.validation/` 历史目录；后续可考虑在 `test_documentation.py` 中对 gitignored 的历史证据路径按 `PORTABLE` 模式豁免。
+
+## 2026-11-23 · 液态琉璃视觉重塑、事件驱动优化与空间清理批次
+
+- **空间与死代码清理**：清理 `.staging/`（9.2 GB）与未引用的 `.validation/` 历史临时日志/截图，工作区占用由 **11 GB 降至 ~111 MB**；外部完整备份保存在 `~/Selandia-Niri-Backup-20261123/`（含 Git 标签 `backup/pre-optimize-20261123`）。
+- **运行时与测试性能优化**：`wallpaper.py` 轮播改为 `select` + `AudioChanges` 事件驱动；`island.py` 与 `niri_events.py` 增加 `DesktopFeed.version` 增量门控与分钟级时钟缓存；`language_settings.py`、`appearance.py`、`wallpaper.py` 增加基于 `(path, mtime_ns, size)` 的 stat 缓存；`metrics.py` 按需流式解析 `pci.ids`（省去 ~4.4 MiB 常驻堆）；单测套件耗时由 **68.4s 降至 ~34.5s**。
+- **液态琉璃（Liquid Glass）视觉升级**：默认不透明度由 `0.92` 调整为 `0.78`，9 套深浅主题升级为双色渐变与镜面高光棱边，修复 GTK3 `style.css` / `panel.css` / `control_center.css` 层叠优先级冲突。
+
+## 2026-11-13 历史批次
 
 Codex负责日常操作状态、资源调度、GPU接口核实、全量集成和发布；Gemini提供快捷入口、日历键盘与导航操作改进并独立审阅。主线随后修正窄屏按钮排布、导航焦点、普通滚轮切月与GPU覆盖表述。当前设置为18页；历史的17页、全项目最多3线程等描述不代表当前实现。
 

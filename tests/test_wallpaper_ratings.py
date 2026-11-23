@@ -24,6 +24,9 @@ class ProjectRatingTests(unittest.TestCase):
         env.start(); self.addCleanup(env.stop)
         options._project_contentrating.cache_clear()
         self.addCleanup(options._project_contentrating.cache_clear)
+        self.rotation_events = []
+        stack_log = patch.object(w, 'log_rotation', side_effect=lambda event, **values: self.rotation_events.append((event, values)))
+        stack_log.start(); self.addCleanup(stack_log.stop)
 
     def project(self, name, rating=None):
         folder = self.root / name

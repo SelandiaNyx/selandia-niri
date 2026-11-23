@@ -85,6 +85,9 @@ class PlaylistTransactionsTests(unittest.TestCase):
         self.before = w.load_settings()
         self.stack_audio = patch.object(w.wallpaper_audio, 'available', return_value=False)
         self.stack_audio.start(); self.addCleanup(self.stack_audio.stop)
+        self.rotation_events = []
+        stack_log = patch.object(w, 'log_rotation', side_effect=lambda event, **values: self.rotation_events.append((event, values)))
+        stack_log.start(); self.addCleanup(stack_log.stop)
 
     def test_playlist_does_not_reset_existing_audio_or_selection(self):
         with patch.object(w, 'restart_renderer'):

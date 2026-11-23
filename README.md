@@ -371,9 +371,9 @@ The smoke test uses a private D-Bus, a copied configuration tree, temporary stat
 - **AI：** select an installed model and correct server base (`/v1` for compatible servers) / 选择已安装模型和正确基础地址。
 - **Input/sharing / 输入与共享：** Fcitx5 uses existing settings; sharing needs PipeWire and Niri's GNOME portal / 沿用已有输入法；共享需要 PipeWire 和对应 GNOME portal。
 
-For layout preview, run `niri --config niri/preview.kdl`: Mod becomes Alt, and Alt+Shift+Escape exits. Service actions belong to a real Niri login; use the isolated smoke test for full UI previews.
+For layout preview, run `niri --config niri/preview.kdl`: Mod becomes Alt, Alt+L toggles the workspace overview (instead of locking the host session), and Alt+Shift+Escape exits. Service actions belong to a real Niri login; use the isolated smoke test for full UI previews.
 
-布局预览可运行 `niri --config niri/preview.kdl`：Mod 为 Alt，Alt+Shift+Escape 退出。服务操作用于正式登录；完整界面预览请使用隔离冒烟测试。
+布局预览可运行 `niri --config niri/preview.kdl`：Mod 为 Alt，Alt+L 切换工作区总览（避免在嵌套预览中锁住宿主会话），Alt+Shift+Escape 退出。服务操作用于正式登录；完整界面预览请使用隔离冒烟测试。
 
 Fcitx5 的输入法进程与配置工具是两个入口。系统包的 `/etc/xdg/autostart/org.fcitx.Fcitx5.desktop` 可由 Niri 会话自动启动输入法，不需要在本项目再添加一份启动项。输入法进程本身带有 `NoDisplay=true`，不会出现在启动器；配置工具可搜索“Fcitx 5 配置”，也可从**键盘与鼠标 → 输入法 → 配置 Fcitx 5 输入法**打开。
 
