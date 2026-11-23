@@ -56,6 +56,8 @@ REQUIRED_SOURCES = (
     "portals/niri-portals.conf", "niri/config.kdl", "niri/preview.kdl", "niri/monitor.kdl",
     "niri/assets/selandia-glass.svg", "niri/assets/icons/input-keyboard-symbolic.svg",
     "niri/shell/style.css", "niri/shell/panel.py", "niri/shell/surface_registry.py",
+    "niri/shell/panel_support.py", "niri/shell/panel_audio.py", "niri/shell/panel_system.py",
+    "niri/shell/panel_appearance.py", "niri/shell/panel_quick.py", "niri/shell/panel_ai.py",
     "niri/shell/navigation_catalog.py", "niri/shell/page_host.py", "niri/shell/drawers.py",
     "niri/shell/background_tasks.py", "niri/shell/gpu_metrics.py",
     "niri/shell/shortcuts.py",
