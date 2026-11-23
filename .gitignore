@@ -20,5 +20,7 @@ dist/
 .validation/daily-improve-*/
 
 # Staging, transient probes and build outputs
-agy-eligibility-fix/
 *.log
+
+# Parallel refactor worktrees
+.worktrees/
