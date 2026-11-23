@@ -6,6 +6,8 @@ separately synchronizes GTK, Qt and the desktop portal with recorded backups.
 """
 from __future__ import annotations
 
+import inspect
+import functools
 from contextlib import contextmanager
 import colorsys
 import fcntl
@@ -513,13 +515,8 @@ def _replace_ini(source: str, section: str, values: dict) -> str:
     return "\n".join(output) + "\n"
 
 
-def render_files(settings: dict, *, base: Path | None = None, layout: str | None = None, bar: str = 'eww') -> dict[str, str]:
-    """Pure generation except for reading the existing launcher/lock templates.
-
-    The bar layout is supplied or derived from the already generated bar
-    configuration; a rendering function never queries the compositor, so it stays
-    testable and cannot spawn a subprocess inside a mocked context.
-    """
+def _render_context(settings: dict, base: Path | None = None) -> dict:
+    """Validated settings and every derived value the target renderers share."""
     values = validate_settings(settings)
     base = Path(base or BASE)
     p = palette(values)
@@ -578,6 +575,16 @@ def render_files(settings: dict, *, base: Path | None = None, layout: str | None
     card_edge = rgba("#ffffff", .11 if dark_mode else .65)
     grad_accent = f"linear-gradient(135deg, {r['primary']}, {r['secondary']})"
     grad_bar = f"linear-gradient(90deg, {r['primary']}, {r['secondary']})"
+    outline = "text-shadow: -1px 0 " + bg + ", 1px 0 " + bg + ", 0 -1px " + bg + ", 0 1px " + bg + ";" if opacity < .40 else ""
+    context = dict(locals())
+    context.pop("settings")
+    return context
+
+
+def _render_panel(*, accent_hover, aliases, bg, card_edge, css_header, dark_mode, family, grad_accent,
+                  grad_bar, ink, mono_family, opacity, px, r, rgba, rim_alpha, sheen_a, sheen_b, size,
+                  top_edge, type_sizes) -> str:
+    """Render ``panel.css``."""
     panel = css_header + _role_definitions(r) + aliases + f"""* {{ font-family: {family}; font-size: {size:g}px; }}
 .glass-surface {{ color: {r['on_surface']}; background-color: {rgba(r['surface'], opacity)};
     background-image: linear-gradient(148deg, {rgba(r['primary'], sheen_a)}, {rgba(r['secondary'], sheen_b)} 38%, transparent 74%);
@@ -786,6 +793,12 @@ window.glass-window.power-menu-window .glass-surface {{
     box-shadow: inset 0 1px {top_edge}, 0 22px 54px {r['shadow']};
 }}
 """
+    return panel
+
+
+def _render_swaync(*, bg, card_edge, css_header, dark_mode, family, grad_accent, grad_bar, opacity, px,
+                   r, rgba, rim_alpha, sheen_a, sheen_b, size, top_edge) -> str:
+    """Render ``swaync.css``."""
     swaync = '@import "../swaync/style.css";\n' + css_header + _role_definitions(r) + f"""@define-color bg {bg};
 @define-color cc-bg {rgba(r['surface_container_low'], opacity)};
 @define-color noti-bg {rgba(r['surface_container_high'], max(.82, opacity))};
@@ -829,6 +842,11 @@ switch:checked {{ background-color: {r['primary']}; background-image: {grad_bar}
 switch slider {{ background-color: #ffffff; border-radius: {MD3_SHAPE['badge']}px; box-shadow: 0 1px 4px rgba(0, 0, 0, .35); }}
 scrollbar slider {{ background-color: {rgba(r['on_surface'], .24)}; border-radius: {MD3_SHAPE['badge']}px; }}
 """
+    return swaync
+
+
+def _render_kdl(*, accent, bg, border, danger, ink, opacity, secondary) -> str:
+    """Render ``theme.kdl``."""
     kdl = f'''// Generated palette overrides. Keep layout preferences in conf/appearance.kdl.
 layout {{
     struts {{ top 0; }}
@@ -865,6 +883,11 @@ layer-rule {{
     background-effect {{ blur false; xray false; saturation 1.0; noise 0; }}
 }}
 '''
+    return kdl
+
+
+def _render_fuzzel(*, accent, base, bg, font, opacity, r, size) -> str:
+    """Render ``fuzzel.ini``."""
     # Retained dmenu protocol uses the same palette as Anyrun.
     fuzzel = (base / "fuzzel/fuzzel.ini").read_text()
     # A generated launcher configuration is single-language too: never write the
@@ -884,15 +907,25 @@ layer-rule {{
         "border": _alpha(accent, .65)})
     fuzzel = _replace_ini(fuzzel, "border", {"radius": MD3_SHAPE["window"],
                                               "selection-radius": MD3_SHAPE["button"]})
+    return fuzzel
+
+
+def _render_lock(*, accent, base, bg, border, danger, font, ink, opacity, secondary, size, surface) -> str:
+    """Render ``swaylock.conf``."""
     lock = _replace_ini((base / "swaylock/config").read_text(), "", {"color": bg[1:], "font": font,
         "font-size": font_scale.whole_points(font_scale.lock_pixels(size)), "inside-color": _alpha(bg, max(.86, opacity)), "ring-color": border[1:],
         "text-color": ink[1:], "key-hl-color": accent[1:], "bs-hl-color": secondary[1:],
         "inside-ver-color": _alpha(surface, .92), "ring-ver-color": accent[1:], "text-ver-color": ink[1:],
         "inside-wrong-color": _alpha(surface, .92), "ring-wrong-color": danger[1:], "text-wrong-color": ink[1:]})
+    return lock
+
+
+def _render_eww(*, bg, css_header, dark_mode, family, grad_accent, grad_bar, mono_family, opacity,
+                outline, p, r, rgba, size, surface, top_edge) -> str:
+    """Render ``eww.css``."""
     # Rust frontends consume the same generated roles as GTK; only their
     # selector vocabulary differs.  Bar geometry and timing stay owned by
     # bar_backend.py, so padding, heights and animation hooks are unchanged.
-    outline = "text-shadow: -1px 0 " + bg + ", 1px 0 " + bg + ", 0 -1px " + bg + ", 0 1px " + bg + ";" if opacity < .40 else ""
     bar_top = rgba(_mix(r['surface_container_high'], r['primary'], .12 if dark_mode else .06), opacity)
     bar_bot = rgba(r['surface_container'], opacity)
     island_top = rgba(_mix(r['surface_container_highest'], r['primary'], .16 if dark_mode else .08), opacity)
@@ -986,6 +1019,12 @@ scale slider {{ background: #ffffff; border: 2px solid {r['primary']}; border-ra
 button:focus, .pill:focus, .workspace:focus {{ outline: none; box-shadow: inset 0 0 0 2px {r['primary']}; }}
 .reduce-motion * {{ transition: none; }}
 """
+    return eww
+
+
+def _render_anyrun(*, bg, css_header, dark_mode, family, opacity, outline, r, rgba, rim_alpha, sheen_a,
+                   sheen_b, size, top_edge) -> str:
+    """Render ``anyrun.css``."""
     anyrun = css_header + _role_definitions(r) + f"""@define-color bg {bg};
 * {{ font-family: {family}; font-size: {size:g}px; color: {r['on_surface']}; }}
 window {{ background: transparent; }}
@@ -1008,6 +1047,11 @@ row:selected, row:active, .match:selected {{ color: {r['on_primary_container']};
     border-radius: {MD3_SHAPE['button']}px; }}
 label {{ {outline} }}
 """
+    return anyrun
+
+
+def _render_alacritty(*, accent, bg, ink, mono, opacity, values) -> str:
+    """Render ``alacritty.toml``."""
     alacritty = f'''# Generated by appearance.py; use Control Center.
 [window]
 opacity = {opacity:g}
@@ -1025,9 +1069,36 @@ text = "{bg}"
 background = "{accent}"
 text = "{bg}"
 '''
-    return {"panel.css": panel, "swaync.css": swaync, "theme.kdl": kdl,
-            "fuzzel.ini": fuzzel, "swaylock.conf": lock,
-            "eww.css": eww, "anyrun.css": anyrun, "alacritty.toml": alacritty}
+    return alacritty
+
+
+RENDERERS = {
+    "panel.css": _render_panel,
+    "swaync.css": _render_swaync,
+    "theme.kdl": _render_kdl,
+    "fuzzel.ini": _render_fuzzel,
+    "swaylock.conf": _render_lock,
+    "eww.css": _render_eww,
+    "anyrun.css": _render_anyrun,
+    "alacritty.toml": _render_alacritty,
+}
+
+
+@functools.cache
+def _renderer_inputs(renderer) -> tuple[str, ...]:
+    return tuple(inspect.signature(renderer).parameters)
+
+
+def render_files(settings: dict, *, base: Path | None = None, layout: str | None = None, bar: str = 'eww') -> dict[str, str]:
+    """Pure generation except for reading the existing launcher/lock templates.
+
+    The bar layout is supplied or derived from the already generated bar
+    configuration; a rendering function never queries the compositor, so it stays
+    testable and cannot spawn a subprocess inside a mocked context.
+    """
+    context = _render_context(settings, base)
+    return {target: renderer(**{key: context[key] for key in _renderer_inputs(renderer)})
+            for target, renderer in RENDERERS.items()}
 
 
 @contextmanager

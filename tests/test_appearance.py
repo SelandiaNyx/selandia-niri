@@ -518,6 +518,14 @@ class AppearanceTests(unittest.TestCase):
             expected = self.directory / "preferences/selandia-niri/appearance.json"
             self.assertEqual(appearance.preferences_path(), expected)
 
+    def test_renderer_dispatch_matches_generated_files_and_context_keys(self):
+        self.assertEqual(tuple(appearance.RENDERERS), tuple(appearance.GENERATED_FILES))
+        context = appearance._render_context({}, self.base)
+        for target, renderer in appearance.RENDERERS.items():
+            inputs = appearance._renderer_inputs(renderer)
+            with self.subTest(target=target):
+                self.assertTrue(set(inputs) <= set(context))
+
 
 if __name__ == "__main__":
     unittest.main()
