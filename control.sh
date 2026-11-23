@@ -190,7 +190,9 @@ if [[ "$action" != status ]] && ! "$preview"; then
     flock -n 9 || fail "$(tr 'Another controller operation is running' '另一个控制操作正在运行。')"
 fi
 if [[ "$action" != status ]] && ! "$preview" && [[ -e "$controller_state/lifecycle-transaction.json" || -e "$controller_state/deployment-transaction.json" ]]; then
-    python3 -B "$root/tools/lifecycle.py" recover
+    if python_ready; then
+        python3 -B "$root/tools/lifecycle.py" recover
+    fi
 fi
 if [[ "$action" == uninstall ]]; then
     exec python3 -B "$root/tools/lifecycle.py" uninstall
@@ -199,6 +201,7 @@ fi
 selected=()
 missing=()
 damaged=()
+required_aur_missing=()
 inventory_ok=true
 if ! "$skip_packages"; then
     if ! command -v pacman >/dev/null; then
@@ -210,8 +213,13 @@ if ! "$skip_packages"; then
     else
         [[ -f "$root/packages.txt" ]] || fail "$(tr 'packages.txt is missing' '缺少依赖清单 packages.txt。')"
         declare -A seen=()
-        while IFS= read -r package || [[ -n "$package" ]]; do
-            package=${package%%#*}
+        while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
+            if [[ "$raw_line" =~ ^\#[[:space:]]required[[:space:]]aur[[:space:]]([a-zA-Z0-9@._+-]+)[[:space:]] ]]; then
+                required_package=${BASH_REMATCH[1]}
+                pacman -Q "$required_package" >/dev/null 2>&1 || required_aur_missing+=("$required_package")
+                continue
+            fi
+            package=${raw_line%%#*}
             package=${package//[[:space:]]/}
             [[ -n "$package" ]] || continue
             [[ "$package" =~ ^[a-zA-Z0-9_+][a-zA-Z0-9@._+-]*$ ]] || fail "$(tr 'Invalid package name: ' '软件包名无效：')$package"
@@ -241,7 +249,8 @@ if ! "$skip_packages"; then
         ((${#selected[@]})) || fail "$(tr 'Dependency list is empty' '依赖清单为空。')"
         if ((${#missing[@]})); then printf '%s%s\n' "$(tr 'Missing packages: ' '缺少软件包：')" "${missing[*]}"; fi
         if ((${#damaged[@]})); then printf '%s%s\n' "$(tr 'Packages with missing files: ' '软件包文件缺失：')" "${damaged[*]}"; fi
-        if ((${#missing[@]} == 0 && ${#damaged[@]} == 0)); then
+        if ((${#required_aur_missing[@]})); then printf '%s%s\n' "$(tr 'Missing required AUR packages: ' '缺少必需 AUR 软件包：')" "${required_aur_missing[*]}"; fi
+        if ((${#missing[@]} == 0 && ${#damaged[@]} == 0 && ${#required_aur_missing[@]} == 0)); then
             printf '%s\n' "$(tr 'Required packages present' '必需软件包已安装。')"
         fi
     fi
@@ -249,7 +258,7 @@ fi
 
 if [[ "$action" == status ]]; then
     healthy=0
-    if ! "$inventory_ok" || ((${#missing[@]} || ${#damaged[@]})); then healthy=1; fi
+    if ! "$inventory_ok" || ((${#missing[@]} || ${#damaged[@]} || ${#required_aur_missing[@]})); then healthy=1; fi
     if python_ready; then
         python3 -B "$root/tools/deploy.py" status || healthy=1
     else
@@ -286,6 +295,13 @@ else
     printf '%s\n' "$(tr 'No package transaction needed' '无需执行软件包事务。')"
 fi
 if "$preview"; then
+    if ((${#required_aur_missing[@]})); then
+        helper=paru
+        command -v paru >/dev/null || helper=yay
+        printf '%s' "$(tr 'Required AUR transaction: ' '必需 AUR 事务：')"
+        printf '%q ' "$helper" -S --needed -- "${required_aur_missing[@]}"
+        printf '\n'
+    fi
     printf '%s\n' "$(tr 'Would restore the saved user language and generate interface labels before validation' '校验前将恢复保存的用户语言并生成界面文本。')"
     printf '%s\n' "$(tr 'Would synchronize saved application appearance after deployment' '部署后将同步保存的应用外观。')"
     printf '%s\n' "$(tr 'Preview complete; no changes made' '预演完成，未做任何修改。')"
@@ -294,21 +310,14 @@ fi
 # AUR helpers run as the user. Never pass AUR names to pacman or retry sudo.
 # Missing required AUR packages stop deployment, with an exact password-aware command.
 if ! "$skip_packages" && "$inventory_ok"; then
-    required_missing=()
-    while IFS= read -r declaration; do
-        if [[ "$declaration" =~ ^\#[[:space:]]required[[:space:]]aur[[:space:]]([a-zA-Z0-9@._+-]+)[[:space:]] ]]; then
-            required_package=${BASH_REMATCH[1]}
-            pacman -Q "$required_package" >/dev/null 2>&1 || required_missing+=("$required_package")
-        fi
-    done < "$root/packages.txt"
-    if ((${#required_missing[@]})); then
+    if ((${#required_aur_missing[@]})); then
         helper=paru
         command -v paru >/dev/null || helper=yay
         printf '%s\n' "$(tr 'Required Rust components; enter your sudo password in this terminal when prompted.' '必需 Rust 组件：出现 sudo 提示时，请在当前终端输入密码。')"
-        printf '%q ' "$helper" -S --needed -- "${required_missing[@]}"
+        printf '%q ' "$helper" -S --needed -- "${required_aur_missing[@]}"
         printf '\n'
         if [[ -t 0 && -t 1 ]] && command -v "$helper" >/dev/null; then
-            if ! "$helper" -S --needed -- "${required_missing[@]}" 9>&-; then
+            if ! "$helper" -S --needed -- "${required_aur_missing[@]}" 9>&-; then
                 fail "$(tr 'Required AUR installation incomplete; deployment stopped. Run the command above to retry.' '必需 AUR 安装未完成，已停止部署。请执行上述命令。')"
             fi
         else
@@ -317,6 +326,9 @@ if ! "$skip_packages" && "$inventory_ok"; then
     fi
 fi
 python_ready || fail "$(tr 'Working Python 3 is required' '需要可正常运行的 Python 3。')"
+if [[ -e "$controller_state/lifecycle-transaction.json" || -e "$controller_state/deployment-transaction.json" ]]; then
+    python3 -B "$root/tools/lifecycle.py" recover
+fi
 python3 -B "$root/tools/deploy.py" preflight
 python3 -B "$root/tools/lifecycle.py" install
 printf '%s\n' "$(tr 'Done. In Niri, press Super+Ctrl+R to reload desktop components.' '完成。在 Niri 中按 Super+Ctrl+R 重载桌面组件。')"

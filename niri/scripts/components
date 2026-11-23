@@ -1,22 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 base=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
-notification_style=$base/theme/swaync.css
-notification_config=$base/swaync/config.json
-[[ ! -f "$base/theme/swaync.json" ]] || notification_config=$base/theme/swaync.json
-[[ -f "$notification_style" ]] || notification_style=$base/swaync/style.css
 case "${1:-}" in
     # Compatibility service instance name; Eww is the sole bar backend.
     waybar)
         exec python3 -B "$base/shell/bar_backend.py"
         ;;
-    notification-stream)
-        # Only the notification module waits; a failed daemon must not hide the
-        # entire bar. Waiting for its bus name does not D-Bus-autostart it.
-        gdbus wait --session --timeout 15 org.erikreider.swaync.cc
-        exec swaync-client --skip-wait --subscribe-waybar
+    notifications)
+        notification_style=$base/theme/swaync.css
+        notification_config=$base/swaync/config.json
+        [[ ! -f "$base/theme/swaync.json" ]] || notification_config=$base/theme/swaync.json
+        [[ -f "$notification_style" ]] || notification_style=$base/swaync/style.css
+        exec swaync -c "$notification_config" -s "$notification_style"
         ;;
-    notifications) exec swaync -c "$notification_config" -s "$notification_style" ;;
     wallpaper) exec python3 -B "$base/shell/wallpaper.py" run ;;
     idle)
         idle_config=$base/swayidle/config

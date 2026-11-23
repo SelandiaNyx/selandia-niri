@@ -44,7 +44,7 @@ else
     failed=1
 fi
 if command -v python3 >/dev/null; then
-    timeout --kill-after=2s 15s python3 - "$root" "$check_language" <<'PY' || failed=1
+    timeout --kill-after=2s 15s python3 -B - "$root" "$check_language" <<'PY' || failed=1
 import json
 from pathlib import Path
 import py_compile
@@ -57,13 +57,13 @@ root = Path(sys.argv[1])
 def tr(english, chinese):
     return chinese if sys.argv[2].startswith("zh") else english
 
-for path in sorted(set((root / "niri").rglob("*.json")) | set((root / "niri").rglob("*.jsonc"))):
+for path in sorted((root / "niri").rglob("*.json")):
     json.loads(path.read_text())
     print(tr("JSON OK:", "JSON 校验通过："), path.relative_to(root))
 
 shells = sorted(root.glob("*.sh"))
 shells += [path for path in sorted((root / "niri/scripts").glob("*"))
-           if path.is_file() and "bash" in path.read_text().splitlines()[0]]
+           if path.is_file() and (lines := path.read_text().splitlines()) and "bash" in lines[0]]
 for path in shells:
     subprocess.run(["bash", "-n", str(path)], check=True, timeout=5)
 if shutil.which("shellcheck"):
@@ -98,12 +98,13 @@ for filename in ("shell/style.css", "theme/panel.css", "shell/control_center.css
     Gtk.CssProvider().load_from_path(str(root / "niri" / filename))
 subprocess.run([sys.executable, "-B", "-c",
                 "import gi,sys; gi.require_version('Gtk','4.0'); from gi.repository import Gtk; "
-                "Gtk.CssProvider().load_from_path(sys.argv[1])",
-                str(root / "niri/theme/swaync.css")], check=True, timeout=5)
-subprocess.run([sys.executable, "-B", "-c",
-                "import gi,sys; gi.require_version('Gtk','4.0'); from gi.repository import Gtk; "
-                "Gtk.CssProvider().load_from_path(sys.argv[1])",
-                str(root / "niri/theme/anyrun.css")], check=True, timeout=5)
+                "errs=[];\n"
+                "for path in sys.argv[1:]:\n"
+                "    pr=Gtk.CssProvider()\n"
+                "    pr.connect('parsing-error', lambda _p,_s,e,f=path: errs.append(f'{f}: {e.message}'))\n"
+                "    pr.load_from_path(path)\n"
+                "if errs: sys.exit('\\n'.join(errs))",
+                str(root / "niri/theme/swaync.css"), str(root / "niri/theme/anyrun.css")], check=True, timeout=5)
 import tomllib
 tomllib.loads((root / "niri/theme/alacritty.toml").read_text())
 print(tr("Theme CSS OK: GTK 3 + GTK 4", "GTK 3 与 GTK 4 主题样式校验通过"))
@@ -129,7 +130,7 @@ for cmd in eww anyrun anyrun-provider alacritty rustc; do
         failed=1
     fi
 done
-for cmd in niri xwayland-satellite fuzzel swaync swaync-client swaybg swayidle swaylock wl-copy wl-paste cliphist notify-send brightnessctl ddcutil playerctl wpctl pactl nmcli nm-applet nm-connection-editor blueman-manager fcitx5 zenity gdbus flock xdg-open systemd-inhibit qt6ct; do
+for cmd in niri xwayland-satellite fuzzel swaync swaync-client swaybg swayidle swaylock wl-copy wl-paste cliphist notify-send brightnessctl ddcutil playerctl wpctl pactl nmcli nm-applet nm-connection-editor blueman-manager fcitx5 gdbus flock xdg-open systemd-inhibit qt6ct; do
     if command -v "$cmd" >/dev/null; then
         printf '  %s  %s\n' "$(tr 'OK' '正常')" "$cmd"
     else

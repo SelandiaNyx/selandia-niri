@@ -13,23 +13,40 @@ if [[ -n "${SELANDIA_EWW_INPUT_LIB:-}" ]]; then
     else
         unset LD_PRELOAD
     fi
-    unset SELANDIA_EWW_INPUT_LIB SELANDIA_EWW_GEOMETRY
 fi
+unset SELANDIA_EWW_INPUT_LIB SELANDIA_EWW_GEOMETRY SELANDIA_EWW_EXCLUSIVE_ZONE
 base=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 # A terminal opened from an already-running panel still gets the newly selected
-# user locale. The guard is set only for this exec chain, never globally.
-if [[ "${SELANDIA_LANGUAGE_WRAPPED:-0}" != 1 && -f "$base/shell/language_settings.py" ]]; then
-    export SELANDIA_LANGUAGE_WRAPPED=1
-    exec python3 -B "$base/shell/language_settings.py" exec "$0" "$@"
-fi
+# user locale. Skip the Python re-exec when no session_locale is configured or
+# for pure control hotkeys that never spawn user apps.
+case "${1:-}" in
+    volume|brightness|notification-toggle|bar-toggle|reload|theme-reload|lock|sleep|idle-toggle|bar-backend|daily-components) ;;
+    *)
+        lang_state=${XDG_STATE_HOME:-$HOME/.local/state}/selandia-niri/language.json
+        if [[ "${SELANDIA_LANGUAGE_WRAPPED:-0}" != 1 && -f "$base/shell/language_settings.py" && -r "$lang_state" ]]; then
+            lang_raw=$(<"$lang_state")
+            if [[ "$lang_raw" =~ \"session_locale\"[[:space:]]*:[[:space:]]*\"[^\"] ]]; then
+                export SELANDIA_LANGUAGE_WRAPPED=1
+                exec python3 -B "$base/shell/language_settings.py" exec "$0" "$@"
+            fi
+        fi
+        ;;
+esac
 unset SELANDIA_LANGUAGE_WRAPPED
 launcher_config=$base/theme/fuzzel.ini
 [[ -f "$launcher_config" ]] || launcher_config=$base/fuzzel/fuzzel.ini
-ui_language=${LC_ALL:-${LC_MESSAGES:-${LANG:-en_US}}}
-if [[ -f "$base/shell/i18n.py" ]]; then
-    ui_language=$(python3 -B "$base/shell/i18n.py" language)
-fi
-tr() { if [[ "$ui_language" == zh* ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
+ui_language=
+resolve_ui_language() {
+    [[ -z "$ui_language" ]] || return 0
+    ui_language=${LC_ALL:-${LC_MESSAGES:-${LANG:-en_US}}}
+    if [[ -f "$base/shell/i18n.py" ]]; then
+        ui_language=$(python3 -B "$base/shell/i18n.py" language)
+    fi
+}
+tr() {
+    resolve_ui_language
+    if [[ "$ui_language" == zh* ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi
+}
 
 notify() { notify-send -a 'Selandia Niri' "$@" || true; }
 # dmenu modes must never show the application placeholder: each gets a neutral
@@ -53,7 +70,7 @@ case "${1:-}" in
     notification-toggle) exec swaync-client -t ;;
     bar-backend) exec python3 -B "$base/shell/component_preferences.py" bar "${2:-}" ;;
     daily-components) exec python3 -B "$base/shell/component_preferences.py" daily ;;
-    control|quick|system|appearance|wallpapers|sound|displays|input|desktop|network|hardware|applications|language|power-settings|time|startup|services|security|shortcuts|ai|calendar)
+    control|quick|system|appearance|wallpapers|sound|displays|input|desktop|network|hardware|applications|language|power-settings|time|startup|services|notifications|security|shortcuts|ai|calendar)
         panel_mode=$1
         [[ "$panel_mode" != power-settings ]] || panel_mode=power
         exec python3 -B "$base/shell/panel.py" "$panel_mode"
@@ -175,9 +192,6 @@ case "${1:-}" in
         fi
         notify "$(tr 'Power settings updated' '电源设置已更新')" "$result"
         ;;
-    idle-status)
-        exec python3 -B "$base/shell/sleep_guard.py" waybar
-        ;;
     wallpaper)
         path=${2:-}
         if [[ -z "$path" ]]; then
@@ -196,5 +210,5 @@ case "${1:-}" in
         exec python3 -B "$base/shell/reload_components.py" theme
         ;;
     bar-toggle) exec python3 -B "$base/shell/component_preferences.py" toggle-bar ;;
-    *) printf '%s\n' "$(tr 'Usage' '用法'): desktop {control|quick|system|appearance|sound|displays|input|desktop|network|hardware|applications|language|power-settings|time|startup|services|security|shortcuts|ai|updates|repair|status|check|system-monitor|launcher|launch APP|install-tool PACKAGE|password|clipboard|clipboard-clear|lock|sleep|power|volume up/down/mute/mic|brightness up/down|idle-toggle|idle-status|wallpaper [IMAGE]|reload|theme-reload|bar-toggle}"; exit 2 ;;
+    *) printf '%s\n' "$(tr 'Usage' '用法'): desktop {control|quick|system|appearance|wallpapers|sound|displays|input|desktop|network|hardware|applications|language|power-settings|time|startup|services|notifications|security|shortcuts|ai|calendar|updates|repair|status|check|system-monitor|launcher|launch APP|install-tool PACKAGE|password|clipboard|clipboard-clear|lock|sleep|power|volume up/down/mute/mic|brightness up/down|idle-toggle|wallpaper [IMAGE]|reload|theme-reload|bar-toggle|notification-toggle|bar-backend|daily-components}"; exit 2 ;;
 esac

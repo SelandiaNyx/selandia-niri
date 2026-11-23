@@ -8,8 +8,8 @@ if ! python3 -B "$base/shell/session_identity.py"; then
 fi
 python3 -B "$base/shell/language_settings.py" sync-session
 python3 -B "$base/shell/ui_assets.py"
-systemctl --user unset-environment XDG_MENU_PREFIX
 systemctl --user import-environment NIRI_SOCKET WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP QT_QPA_PLATFORM QT_QPA_PLATFORMTHEME XMODIFIERS QT_IM_MODULE
-dbus-update-activation-environment --systemd WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP QT_QPA_PLATFORM QT_QPA_PLATFORMTHEME XMODIFIERS QT_IM_MODULE XDG_MENU_PREFIX=
+dbus-update-activation-environment WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP QT_QPA_PLATFORM QT_QPA_PLATFORMTHEME XMODIFIERS QT_IM_MODULE XDG_MENU_PREFIX=
+systemctl --user unset-environment XDG_MENU_PREFIX
 mkdir -p "$HOME/Pictures/Screenshots"
 systemctl --user start selandia-niri.target
