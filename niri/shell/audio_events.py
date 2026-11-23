@@ -11,7 +11,6 @@ import threading
 import time
 
 COMMAND = ['pactl', 'subscribe']
-EVENT = re.compile(r"^Event '(?:new|change|remove)' on (?:sink|server) #\d+$")
 MAX_LINE = 4096
 READ_SIZE = 65536
 POLL = 0.25

@@ -166,32 +166,34 @@ class DrmClientSampler:
         checked, started = 0, time.monotonic()
         self._scan_complete, self._inaccessible = True, 0
         try:
-            processes = self.proc.iterdir()
-            for process in processes:
-                if not process.name.isdigit():
-                    continue
-                try:
-                    if process.stat().st_uid != self.uid:
+            with os.scandir(self.proc) as processes:
+                for proc_entry in processes:
+                    if not proc_entry.name.isdigit():
                         continue
-                    descriptors = (process / "fd").iterdir()
-                    for path in descriptors:
-                        checked += 1
-                        if checked > self.max_descriptors or time.monotonic() - started > self.scan_budget:
-                            self._scan_complete = False
-                            self._paths = paths
-                            return records
-                        try:
-                            record = self._record(path, nodes)
-                        except OSError:
+                    try:
+                        if proc_entry.stat().st_uid != self.uid:
                             continue
-                        if record is not None:
-                            key = (record["device"], record["client_id"])
-                            if key not in records:
-                                records[key], paths[key] = record, path
-                except PermissionError:
-                    self._inaccessible += 1
-                except OSError:
-                    continue
+                        fd_dir = os.path.join(proc_entry.path, "fd")
+                        with os.scandir(fd_dir) as descriptors:
+                            for fd_entry in descriptors:
+                                checked += 1
+                                if checked > self.max_descriptors or (checked & 63 == 0 and time.monotonic() - started > self.scan_budget):
+                                    self._scan_complete = False
+                                    self._paths = paths
+                                    return records
+                                path = Path(fd_entry.path)
+                                try:
+                                    record = self._record(path, nodes)
+                                except OSError:
+                                    continue
+                                if record is not None:
+                                    key = (record["device"], record["client_id"])
+                                    if key not in records:
+                                        records[key], paths[key] = record, path
+                    except PermissionError:
+                        self._inaccessible += 1
+                    except OSError:
+                        continue
         except OSError:
             self._scan_complete = False
         self._paths = paths

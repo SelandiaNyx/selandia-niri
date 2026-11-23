@@ -94,8 +94,11 @@ def collect(*, proc=Path("/proc"), sys=Path("/sys"), etc=Path("/etc"), var=Path(
             environment=None, sampler=None, desktop=None):
     environment = dict(os.environ if environment is None else environment)
     proc, sys, etc = Path(proc), Path(sys), Path(etc)
-    sampler = sampler or MetricsSampler(proc, sys, etc_root=etc, detailed=True)
-    data = sampler.sample()
+    if sampler is None:
+        sampler = MetricsSampler(proc, sys, etc_root=etc, detailed=True)
+        data = sampler.inventory_sample()
+    else:
+        data = sampler.sample()
     system, cpu = data.get("system") or {}, data.get("cpu") or {}
     config = Path(environment.get("XDG_CONFIG_HOME", str(Path.home() / ".config")))
     desktop = desktop if desktop is not None else desktop_preferences(config, gio=proc == Path("/proc"))

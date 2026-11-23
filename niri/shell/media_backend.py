@@ -65,10 +65,13 @@ def _identifier(value):
     return name, owner
 
 
+_CTRL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+
 def _text(value, limit=4096):
     if not isinstance(value, str):
         return ""
-    return re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", value).strip()[:limit]
+    return _CTRL_CHARS.sub("", value).strip()[:limit]
 
 
 def _snapshot(name, owner, properties, identity):
@@ -123,7 +126,12 @@ def read_state(preferred=None):
         # playerctld is a forwarding proxy, so prefer the real selectable players.
         names = [name for name in names if name != PREFIX + "playerctld"]
     players, errors = [], []
-    if names:
+    if len(names) == 1:
+        try:
+            players.append(_read_player(connection, names[0]))
+        except RuntimeError as error:
+            errors.append({"bus_name": names[0], "error": str(error)})
+    elif names:
         with ThreadPoolExecutor(max_workers=min(4, len(names))) as executor:
             pending = [(name, executor.submit(_read_player, connection, name)) for name in names]
             for name, task in pending:

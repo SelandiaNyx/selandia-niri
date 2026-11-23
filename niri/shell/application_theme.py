@@ -477,6 +477,8 @@ def restore(*, config_home: Path | None = None, state_path: Path | None = None, 
         return {"restored": [], "preserved": [], "warnings": []}
     desktop = desktop if desktop is not None else DesktopSettings()
     with _lock(state_path):
+        if not state_path.exists():
+            return {"restored": [], "preserved": [], "warnings": []}
         state = _load_journal(state_path, home)
         restored, preserved = [], []
         for relative, record in state["files"].items():
@@ -496,7 +498,7 @@ def restore(*, config_home: Path | None = None, state_path: Path | None = None, 
                 result, skipped = _restore_owned(current, record["keys"])
                 preserved.extend(f"{relative}: {key}" for key in skipped)
             if result is None:
-                path.unlink()
+                path.unlink(missing_ok=True)
             elif result != current:
                 appearance._commit({path: result.encode()})
             restored.append(relative)
@@ -507,7 +509,7 @@ def restore(*, config_home: Path | None = None, state_path: Path | None = None, 
                 restored.append("GSettings: " + key)
             else:
                 preserved.append("GSettings: " + key)
-        state_path.unlink()
+        state_path.unlink(missing_ok=True)
     return {"restored": restored, "preserved": preserved, "warnings": _notify_qt() if notify else []}
 
 

@@ -9,6 +9,10 @@ gi.require_version('Gio', '2.0')
 from gi.repository import Gio, GLib
 import media_backend as backend
 
+MIN_BACKOFF = 1.0
+MAX_BACKOFF = 10.0
+POLL = 0.2
+
 
 class RefreshGate:
     """Keep changes arriving during a read, with burst and fallback bounds."""
@@ -57,15 +61,18 @@ class PlaybackClock:
 
 class MediaChanges:
     def __init__(self, stopping, *, address=None, on_change=None,
-                 player_properties=None, watch_seek=True):
+                 player_properties=None, watch_seek=True, initial_notify=True):
         self.stopping = stopping
         self.closed = threading.Event()
-        self.changed = threading.Event(); self.changed.set()
+        self.changed = threading.Event()
+        if initial_notify:
+            self.changed.set()
         self.connected = False
         self.address = address
         self.on_change = on_change
         self.player_properties = None if player_properties is None else frozenset(player_properties)
         self.watch_seek = watch_seek
+        self.initial_notify = initial_notify
         self.cancellable = Gio.Cancellable()
         self.lock = threading.Lock()
         self.loop = None
@@ -88,7 +95,8 @@ class MediaChanges:
             loop.quit()
 
     def run(self):
-        delay = 1
+        delay = MIN_BACKOFF
+        connected_once = False
         while not self.done():
             context = GLib.MainContext.new()
             context.push_thread_default()
@@ -135,7 +143,9 @@ class MediaChanges:
                         Gio.DBusSignalFlags.NONE, callback, None))
                 connection.flush_sync(self.cancellable)
                 self.connected = True
-                self.notify()
+                if self.initial_notify or connected_once:
+                    self.notify()
+                connected_once = True
                 connected_at = time.monotonic()
 
                 def check(*_):
@@ -151,7 +161,7 @@ class MediaChanges:
                 if not self.done():
                     loop.run()
                 if time.monotonic() - connected_at > 5:
-                    delay = 1
+                    delay = MIN_BACKOFF
             except (GLib.Error, OSError, ValueError):
                 pass
             finally:
@@ -174,5 +184,5 @@ class MediaChanges:
                 context.pop_thread_default()
             deadline = time.monotonic() + delay
             while not self.done() and time.monotonic() < deadline:
-                self.closed.wait(min(.2, max(0, deadline - time.monotonic())))
-            delay = min(delay * 2, 10)
+                self.closed.wait(min(POLL, max(0, deadline - time.monotonic())))
+            delay = min(delay * 2, MAX_BACKOFF)

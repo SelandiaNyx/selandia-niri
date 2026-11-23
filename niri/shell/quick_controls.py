@@ -70,6 +70,7 @@ def build_overview(panel):
     panel.quick_pulse = {}
     for key, title in (("cpu", "CPU"), ("memory", "RAM"), ("network", "NET"), ("temp", "TEMP")):
         item = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2), "pulse-item")
+        item.get_style_context().add_class(f"pulse-{key}")
         pack(item, text(title, "pulse-label"))
         panel.quick_pulse[key] = pack(item, text("—", "pulse-value"))
         pack(pulse, item, True)

@@ -22,9 +22,13 @@ import time
 from urllib.parse import urlparse,unquote
 from appearance import BASE,load_settings
 from niri_events import DesktopFeed, request as niri_request
-from i18n import tr
+from i18n import get_language, tr
 from eww_input import clean_environment
 _environment=clean_environment();os.environ.clear();os.environ.update(_environment)
+
+_HTML_TAG = re.compile(r'<[^>]*>')
+_ICON_NAME = re.compile(r'[\w.-]{1,100}')
+_VOLUME_PERCENT = re.compile(r'(\d+)%')
 
 
 def endpoint():
@@ -75,7 +79,7 @@ class Events:
             if type(duration) not in (int,float) or not math.isfinite(duration) or duration<=0:duration=8
             self.kind='notification';self.until=now+min(duration,8)
             self.notification_id=value.get('notification_id')
-            self.details={'title':' '.join(str(value.get('title','')).split())[:160], 'summary':' '.join(html.unescape(re.sub(r'<[^>]*>','',str(value.get('summary','')))).split())[:320], 'notification_icon':value.get('icon') if isinstance(value.get('icon'),str) and re.fullmatch(r'[\w.-]{1,100}',value['icon']) else 'dialog-information-symbolic'}
+            self.details={'title':' '.join(str(value.get('title','')).split())[:160], 'summary':' '.join(html.unescape(_HTML_TAG.sub('',str(value.get('summary','')))).split())[:320], 'notification_icon':value.get('icon') if isinstance(value.get('icon'),str) and _ICON_NAME.fullmatch(value['icon']) else 'dialog-information-symbolic'}
 
     def current(self,now,playing):
         if not playing:self.media_dismissed=False
@@ -143,7 +147,7 @@ def desktop_values(snapshot, outputs):
 def sample_audio():
     values={}
     try:
-        volume=re.search(r'(\d+)%',call(['pactl','get-sink-volume','@DEFAULT_SINK@']))
+        volume=_VOLUME_PERCENT.search(call(['pactl','get-sink-volume','@DEFAULT_SINK@']))
         mute=call(['pactl','get-sink-mute','@DEFAULT_SINK@']).strip()
         if not volume or mute not in ('Mute: yes','Mute: no'):raise ValueError('audio state')
         values.update(volume=int(volume.group(1)),has_audio=True,muted=mute=='Mute: yes')
@@ -237,46 +241,50 @@ def listen():
         except ConnectionRefusedError:path.unlink()
         finally:probe.close()
     stream.bind(str(path));os.chmod(path,0o600);stream.setblocking(False)
-    from notification_events import NotificationFeed
-    monitor=NotificationFeed(events,stopping,base=BASE);monitor.thread.start()
-    state={'kind':'idle','width':96,'open':False,'title':'','summary':'','cover':'','can_next':False,'can_previous':False,'can_toggle':False,'media':False,'playing':False,
-           'player':'','progress':0,'has_progress':False,'volume':0,'has_audio':False,'muted':False,'brightness':0,
-           'has_brightness':False,'notification_icon':'dialog-information-symbolic','clock':'','clock_short':'','clock_time':'','clock_date':'',**focused_application(None),'workspaces':{},'network':'','battery':'','reduced':False,'tray':False,
-           'cpu_text':'—','memory_text':'—','network_text':'—','temperature_text':'—','gpu_text':'—',
-           'metrics_detail':'', 'metrics_available':False}
-    from metrics import MetricsSampler
-    sampler=MetricsSampler(detailed=False, enable_nvidia=False)
-    sampler.prime()
-    # A short deliberate warmup makes the first bar values real rates instead of
-    # a dash; this runs once before the event loop, not every frame.
-    time.sleep(.18)
+    monitor = audio_changes = media_changes = feed = None
+    snapshot_path = path.with_suffix('.json')
+    try:
+        from notification_events import NotificationFeed
+        monitor=NotificationFeed(events,stopping,base=BASE);monitor.thread.start()
+        state={'kind':'idle','width':96,'open':False,'title':'','summary':'','cover':'','can_next':False,'can_previous':False,'can_toggle':False,'media':False,'playing':False,
+               'player':'','progress':0,'has_progress':False,'volume':0,'has_audio':False,'muted':False,'brightness':0,
+               'has_brightness':False,'notification_icon':'dialog-information-symbolic','clock':'','clock_short':'','clock_time':'','clock_date':'',**focused_application(None),'workspaces':{},'network':'','battery':'','reduced':False,'tray':False,
+               'cpu_text':'—','memory_text':'—','network_text':'—','temperature_text':'—','gpu_text':'—',
+               'metrics_detail':'', 'metrics_available':False}
+        from metrics import MetricsSampler
+        sampler=MetricsSampler(detailed=False, enable_nvidia=False)
+        sampler.prime()
+        # A short deliberate warmup makes the first bar values real rates instead of
+        # a dash; this runs once before the event loop, not every frame.
+        time.sleep(.18)
 
-    def sample_metrics():
-        return metrics_values(sampler.sample())
-    state.update(sample_metrics())
-    from audio_events import AudioChanges
-    from media_events import MediaChanges,RefreshGate,PlaybackClock
-    audio_changes=AudioChanges(stopping);media_changes=MediaChanges(stopping)
-    audio_gate=RefreshGate(audio_changes.changed);media_gate=RefreshGate(media_changes.changed)
-    battery_gate=RefreshGate(interval=30);metrics_gate=RefreshGate(interval=2);playback=PlaybackClock()
-    # Only an explicit brightness preview requests this potentially slow DDC read.
-    brightness_gate=RefreshGate(interval=float('inf'));brightness_gate.changed.clear()
-    brightness_gate.fallback=float('inf')
-    audio_changes.thread.start();media_changes.thread.start()
-    last='';previous_audio=None;settings_at=0;snapshot_at=0;title_at=0;progress_at=0
-    last_frame=time.monotonic();frame_interval=1/120;width_tau=.055
-    try:monitors=niri_request('Outputs')
-    except (OSError,ValueError,RuntimeError):monitors={}
-    feed=DesktopFeed(stopping);feed.thread.start()
-    with ThreadPoolExecutor(max_workers=3) as pool:
-        try:
+        def sample_metrics():
+            return metrics_values(sampler.sample())
+        state.update(sample_metrics())
+        from audio_events import AudioChanges
+        from media_events import MediaChanges,RefreshGate,PlaybackClock
+        audio_changes=AudioChanges(stopping);media_changes=MediaChanges(stopping)
+        audio_gate=RefreshGate(audio_changes.changed,interval=120);media_gate=RefreshGate(media_changes.changed,interval=120)
+        battery_gate=RefreshGate(interval=30);metrics_gate=RefreshGate(interval=2);playback=PlaybackClock()
+        # Only an explicit brightness preview requests this potentially slow DDC read.
+        brightness_gate=RefreshGate(interval=float('inf'));brightness_gate.changed.clear()
+        brightness_gate.fallback=float('inf')
+        audio_changes.thread.start();media_changes.thread.start()
+        last='';previous_audio=None;settings_at=0;snapshot_at=0;title_at=0;progress_at=0
+        desktop_version=-1;clock_key=None
+        last_frame=time.monotonic();frame_interval=1/120;width_tau=.055
+        try:monitors=niri_request('Outputs')
+        except (OSError,ValueError,RuntimeError):monitors={}
+        feed=DesktopFeed(stopping);feed.thread.start()
+        with ThreadPoolExecutor(max_workers=3) as pool:
             while not stopping.is_set():
                 now=time.monotonic()
-                try:
-                    value=json.loads(stream.recv(8192));
-                    if isinstance(value,dict):events.put(value)
-                except BlockingIOError:pass
-                except ValueError:pass
+                while True:
+                    try:
+                        value=json.loads(stream.recv(8192))
+                        if isinstance(value,dict):events.put(value)
+                    except BlockingIOError:break
+                    except ValueError:continue
                 while not events.empty():
                     value=events.get_nowait();policy.receive(value,now)
                     if value.get('action') in ('show','tray','dismiss'):settings_at=0
@@ -302,15 +310,18 @@ def listen():
                     gate.start(now,pool,function)
                 if now>=progress_at:
                     state.update(playback.values(now));progress_at=now+1
-                desktop=desktop_values(feed.snapshot(),monitors)
-                # Terminal progress often rewrites titles many times per second.
-                # Preserve immediate focus changes; coalesce a window's tooltip.
-                same_window=(desktop['window_id'],desktop['app_id'],desktop['desktop_available'])==(state['window_id'],state['app_id'],state.get('desktop_available',False))
-                if same_window and now<title_at:
-                    desktop['window_title']=state['window_title'];desktop['app_name']=state['app_name']
-                elif desktop['window_title']!=state['window_title'] or not same_window:
-                    title_at=now+1
-                state.update(desktop)
+                next_version, snap = feed.snapshot_if_changed(desktop_version)
+                if snap is not None:
+                    desktop_version = next_version
+                    desktop=desktop_values(snap,monitors)
+                    # Terminal progress often rewrites titles many times per second.
+                    # Preserve immediate focus changes; coalesce a window's tooltip.
+                    same_window=(desktop['window_id'],desktop['app_id'],desktop['desktop_available'])==(state['window_id'],state['app_id'],state.get('desktop_available',False))
+                    if same_window and now<title_at:
+                        desktop['window_title']=state['window_title'];desktop['app_name']=state['app_name']
+                    elif desktop['window_title']!=state['window_title'] or not same_window:
+                        title_at=now+1
+                    state.update(desktop)
                 if now>=settings_at:
                     state['reduced']=load_settings()['reduced_motion'];settings_at=now+1
                 kind=policy.current(now,state['playing']);state.update(kind=kind,open=kind!='idle',tray=policy.tray)
@@ -332,11 +343,15 @@ def listen():
                     state['width']=round(state['width']+(target-state['width'])*alpha)
                     if abs(state['width']-target)<=3:state['width']=target
                 last_frame=now
-                clock=datetime.now();state.update(clock=clock.strftime('%a %m.%d %H:%M'),clock_short=clock.strftime('%H:%M'),
-                    clock_time=clock.strftime('%H:%M'),
-                    clock_date=tr(clock.strftime('%a %m.%d'), f"{clock.month}月{clock.day}日 · 周{'一二三四五六日'[clock.weekday()]}"))
+                clock=datetime.now()
+                lang=get_language()
+                minute_key=(clock.year,clock.month,clock.day,clock.hour,clock.minute,lang)
+                if minute_key!=clock_key:
+                    clock_key=minute_key
+                    state.update(clock=clock.strftime('%a %m.%d %H:%M'),clock_short=clock.strftime('%H:%M'),
+                        clock_time=clock.strftime('%H:%M'),
+                        clock_date=tr(clock.strftime('%a %m.%d'), f"{clock.month}月{clock.day}日 · 周{'一二三四五六日'[clock.weekday()]}"))
                 state.update(bridge_pid=os.getpid(),heartbeat=int(now))
-                encoded=json.dumps(state,ensure_ascii=False)
                 # Heartbeats belong to the supervisor snapshot, not the UI stream:
                 # changing them made Eww re-evaluate every binding once a second.
                 visible=json.dumps({key:value for key,value in state.items() if key not in ('bridge_pid','heartbeat')},ensure_ascii=False)
@@ -344,15 +359,26 @@ def listen():
                 if changed:
                     print(visible,flush=True);last=visible
                 if changed or now>=snapshot_at:
-                    snapshot=path.with_suffix('.json');temporary=snapshot.with_suffix('.partial');temporary.write_text(encoded);temporary.replace(snapshot)
+                    encoded=json.dumps(state,ensure_ascii=False)
+                    temporary=snapshot_path.with_suffix(f'.{os.getpid()}.partial')
+                    fd=os.open(temporary,os.O_WRONLY|os.O_CREAT|os.O_TRUNC,0o600)
+                    with os.fdopen(fd,'w',encoding='utf-8') as handle:
+                        handle.write(encoded)
+                    os.replace(temporary,snapshot_path)
                     snapshot_at=now+2
                 # A bounded local snapshot lets controls pin the displayed player/device.
                 select.select([stream],[],[],frame_interval if state['width']!=target else .25)
-        finally:
-            stream.close();path.unlink(missing_ok=True);path.with_suffix('.json').unlink(missing_ok=True)
-            stopping.set();monitor.close();monitor.thread.join(timeout=3);feed.thread.join(timeout=2)
-            audio_changes.close();media_changes.close()
-            audio_changes.thread.join(timeout=3);media_changes.thread.join(timeout=3)
+    finally:
+        stream.close();path.unlink(missing_ok=True);snapshot_path.unlink(missing_ok=True)
+        stopping.set()
+        if monitor is not None:
+            monitor.close();monitor.thread.join(timeout=3)
+        if feed is not None:
+            feed.thread.join(timeout=2)
+        if audio_changes is not None:
+            audio_changes.close();audio_changes.thread.join(timeout=3)
+        if media_changes is not None:
+            media_changes.close();media_changes.thread.join(timeout=3)
 
 
 def main():

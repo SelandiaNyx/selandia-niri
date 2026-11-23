@@ -92,14 +92,16 @@ def validate_settings(group, values):
     return result
 
 
+_KDL_TOKEN = re.compile(r'(?P<block>/\*.*?\*/)|(?P<comment>//[^\n]*)|(?P<raw>r(?P<hash>\#*)".*?"(?P=hash))|(?P<string>"(?:\\.|[^"\\])*")|(?P<newline>\n)|(?P<space>[^\S\n]+)|(?P<symbol>[{};])|(?P<word>[^\s{};]+)', re.S)
+
+
 def _nodes(contents):
     """Read Niri nodes without interpreting their arguments; retain unknown nodes.
 
     This scanner handles comments, quoted/raw strings and nested blocks. It is
     deliberately not a KDL validator: the installed Niri parser validates writes.
     """
-    token = re.compile(r'(?P<block>/\*.*?\*/)|(?P<comment>//[^\n]*)|(?P<raw>r(?P<hash>\#*)".*?"(?P=hash))|(?P<string>"(?:\\.|[^"\\])*")|(?P<newline>\n)|(?P<space>[^\S\n]+)|(?P<symbol>[{};])|(?P<word>[^\s{};]+)', re.S)
-    tokens = [(match.lastgroup, match.group()) for match in token.finditer(contents)
+    tokens = [(match.lastgroup, match.group()) for match in _KDL_TOKEN.finditer(contents)
               if match.lastgroup not in ("space", "block", "comment")]
     index = 0
 
@@ -448,7 +450,11 @@ def _commit(group, values, base, state_path):
             raise RuntimeError(_error("Desktop settings include must be last in config.kdl", "桌面设置引用必须位于 config.kdl 末尾"))
         with tempfile.TemporaryDirectory(prefix="selandia-desktop-") as temporary:
             stage = Path(temporary) / "niri"
-            shutil.copytree(base, stage, ignore=shutil.ignore_patterns("__pycache__", ".*"))
+            for kdl_file in base.rglob("*.kdl"):
+                if kdl_file.is_file():
+                    dest = stage / kdl_file.relative_to(base)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(kdl_file, dest)
             (stage / GENERATED).parent.mkdir(parents=True, exist_ok=True)
             (stage / GENERATED).write_text(contents)
             _run("validate", "--config", str(stage / "config.kdl"))

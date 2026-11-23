@@ -175,7 +175,7 @@ class ComponentStartupTests(unittest.TestCase):
         self.log = self.root / "calls.jsonl"
         for command in ("bash", "dirname", "python3"):
             (self.bin / command).symlink_to(shutil.which(command))
-        for command in ("waybar", "gdbus", "swaync-client"):
+        for command in ("swaync", "gdbus", "swaync-client"):
             path = self.bin / command
             path.write_text(f"#!{sys.executable}\n" + '''import json, os, pathlib, sys
 name = pathlib.Path(sys.argv[0]).name
@@ -187,24 +187,42 @@ if name == "gdbus":
             path.chmod(0o755)
 
     def invoke(self, component, **extra):
-        state=self.root/'state/selandia-niri';state.mkdir(parents=True,exist_ok=True)
-        (state/'components.json').write_text('{"bar":"waybar"}')
+        state = self.root / 'state/selandia-niri'
+        state.mkdir(parents=True, exist_ok=True)
+        (state / 'components.json').write_text('{"bar":"eww"}')
         result = subprocess.run(["/usr/bin/bash", str(self.root / "niri/scripts/components"), component],
-                                env=dict(os.environ, PATH=str(self.bin), CALL_LOG=str(self.log),XDG_STATE_HOME=str(self.root/'state'),NIRI_SOCKET='', **extra),
+                                env=dict(os.environ, PATH=str(self.bin), CALL_LOG=str(self.log),
+                                         XDG_STATE_HOME=str(self.root / 'state'), NIRI_SOCKET='', **extra),
                                 text=True, capture_output=True, timeout=3)
-        calls = [json.loads(line) for line in self.log.read_text().splitlines()]
+        calls = [json.loads(line) for line in self.log.read_text().splitlines()] if self.log.exists() else []
         return result, calls
 
-
-    def test_notification_stream_does_not_autostart_an_unmanaged_daemon(self):
-        result, calls = self.invoke("notification-stream")
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual([call[0] for call in calls], ["gdbus"])
-
-    def test_ready_notification_service_allows_subscriber(self):
-        result, calls = self.invoke("notification-stream", WAIT_STATUS="0")
+    def test_notifications_component_passes_theme_style_and_config(self):
+        result, calls = self.invoke("notifications")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(calls[-1], ["swaync-client", "--skip-wait", "--subscribe-waybar"])
+        self.assertEqual(calls, [[
+            "swaync",
+            "-c", str(self.root / "niri/theme/swaync.json"),
+            "-s", str(self.root / "niri/theme/swaync.css"),
+        ]])
+
+    def test_removed_notification_stream_and_unknown_component_exit_with_usage(self):
+        for name in ("notification-stream", "unknown-component"):
+            with self.subTest(name=name):
+                result, calls = self.invoke(name)
+                self.assertEqual(result.returncode, 2)
+                self.assertEqual(calls, [])
+
+    def test_validate_css_checks_gtk3_eww_and_gtk4_swaync_stylesheets(self):
+        theme = self.root / "niri/theme"
+        reload.validate_css(self.root / "niri")
+        (theme / "swaync.css").write_text("window { color: ; }\n")
+        with self.assertRaisesRegex(RuntimeError, "swaync.css"):
+            reload.validate_css(self.root / "niri")
+        (theme / "swaync.css").write_text("window { color: #ffffff; }\n")
+        (theme / "eww.css").write_text("window { color: ; }\n")
+        with self.assertRaisesRegex(RuntimeError, "eww.css"):
+            reload.validate_css(self.root / "niri")
 
 
 class ReloadLanguageTests(unittest.TestCase):

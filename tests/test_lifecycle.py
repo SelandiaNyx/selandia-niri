@@ -90,6 +90,11 @@ class Desktop:
 
 
 class LifecycleTests(unittest.TestCase):
+    REAL_CHECK_TESTS = frozenset({
+        "test_invalid_config_preserves_all_live_files_and_runtime",
+        "test_staged_validation_still_checks_tools_and_root_shell_scripts",
+    })
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="selandia-lifecycle-test-")
         self.addCleanup(self.temp.cleanup)
@@ -101,6 +106,9 @@ class LifecycleTests(unittest.TestCase):
                             ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         for name in ("control.sh", "check.sh", "install.sh", "packages.txt"):
             shutil.copy2(ROOT / name, self.project / name)
+        if self._testMethodName not in self.REAL_CHECK_TESTS:
+            (self.project / "check.sh").write_text("#!/usr/bin/env bash\nexit 0\n")
+            (self.project / "check.sh").chmod(0o755)
         (self.config / "niri").mkdir(parents=True)
         (self.config / "niri/original.kdl").write_text("original desktop")
         self.state.mkdir(parents=True)

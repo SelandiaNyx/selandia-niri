@@ -80,10 +80,17 @@ def build_extension(base, runtime=None):
         return None
     theme = root / EXTENSION_NAME
     try:
-        (theme / "scalable").mkdir(parents=True, exist_ok=True)
-        (theme / "index.theme").write_text(index_theme(base))
+        scalable = theme / "scalable"
+        scalable.mkdir(parents=True, exist_ok=True)
+        index_path = theme / "index.theme"
+        index_content = index_theme(base)
+        if not index_path.is_file() or index_path.read_text() != index_content:
+            index_path.write_text(index_content)
         for source in sources:
-            (theme / "scalable" / source.name).write_bytes(source.read_bytes())
+            target = scalable / source.name
+            data = source.read_bytes()
+            if not target.is_file() or target.read_bytes() != data:
+                target.write_bytes(data)
     except OSError:
         return None
     return root
@@ -93,11 +100,13 @@ def prepare_icon_theme(*, runtime=None):
     """Make the panel's verified icons win for the active (inherited) theme."""
     settings = Gtk.Settings.get_default()
     theme = Gtk.IconTheme.get_default()
-    if settings is None or theme is None or not any(ICON_ASSETS.glob("*-symbolic.svg")):
+    if settings is None or theme is None:
         return None
     base = active_theme_name()
     if PREPARED["base"] == base and PREPARED["directory"] is not None:
         return str(PREPARED["directory"])
+    if not any(ICON_ASSETS.glob("*-symbolic.svg")):
+        return None
     directory = build_extension(base, runtime)
     if directory is None:
         return None

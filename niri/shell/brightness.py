@@ -21,9 +21,10 @@ import time
 
 SYSFS = Path("/sys")
 DEVICES = Path("/dev")
-READ_INTERVAL = 5
+READ_INTERVAL = 15
 FAILED_INTERVAL = 30
 COMMAND_TIMEOUT = 6
+_STEP_REUSE_WINDOW = 2.0
 _lock = threading.RLock()
 _cache = {}
 
@@ -174,7 +175,15 @@ def set_percent(device_id, value):
         if device is None:
             raise RuntimeError("Selected display disconnected or replaced · 所选屏幕已断开或被替换，请重新选择")
         # Read the live maximum; never assume monitors use a 0–100 VCP range.
-        _read_device(device)
+        # Reuse a very fresh cached reading (e.g., from step()) to avoid double DDC I2C.
+        identity = (device.get("bus"), device.get("path"))
+        cached = _cache.get(device_id)
+        if (cached and cached[2] == identity and cached[1].get("available")
+                and cached[1].get("maximum") and time.monotonic() - cached[0] < _STEP_REUSE_WINDOW):
+            device.update(maximum=cached[1]["maximum"], current=cached[1]["current"],
+                          percent=cached[1]["percent"], available=True, reason="")
+        else:
+            _read_device(device)
         target = round(value * device["maximum"] / 100)
         if device["backend"] == "backlight":
             _run(["brightnessctl", "--class=backlight", "--device", device["name"], "set", str(target)])
@@ -186,11 +195,21 @@ def set_percent(device_id, value):
                 raise RuntimeError("Display connection changed; retry · 显示器连接已变化，请重试")
             _run(["ddcutil", "--noconfig", "--bus", str(device["bus"]), "--verify", "setvcp", "10", str(target)])
             device.update(current=target, percent=round(target / device["maximum"] * 100))
-        _cache[device_id] = (time.monotonic(), copy.deepcopy(device), (device.get("bus"), device.get("path")))
+        _cache[device_id] = (time.monotonic(), copy.deepcopy(device), identity)
         return device
 
 
+_DEFAULT_RUN = _run
+
+
 def _focused_output():
+    if _run is _DEFAULT_RUN and os.environ.get("NIRI_SOCKET"):
+        try:
+            from niri_events import request as niri_request
+            output = niri_request("FocusedOutput", timeout=2)
+            return output.get("name", "") if isinstance(output, dict) else ""
+        except (ImportError, OSError, RuntimeError, ValueError):
+            pass
     try:
         output = json.loads(_run(["niri", "msg", "--json", "focused-output"]))
         return output.get("name", "") if isinstance(output, dict) else ""
@@ -201,13 +220,36 @@ def _focused_output():
 def step(direction, device_id=None):
     if direction not in ("up", "down"):
         raise ValueError("Use up or down · 请使用 up 或 down")
-    state = read_state(force=True)
-    devices = [device for device in state["devices"] if device["available"]]
-    if device_id:
-        device = next((item for item in devices if item["id"] == device_id), None)
-        if device is None:
-            raise RuntimeError("Selected brightness device unavailable · 所选亮度设备不可用")
-    else:
+    with _lock:
+        discovered = _discover()
+        if not discovered:
+            raise RuntimeError("No connected brightness device · 未检测到可调亮度的屏幕")
+        target = None
+        if device_id:
+            target = next((item for item in discovered if item["id"] == device_id), None)
+            if target is None:
+                raise RuntimeError("Selected brightness device unavailable · 所选亮度设备不可用")
+        else:
+            focused = _focused_output()
+            target = next((item for item in discovered if item["output"] == focused), None)
+            if target is None:
+                target = next((item for item in discovered if item["backend"] == "backlight"), None)
+            if target is None and len(discovered) == 1:
+                target = discovered[0]
+        if target is not None:
+            try:
+                _read_device(target)
+                _cache[target["id"]] = (time.monotonic(), copy.deepcopy(target), (target.get("bus"), target.get("path")))
+                device = target
+            except RuntimeError as error:
+                if device_id or len(discovered) == 1:
+                    raise RuntimeError(f'{target["label"]}: {error}') from error
+                device = None
+        else:
+            device = None
+    if device is None:
+        state = read_state(force=True)
+        devices = [item for item in state["devices"] if item["available"]]
         focused = _focused_output()
         device = next((item for item in devices if item["output"] == focused), None)
         if device is None:

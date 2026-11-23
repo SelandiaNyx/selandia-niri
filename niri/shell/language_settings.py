@@ -25,26 +25,50 @@ OVERRIDES = ("LANGUAGE", "LC_ALL", "LC_CTYPE", "LC_NUMERIC", "LC_TIME", "LC_COLL
              "LC_MONETARY", "LC_MESSAGES", "LC_PAPER", "LC_NAME", "LC_ADDRESS",
              "LC_TELEPHONE", "LC_MEASUREMENT", "LC_IDENTIFICATION")
 DEFAULTS = {"ui_language": "system", "session_locale": ""}
+_PREF_CACHE: dict[str, tuple[tuple[int, int, int, int] | None, dict[str, str]]] = {}
 
 
 def preferences_path():
     return Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state"))) / "selandia-niri/language.json"
 
 
-def read_preferences(*, state_path=None):
+def _stat_key(path: Path):
     try:
-        value = json.loads(Path(state_path or preferences_path()).read_text())
-        if (not isinstance(value, dict) or set(value) - set(DEFAULTS)
-                or value.get("ui_language", "system") not in UI_LANGUAGES
-                or not isinstance(value.get("session_locale", ""), str)
-                or value.get("session_locale") and not LOCALE_RE.fullmatch(value["session_locale"])):
-            raise ValueError("Invalid language preferences")
-        return {**DEFAULTS, **value}
-    except (OSError, ValueError, TypeError):
-        return dict(DEFAULTS)
+        info = path.stat()
+        return (info.st_dev, info.st_ino, info.st_mtime_ns, info.st_size)
+    except OSError:
+        return None
+
+
+def read_preferences(*, state_path=None):
+    target = Path(state_path or preferences_path())
+    cache_key = str(target)
+    sig = _stat_key(target)
+    cached = _PREF_CACHE.get(cache_key)
+    if cached is not None and cached[0] == sig:
+        return dict(cached[1])
+    if sig is None:
+        result = dict(DEFAULTS)
+    else:
+        try:
+            value = json.loads(target.read_text())
+            if (not isinstance(value, dict) or set(value) - set(DEFAULTS)
+                    or value.get("ui_language", "system") not in UI_LANGUAGES
+                    or not isinstance(value.get("session_locale", ""), str)
+                    or value.get("session_locale") and not LOCALE_RE.fullmatch(value["session_locale"])):
+                raise ValueError("Invalid language preferences")
+            result = {**DEFAULTS, **value}
+        except (OSError, ValueError, TypeError):
+            result = dict(DEFAULTS)
+    if len(_PREF_CACHE) > 32:
+        _PREF_CACHE.clear()
+    _PREF_CACHE[cache_key] = (sig, result)
+    return dict(result)
 
 
 def resolve_ui_language(code=None, *, state_path=None):
+    if code in ("zh_CN", "en_US"):
+        return code
     preferences = read_preferences(state_path=state_path)
     code = code or preferences["ui_language"]
     if code == "system":
@@ -82,6 +106,7 @@ def _write(path, value, *, mode=0o600):
             os.fsync(stream.fileno())
         os.replace(temporary, path)
         _sync_directory(path.parent)
+        _PREF_CACHE.pop(str(path), None)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)

@@ -37,6 +37,23 @@ def _unit(component):
     return dict(line.split("=", 1) for line in output.splitlines() if "=" in line)
 
 
+_DEFAULT_UNIT = _unit
+
+
+def _units(*components):
+    if _unit is not _DEFAULT_UNIT:
+        return tuple(_unit(component) for component in components)
+    output = _run(["systemctl", "--user", "show",
+                   *(f"selandia-niri@{component}.service" for component in components),
+                   "--property=Id,ActiveState,LoadState,MainPID"])
+    by_id = {}
+    for block in output.split("\n\n"):
+        values = dict(line.split("=", 1) for line in block.splitlines() if "=" in line)
+        if "Id" in values:
+            by_id[values["Id"]] = values
+    return tuple(by_id.get(f"selandia-niri@{component}.service", {}) for component in components)
+
+
 def timers_enabled(*, base=BASE):
     base = Path(base)
     path = base / "swayidle/managed.conf"
@@ -60,7 +77,7 @@ def _has_inhibitor(pid):
 
 
 def status():
-    timer, guard = _unit("idle"), _unit("awake")
+    timer, guard = _units("idle", "awake")
     enabled = timers_enabled()
     awake = guard.get("ActiveState") == "active" and _has_inhibitor(int(guard.get("MainPID", 0)))
     error = (guard.get("ActiveState") in ("failed", "active") and not awake
@@ -154,13 +171,8 @@ def main():
         print(set_awake(args[0] == "on")["detail"])
     elif args == ["status"]:
         print(json.dumps(status(), ensure_ascii=False))
-    elif args == ["waybar"]:
-        result = status()
-        print(json.dumps({"text": "󰅶" if result["awake"] else "󰒲",
-                          "tooltip": result["detail"],
-                          "class": "error" if result["error"] else "active" if result["awake"] else "normal"}, ensure_ascii=False))
     else:
-        raise ValueError("Usage: sleep_guard.py {toggle|on|off|status|waybar}")
+        raise ValueError("Usage: sleep_guard.py {toggle|on|off|status}")
 
 
 if __name__ == "__main__":

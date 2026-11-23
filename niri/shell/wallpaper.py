@@ -16,6 +16,7 @@ import json
 import os
 from pathlib import Path
 import re
+import select
 import shutil
 import signal
 import socket
@@ -23,6 +24,7 @@ import secrets
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import wallpaper_audio
 import wallpaper_playlist
@@ -123,11 +125,31 @@ def normalize_settings(value):
                 "rating_filter": dict(wallpaper_options.FILTER), "display": dict(wallpaper_options.DISPLAY)}
 
 
+_SETTINGS_CACHE: dict[str, tuple[tuple[int, int, int, int] | None, dict]] = {}
+
+
 def load_settings():
+    target = state_dir() / "wallpaper.json"
+    cache_key = str(target)
     try:
-        return normalize_settings(read_json(state_dir() / "wallpaper.json"))
-    except (OSError, ValueError, TypeError):
-        return normalize_settings({})
+        info = target.stat()
+        sig = (info.st_dev, info.st_ino, info.st_mtime_ns, info.st_size)
+    except OSError:
+        sig = None
+    cached = _SETTINGS_CACHE.get(cache_key)
+    if cached is not None and cached[0] == sig:
+        return deepcopy(cached[1])
+    if sig is None:
+        result = normalize_settings({})
+    else:
+        try:
+            result = normalize_settings(read_json(target))
+        except (OSError, ValueError, TypeError):
+            result = normalize_settings({})
+    if len(_SETTINGS_CACHE) > 16:
+        _SETTINGS_CACHE.clear()
+    _SETTINGS_CACHE[cache_key] = (sig, result)
+    return deepcopy(result)
 
 
 def atomic_write(path, data):
@@ -165,7 +187,9 @@ def save_settings(value):
     data = (json.dumps(value, ensure_ascii=False, indent=2) + "\n").encode()
     if len(data) > 2_000_000:
         raise ValueError(tr("Wallpaper preferences exceed the 2 MB limit", "壁纸偏好超过 2 MB 上限"))
-    atomic_write(state_dir() / "wallpaper.json", data)
+    target = state_dir() / "wallpaper.json"
+    atomic_write(target, data)
+    _SETTINGS_CACHE.pop(str(target), None)
 
 
 def steam_libraries(home=None):
@@ -225,6 +249,20 @@ def describe(path):
             "file": str(media) if media else "", "preview": str(preview) if preview else "",
             "contentrating": metadata.get("contentrating") if isinstance(metadata.get("contentrating"), str) and len(metadata["contentrating"]) <= 64 else None,
             "rating_source": "project"}
+
+
+def find_assets(settings=None, *, libraries=None):
+    """Locate Wallpaper Engine assets quickly without crawling wallpaper libraries."""
+    settings = settings or load_settings()
+    configured = settings.get("assets", "")
+    if configured and Path(configured).is_dir():
+        return configured
+    libraries = steam_libraries() if libraries is None else libraries
+    for library in libraries:
+        candidate = Path(library) / "steamapps/common/wallpaper_engine/assets"
+        if candidate.is_dir():
+            return str(candidate)
+    return ""
 
 
 def discover(settings=None, *, libraries=None):
@@ -485,7 +523,12 @@ def activate(path, mode="live", *, assets="", handoff=None, expected=None, rotat
             return remote
     item = describe(path)  # Revalidate metadata and paths at the moment of use.
     settings = load_settings()
-    assets = str(clean_path(assets)) if assets else discover(settings)["assets"]
+    if assets:
+        assets = str(clean_path(assets))
+    elif item["type"] in ("scene", "web"):
+        assets = find_assets(settings)
+    else:
+        assets = settings.get("assets", "")
     if not wallpaper_options.allowed(settings, item["path"], item=item):
         raise ValueError(tr("This wallpaper is hidden by the age-rating filter", "此壁纸被年龄分级过滤隐藏"))
     playback_command(item, mode, assets=assets, audio=settings["audio"], display=settings["display"])  # Reject missing capabilities before changing anything.
@@ -848,6 +891,26 @@ def run_playlist():
     schedule = wallpaper_playlist.Schedule(time.monotonic())
     previous = {}
     server = None
+    audio_stopping = threading.Event()
+    audio_changes = None
+    audio_fallback_at = 0.0
+    last_audio = None
+    def stop_audio_watch():
+        nonlocal audio_changes
+        if audio_changes is not None:
+            audio_changes.close()
+            if audio_changes.thread.ident is not None:
+                audio_changes.thread.join(timeout=2)
+            audio_changes = None
+    def ensure_audio_watch():
+        nonlocal audio_changes
+        if audio_changes is None:
+            try:
+                from audio_events import AudioChanges
+                audio_changes = AudioChanges(audio_stopping, facilities=("sink-input",))
+                audio_changes.thread.start()
+            except (ImportError, OSError):
+                audio_changes = None
     def dispatch(command, values):
         functions = {"activate": activate, "configure_playlist": configure_playlist,
                      "manage_playlists": manage_playlists, "configure_display": configure_display,
@@ -875,7 +938,9 @@ def run_playlist():
                 continue
             settings = load_settings()
             now = time.monotonic()
-            if schedule.due(settings, now, finished=supervisor.finished(),
+            playlist = settings["playlist"]
+            need_finished = bool(playlist["enabled"] and playlist["trigger"] == "finished")
+            if schedule.due(settings, now, finished=supervisor.finished() if need_finished else False,
                             allowed=lambda item: wallpaper_options.allowed(settings, item["path"])):
                 try:
                     switched = playlist_step(handoff=supervisor.replace, expected=settings)
@@ -883,10 +948,42 @@ def run_playlist():
                 except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
                     log_rotation("failed", error=str(error))
                     schedule.attempted(time.monotonic(), False)
-            if supervisor.record and supervisor.record["audio_available"] and supervisor.renderer.poll() is None:
-                wallpaper_audio.sync_streams(supervisor.renderer.pid, settings["audio"], applied=supervisor.applied)
-            time.sleep(.5)
+            live_audio = bool(supervisor.record and supervisor.record["audio_available"]
+                              and supervisor.renderer and supervisor.renderer.poll() is None)
+            if live_audio:
+                ensure_audio_watch()
+                if (settings["audio"] != last_audio
+                        or (audio_changes is not None and audio_changes.changed.is_set())
+                        or now >= audio_fallback_at):
+                    if audio_changes is not None:
+                        audio_changes.changed.clear()
+                    wallpaper_audio.sync_streams(supervisor.renderer.pid, settings["audio"], applied=supervisor.applied)
+                    last_audio = settings["audio"]
+                    audio_fallback_at = now + (30.0 if audio_changes is not None else 2.0)
+            else:
+                last_audio = None
+                stop_audio_watch()
+            wait_seconds = 5.0
+            if playlist["enabled"]:
+                if playlist["trigger"] == "finished":
+                    wait_seconds = 0.5
+                else:
+                    interval = max(1, int(playlist.get("seconds") or playlist["minutes"] * 60))
+                    due_at = max(schedule.changed_at + interval, schedule.retry_at)
+                    wait_seconds = min(5.0, max(0.25, due_at - time.monotonic()))
+            if live_audio:
+                wait_seconds = min(wait_seconds, 0.5)
+            sock = getattr(server, "socket", None)
+            if isinstance(sock, socket.socket):
+                try:
+                    select.select([sock], [], [], wait_seconds)
+                except InterruptedError:
+                    pass
+            else:
+                time.sleep(wait_seconds)
     finally:
+        audio_stopping.set()
+        stop_audio_watch()
         if server is not None: server.close()
         supervisor.close()
         for signum, handler in previous.items():

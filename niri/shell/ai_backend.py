@@ -83,8 +83,11 @@ def save_settings(settings):
     fd, temp = tempfile.mkstemp(prefix=".ai-", dir=path.parent)
     try:
         with os.fdopen(fd, "w") as stream:
+            os.fchmod(stream.fileno(), 0o600)
             json.dump(result, stream, ensure_ascii=False, indent=2)
             stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
         os.replace(temp, path)
     finally:
         if os.path.exists(temp):

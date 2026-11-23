@@ -157,16 +157,42 @@ def _saved():
         raise RuntimeError("Invalid saved display settings · 已保存的屏幕设置无效") from error
 
 
+_DEFAULT_RUN = _run
+_BPC_CACHE: dict[tuple[str, int, int], bool] = {}
+
+
+def _copy_kdl_tree(source: Path, destination: Path):
+    for path in source.rglob("*.kdl"):
+        if path.is_file():
+            target = destination / path.relative_to(source)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, target)
+
+
 def max_bpc_supported():
     """Probe the installed parser; Niri 26.04 does not yet accept max-bpc."""
+    cache_key = None
+    if _run is _DEFAULT_RUN:
+        binary = shutil.which("niri")
+        if binary:
+            try:
+                info = os.stat(binary)
+                cache_key = (binary, info.st_mtime_ns, info.st_size)
+                if cache_key in _BPC_CACHE:
+                    return _BPC_CACHE[cache_key]
+            except OSError:
+                pass
     with tempfile.TemporaryDirectory(prefix="selandia-bpc-") as temporary:
         config = Path(temporary) / "config.kdl"
         config.write_text('output "probe" { max-bpc 10; }\n')
         try:
             _run("validate", "--config", str(config))
-            return True
+            supported = True
         except RuntimeError:
-            return False
+            supported = False
+    if cache_key is not None:
+        _BPC_CACHE[cache_key] = supported
+    return supported
 
 
 def read_state():
@@ -224,7 +250,8 @@ def _validate_config(contents):
         raise RuntimeError("Display include must be first in config.kdl · 屏幕设置必须置于配置首个 include")
     with tempfile.TemporaryDirectory(prefix="selandia-display-validate-") as temporary:
         staged = Path(temporary) / "niri"
-        shutil.copytree(BASE, staged, ignore=shutil.ignore_patterns("__pycache__", ".*"))
+        _copy_kdl_tree(BASE, staged)
+        (staged / GENERATED).parent.mkdir(parents=True, exist_ok=True)
         (staged / GENERATED).write_text(contents)
         _run("validate", "--config", str(staged / "config.kdl"))
 

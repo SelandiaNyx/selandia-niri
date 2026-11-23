@@ -409,13 +409,16 @@ class DesktopFeedTests(unittest.TestCase):
                 finish.wait(5)
 
         server = DisposableServer(handler)
+        backoff = patch.multiple(niri_events, MIN_BACKOFF=0.05, MAX_BACKOFF=0.2)
+        backoff.start()
+        self.addCleanup(backoff.stop)
         feed = niri_events.DesktopFeed(stopping, path=server.path)
         self.addCleanup(lambda: (finish.set(), send_second.set(), drop_first.set(),
                                  stopping.set(), feed.thread.join(timeout=3), server.close()))
         feed.thread.start()
 
         self.assertTrue(first_ready.wait(5))
-        self.assertTrue(wait_until(lambda: (feed.snapshot()['window'] or {}).get('id') == 11))
+        self.assertTrue(wait_until(lambda: (snap := feed.snapshot())['available'] and (snap['window'] or {}).get('id') == 11))
         self.assertTrue(feed.snapshot()['available'])
         self.assertEqual(server.handshakes[0], b'"EventStream"\n')
 
@@ -430,7 +433,7 @@ class DesktopFeedTests(unittest.TestCase):
 
         # The same feed reconnects and publishes the fresh snapshot.
         send_second.set()
-        self.assertTrue(wait_until(lambda: (feed.snapshot()['window'] or {}).get('id') == 22))
+        self.assertTrue(wait_until(lambda: (snap := feed.snapshot())['available'] and (snap['window'] or {}).get('id') == 22))
         fresh = feed.snapshot()
         self.assertTrue(fresh['available'])
         self.assertEqual(fresh['window']['title'], 'Second')
@@ -453,6 +456,9 @@ class DesktopFeedTests(unittest.TestCase):
             hold.wait(5)
 
         server = DisposableServer(handler)
+        backoff = patch.multiple(niri_events, MIN_BACKOFF=0.05, MAX_BACKOFF=0.2)
+        backoff.start()
+        self.addCleanup(backoff.stop)
         feed = niri_events.DesktopFeed(stopping, path=server.path)
         self.addCleanup(lambda: (hold.set(), stopping.set(), feed.thread.join(timeout=3), server.close()))
         feed.thread.start()
@@ -480,6 +486,9 @@ class DesktopFeedTests(unittest.TestCase):
             hold.wait(5)
 
         server = DisposableServer(handler)
+        backoff = patch.multiple(niri_events, MIN_BACKOFF=0.05, MAX_BACKOFF=0.2)
+        backoff.start()
+        self.addCleanup(backoff.stop)
         feed = niri_events.DesktopFeed(stopping, path=server.path)
         self.addCleanup(lambda: (hold.set(), stopping.set(), feed.thread.join(timeout=3), server.close()))
         feed.thread.start()

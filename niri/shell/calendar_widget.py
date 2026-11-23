@@ -108,6 +108,7 @@ class LocalizedCalendar(Gtk.Box):
 
         for child in self.grid.get_children():
             self.grid.remove(child)
+            child.destroy()
 
         self.weekday_labels.clear()
         self.day_buttons.clear()
@@ -170,6 +171,7 @@ class LocalizedCalendar(Gtk.Box):
                 self.day_buttons[d] = btn
                 self.grid.attach(btn, col_idx, row_idx, 1, 1)
 
+        self._rendered_key = (today_date, zh)
         self.grid.show_all()
 
     def _make_day_clicked_handler(self, d: int):
@@ -269,7 +271,10 @@ class LocalizedCalendar(Gtk.Box):
         return (self.year, self.month, self.day)
 
     def refresh_today(self):
-        """Rebuild the six-row grid when a persistent drawer is shown again."""
+        """Rebuild the six-row grid when the date or language changed since last render."""
+        current_key = (datetime.date.today(), self._is_zh())
+        if getattr(self, "_rendered_key", None) == current_key:
+            return
         toplevel = self.get_toplevel()
         focused = toplevel.get_focus() if isinstance(toplevel, Gtk.Window) else None
         day_had_focus = bool(focused) and any(

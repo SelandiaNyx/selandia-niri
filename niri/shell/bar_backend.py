@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Three bounded Eww layers, supervised by the existing managed bar service."""
+from functools import lru_cache
 import json
 import os
 from pathlib import Path
 import shlex
-import shutil
 import signal
 import subprocess
 import sys
@@ -19,7 +19,8 @@ from i18n import tr
 import eww_input
 
 
-def capsule_height(size):
+@lru_cache(maxsize=32)
+def _measure_capsule_height(font_family, size):
     # Match the idle island's label + 4px button padding + 18px capsule insets.
     # Pango works without a display; GTK fallback fonts still determine line height.
     try:
@@ -28,10 +29,14 @@ def capsule_height(size):
         gi.require_version('PangoCairo','1.0')
         from gi.repository import Pango,PangoCairo
         layout=Pango.Layout.new(PangoCairo.FontMap.get_default().create_context())
-        font=Pango.FontDescription();font.set_family(load_settings()['font']+', Noto Sans CJK SC, Noto Sans, JetBrainsMono Nerd Font, sans-serif');font.set_absolute_size(size*Pango.SCALE)
+        font=Pango.FontDescription();font.set_family(font_family+', Noto Sans CJK SC, Noto Sans, JetBrainsMono Nerd Font, sans-serif');font.set_absolute_size(size*Pango.SCALE)
         layout.set_font_description(font);layout.set_text('•',-1)
         return max(44,layout.get_pixel_size()[1]+22)
     except (ImportError,ValueError,AttributeError):return max(44,round(size*1.3)+22)
+
+
+def capsule_height(size):
+    return _measure_capsule_height(load_settings()['font'], size)
 
 
 def reserved_height(size):
@@ -87,8 +92,8 @@ def render(monitors, *, size=12):
     # application; Eww's bounded command timeout cannot kill its foreground UI.
     desktop='niri msg action spawn -- '+shlex.quote(str(BASE/'scripts/desktop'))
     bridge='python3 -B '+shlex.quote(str(BASE/'shell/island.py'))
-    def button(text,command,tooltip=None,enabled='true'):
-        return node('button',{'class':q('pill'),'onclick':q(command),'timeout':q('5s'),'tooltip':q(tooltip or text),'active':enabled},label(q(text)))
+    def button(text,command,tooltip=None,enabled='true',css='pill'):
+        return node('button',{'class':q(css),'onclick':q(command),'timeout':q('5s'),'tooltip':q(tooltip or text),'active':enabled},label(q(text)))
     initial={'kind':'idle','width':96,'open':False,'title':'','summary':'','cover':'',
              'can_next':False,'can_previous':False,'can_toggle':False,'media':False,'playing':False,'player':'','progress':0,'has_progress':False,
              'volume':0,'has_audio':False,'muted':False,'brightness':0,'has_brightness':False,
@@ -107,21 +112,23 @@ def render(monitors, *, size=12):
         is_zh=i18n.get_language().startswith('zh')
         app_limit = '5' if (narrow and is_zh) else '8' if narrow else '16' if is_zh else '20'
         application=node('eventbox',{'class':q('pill current-app'),'hexpand':'false','tooltip':'{state.window_title}'},
-                         label('{state.app_name}',**{'truncate':'true','limit-width':q(app_limit),'xalign':'0'}))
-        left=box(button('󰣇',desktop+' launcher',tr('Applications','应用')),node('box',{'class':q('separator')}),
+                         box(label(q('●'),**{'class':q('app-dot')}),
+                             label('{state.app_name}',**{'class':q('app-label'),'truncate':'true','limit-width':q(app_limit),'xalign':'0'}),
+                             spacing='2'))
+        left=box(button('󰣇',desktop+' launcher',tr('Applications','应用'),css='pill launcher-btn'),node('box',{'class':q('separator')}),
                  box(workspace,spacing='3' if narrow else '6'),node('box',{'class':q('separator')}),
                  application,**{'class':segment,'spacing':'4' if narrow else '6','halign':q('start'),'hexpand':'false'})
         left_outer=box(left,halign=q('start'),hexpand='true',**{'class':q('bar-host')})
         lines.append(window('selandia-left-'+str(index),left_outer,'top left',g['left'],'selandia-bar-left'))
-        def resource(icon,value,label_text):
-            return node('box',{'class':q('resource'),'tooltip':q(label_text)},
+        def resource(icon,value,label_text,kind):
+            return node('box',{'class':q('resource '+kind),'tooltip':q(label_text)},
                         label(q(icon),**{'class':q('resource-icon')}),
                         label(value,**{'class':q('resource-value')}))
-        telemetry_items = [resource('CPU','{state.cpu_text}',tr('Processor','处理器'))]
+        telemetry_items = [resource('󰻠 CPU','{state.cpu_text}',tr('Processor','处理器'),'cpu')]
         if not very_narrow:
-            telemetry_items.append(resource('RAM','{state.memory_text}',tr('Memory','内存')))
+            telemetry_items.append(resource('󰍛 RAM','{state.memory_text}',tr('Memory','内存'),'ram'))
         if not narrow:
-            telemetry_items.append(resource('TEMP','{state.temperature_text}',tr('Temperature','温度')))
+            telemetry_items.append(resource('󰔏 TEMP','{state.temperature_text}',tr('Temperature','温度'),'temp'))
         telemetry=node('button',{'class':q('pill resources'),'onclick':q(desktop+' system'),'timeout':q('5s'),'tooltip':q('{state.metrics_detail}')},
             box(*telemetry_items,**{'class':q('resource-row'),'spacing':'6' if narrow else '8'}))
         clock=node('button',{'class':q('pill clock'),'onclick':q(desktop+' calendar'),'tooltip':q(tr('Open calendar','打开日历'))},
@@ -131,39 +138,45 @@ def render(monitors, *, size=12):
         tray=(button('⋯',bridge+' tray',tr('System tray','系统托盘')) if narrow else box(node('systray',{'icon-size':'16','spacing':'4'}),**{'class':q('pill'),'tooltip':q(tr('System tray','系统托盘'))}))
         if very_narrow:tray=node('box',{'visible':'false'})
         battery=label('{state.battery}',**{'class':q('pill battery'),'tooltip':q(tr('Battery','电池')),'visible':'false' if narrow else '{state.battery != ""}'})
-        audio=node('button',{'class':q('pill'),'onclick':q(bridge+' show volume'),'timeout':q('5s'),'visible':'false' if very_narrow else 'true',
+        audio=node('button',{'class':'{state.muted ? "pill audio-btn muted" : "pill audio-btn"}','onclick':q(bridge+' show volume'),'timeout':q('5s'),'visible':'false' if very_narrow else 'true',
                             'tooltip':'{state.muted ? '+q(tr('Muted','已静音'))+' : '+q(tr('Volume','音量'))+'}'},
                    box(label('{state.muted ? "󰝟" : "󰕾"}'),
                        label(q('${state.volume}%'),**{'visible':'false' if narrow else '{state.has_audio}'}),
-                       spacing='2'))
-        network_button=node('button',{'class':q('pill'),'onclick':q(desktop+' network'),'timeout':q('5s'),'tooltip':q(tr('Network','网络'))},
-                            box(label(q('NET'),**{'class':q('resource-icon')}),
+                       spacing='3'))
+        network_button=node('button',{'class':q('pill network-btn'),'onclick':q(desktop+' network'),'timeout':q('5s'),'tooltip':q(tr('Network','网络'))},
+                            box(label(q('󰖩 NET'),**{'class':q('resource-icon')}),
                                 *( [] if narrow else [label('{state.network_text}',**{'class':q('resource-value'),'visible':'{state.network_text != "—"}'})] ),
-                                spacing='2'))
+                                spacing='3'))
         hardware=box(*([] if narrow else [network_button]),audio,battery,tray,spacing='2' if narrow else '4')
         actions=box(*([] if very_narrow else [button('󰂚',desktop+' notification-toggle',tr('Notifications','通知'))]),
-                    button('󰒓',desktop+' control',tr('Control Center','控制中心')),
+                    button('󰒓',desktop+' control',tr('Control Center','控制中心'),css='pill control-btn'),
                     spacing='2' if narrow else '4')
         sep=node('box',{'class':q('separator')})
         right=box(telemetry,sep,hardware,sep,clock,sep,actions,**{'class':segment,'halign':q('end'),'hexpand':'false','spacing':'2' if narrow else '4'})
         right_outer=box(right,halign=q('end'),hexpand='true',**{'class':q('bar-host')})
         lines.append(window('selandia-right-'+str(index),right_outer,'top right',g['right'],'selandia-bar-right'))
-        idle=node('button',{'onclick':q(bridge+' show media')},label('{state.playing ? "♪" : "•"}'))
-        cover=node('stack',{'same-size':'false','selected':'{state.cover != "" ? 0 : 1}'},
-            node('image',{'path':'{state.cover != "" ? state.cover : '+q(str(BASE/'assets/icons/empty.svg'))+'}','image-width':'34','image-height':'34'}),node('image',{'icon':q('audio-x-generic-symbolic'),'icon-size':q('dialog')}))
-        progress=node('stack',{'same-size':'false','selected':'{state.has_progress ? 0 : 1}'},node('progress',{'value':'{state.progress}'}),label(q(tr('Duration unavailable','时长不可用'))))
-        controls=box(button('⏮',bridge+' media previous',tr('Previous track','上一曲'),enabled='{state.can_previous}'),button('⏯',bridge+' media play-pause',tr('Play or pause','播放或暂停'),enabled='{state.can_toggle}'),button('⏭',bridge+' media next',tr('Next track','下一曲'),enabled='{state.can_next}'),**{'halign':q('center'),'spacing':'8'})
-        title=label('{state.media ? state.title : '+q(tr('No media playing','暂无播放'))+'}',**{'limit-width':'8' if narrow else '32','xalign':'0'})
-        media=box(box(cover,title,orientation=q('v' if narrow else 'h'),spacing='8'),progress,controls,orientation=q('v'),spacing='5')
+        idle=node('button',{'onclick':q(bridge+' show media')},label('{state.playing ? "󰎈" : "✦"}',**{'class':q('island-idle-icon')}))
+        cover=box(node('stack',{'same-size':'false','selected':'{state.cover != "" ? 0 : 1}'},
+            node('image',{'path':'{state.cover != "" ? state.cover : '+q(str(BASE/'assets/icons/empty.svg'))+'}','image-width':'36','image-height':'36'}),
+            node('image',{'icon':q('audio-x-generic-symbolic'),'icon-size':q('dialog')})),**{'class':q('island-cover')})
+        progress=node('stack',{'same-size':'false','selected':'{state.has_progress ? 0 : 1}'},node('progress',{'value':'{state.progress}'}),label(q(tr('Duration unavailable','时长不可用')),**{'class':q('island-summary')}))
+        controls=box(button('⏮',bridge+' media previous',tr('Previous track','上一曲'),enabled='{state.can_previous}'),
+                     button('⏯',bridge+' media play-pause',tr('Play or pause','播放或暂停'),enabled='{state.can_toggle}',css='pill island-play'),
+                     button('⏭',bridge+' media next',tr('Next track','下一曲'),enabled='{state.can_next}'),**{'halign':q('center'),'spacing':'10'})
+        title=label('{state.media ? state.title : '+q(tr('No media playing','暂无播放'))+'}',**{'class':q('island-title'),'limit-width':'8' if narrow else '32','xalign':'0'})
+        media=box(box(cover,title,orientation=q('v' if narrow else 'h'),spacing='10'),progress,controls,orientation=q('v'),spacing='6')
         slider=node('scale',{'orientation':q('h'),'min':'0','max':'100','draw-value':'false','value':'{state.kind == "brightness" ? state.brightness : state.volume}','onchange':q(bridge+' ${state.kind} {}'),'timeout':q('5s'),'active':'{state.kind == "brightness" ? state.has_brightness : state.has_audio}'})
-        volume=box(label('{state.title}',**{'limit-width':'8' if narrow else '32','wrap':'true'}),slider,orientation=q('v'),spacing='6')
-        notification=box(node('image',{'icon':'{state.notification_icon}','icon-size':q('dialog')}),label('{state.title}',**{'limit-width':'8' if narrow else '40','wrap':'true'}),label('{state.summary}',**{'limit-width':'8' if narrow else '54','wrap':'true'}),button('×',bridge+' dismiss',tr('Dismiss preview','忽略')),orientation=q('v'),spacing='6')
+        volume=box(label('{state.title}',**{'class':q('island-title'),'limit-width':'8' if narrow else '32','wrap':'true'}),slider,orientation=q('v'),spacing='6')
+        notify_head=box(node('image',{'icon':'{state.notification_icon}','icon-size':q('large-toolbar')}),
+                        label('{state.title}',**{'class':q('island-title'),'limit-width':'8' if narrow else '34','wrap':'true','hexpand':'true','xalign':'0'}),
+                        button('×',bridge+' dismiss',tr('Dismiss preview','忽略')),spacing='8')
+        notification=box(notify_head,label('{state.summary}',**{'class':q('island-summary'),'limit-width':'8' if narrow else '52','wrap':'true','xalign':'0'}),orientation=q('v'),spacing='6')
         stack=node('stack',{'same-size':'false','selected':'{state.kind == "idle" ? 0 : state.kind == "media" ? 1 : state.kind == "notification" ? 3 : state.kind == "tray" ? 4 : 2}','transition':'{state.reduced ? "none" : "crossfade"}'},idle,media,volume,notification,box(node('systray',{'icon-size':'16','spacing':'4'})))
         animated='{round('+str(g['collapsed'])+' + (state.width - 96) * '+str(g['island']-g['collapsed'])+' / 364, 0)}'
         # Eww's width/height property setter preserves allocated_height when
         # height is omitted: dynamic width would freeze an expanded page's
         # height. -1 keeps GTK's natural content height for every animation frame.
-        content=box(stack,**{'class':'{state.open ? "island expanded" : "island"}','orientation':q('v'),'valign':q('start'),'width':animated,'height':'-1'})
+        content=box(stack,**{'class':'{state.open ? (state.playing ? "island expanded playing" : "island expanded") : (state.playing ? "island playing" : "island")}','orientation':q('v'),'valign':q('start'),'width':animated,'height':'-1'})
         lines.append(window('selandia-island-'+str(index),content,'top center',g['collapsed'],'selandia-island'))
     return '\n'.join(lines)+'\n',names
 
@@ -247,8 +260,10 @@ def run():
             os.replace(appearance_path,runtime_info)
             os.chmod(runtime_info,0o600)
             import appearance
-            appearance.apply_settings(load_settings(),bar='eww')
-            text,names=render(outputs(),size=load_settings()['font_size'])
+            settings=load_settings()
+            appearance.apply_settings(settings,bar='eww')
+            previous=outputs()
+            text,names=render(previous,size=settings['font_size'])
             (directory/'eww.yuck').write_text(text)
             (directory/'eww.css').write_text('@import '+json.dumps(str(BASE/'theme/eww.css'))+';\n')
             child=subprocess.Popen(['eww','--force-wayland','--no-daemonize','-c',str(directory),'daemon'],env=environment)
@@ -268,14 +283,15 @@ def run():
             os.chmod(appearance_path,0o600);os.replace(appearance_path,runtime_info)
             component_preferences.health('eww-ready')
             expected=hashlib.sha256((directory/'eww.yuck').read_bytes()).digest()
-            previous=outputs();last_check=0
+            last_check=time.monotonic()
             while not stopping[0] and child.poll() is None:
                 if stopped.wait(1):
                     break
-                if time.monotonic()-last_check>2:
-                    last_check=time.monotonic();current=outputs()
+                if time.monotonic()-last_check>=3:
+                    last_check=time.monotonic()
                     if hashlib.sha256((directory/'eww.yuck').read_bytes()).digest()!=expected:raise RuntimeError('Eww runtime configuration changed unexpectedly')
                     if not bridge_alive():raise RuntimeError('Island event bridge stopped')
+                    current=outputs()
                     if current!=previous:
                         text,names=render(current,size=load_settings()['font_size'])
                         (directory/'eww.yuck').write_text(text)
@@ -292,7 +308,10 @@ def run():
                 except subprocess.TimeoutExpired:child.kill();child.wait(timeout=3)
             if not stopping[0]:failure=str(error)
         finally:
-            if child and child.poll() is None:child.terminate();child.wait(timeout=5)
+            if child and child.poll() is None:
+                child.terminate()
+                try:child.wait(timeout=5)
+                except subprocess.TimeoutExpired:child.kill();child.wait(timeout=3)
             (runtime/'selandia-eww-runtime.json').unlink(missing_ok=True)
     if failure and not stopping[0]:unavailable(failure)
 

@@ -191,7 +191,29 @@ def save_power(values, *, base=None, state_path=None, reload=True):
     return values
 
 
+_DEFAULT_RUN = run
+
+
 def service_state():
+    if run is _DEFAULT_RUN:
+        all_units = [unit for units in MANAGED_UNITS.values() for unit in units]
+        output = run(["systemctl", "--user", "show", *all_units,
+                      "--property=Id,UnitFileState,ActiveState"], check=False)
+        by_id = {}
+        for block in output.split("\n\n"):
+            values = dict(line.split("=", 1) for line in block.splitlines() if "=" in line)
+            if "Id" in values:
+                by_id[values["Id"]] = values
+        result = {}
+        for group, units in MANAGED_UNITS.items():
+            states = [by_id.get(unit, {}).get("UnitFileState", "") for unit in units]
+            active = [by_id.get(unit, {}).get("ActiveState", "") for unit in units]
+            if any(not value for value in states + active):
+                raise RuntimeError(tr("Could not read desktop services. Check the user session and try again.",
+                                      "无法读取桌面服务状态，请检查用户会话后重试。"))
+            result[group] = {"enabled": all(value not in ("masked", "masked-runtime", "not-found", "") for value in states),
+                             "active": all(value == "active" for value in active)}
+        return result
     result = {}
     for group, units in MANAGED_UNITS.items():
         states = [run(["systemctl", "--user", "is-enabled", unit], check=False) for unit in units]
@@ -281,7 +303,14 @@ def external_startup(*, home=None, config_dirs=None, owned_ids=()):
             if entry.get("Type", "Application") != "Application":
                 continue
             try:
-                app = _gio().DesktopAppInfo.new_from_filename(str(path))
+                try:
+                    import gi
+                    gi.require_version("GioUnix", "2.0")
+                    from gi.repository import GioUnix
+                    desktop_cls = GioUnix.DesktopAppInfo
+                except (ImportError, ValueError):
+                    desktop_cls = _gio().DesktopAppInfo
+                app = desktop_cls.new_from_filename(str(path))
             except TypeError:
                 # Gio rejects entries with a missing TryExec or incomplete
                 # launcher fields. They still have useful autostart metadata.

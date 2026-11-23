@@ -96,7 +96,8 @@ class MediaControls(Gtk.Box):
             # emitting frequent progress signals must not cause full snapshots.
             changes = MediaChanges(threading.Event(), on_change=lambda: self.schedule_change(epoch),
                 player_properties=('Metadata', 'PlaybackStatus', 'CanControl', 'CanPlay',
-                                   'CanPause', 'CanGoNext', 'CanGoPrevious'), watch_seek=False)
+                                   'CanPause', 'CanGoNext', 'CanGoPrevious'),
+                watch_seek=False, initial_notify=False)
             self.media_changes = changes
             changes.thread.start()
         if self.timer_source is None and self.panel.alive:

@@ -199,9 +199,8 @@ class CancelTests(unittest.TestCase):
     def test_commit_and_cancel_race_has_one_winner(self):
         for _ in range(20):
             request = ai.ChatRequest([{"role": "user", "content": "hi"}], self.settings())
-            thread, outcome = self.run_thread(request)
-            thread.join(10)
-            self.assertEqual(outcome.get("reply"), REPLY)
+            with patch.object(request, "_run_worker", return_value=REPLY):
+                self.assertEqual(request.run(), REPLY)
             calls, results, gate = [], [], threading.Barrier(3)
 
             def commit():

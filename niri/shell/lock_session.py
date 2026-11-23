@@ -14,7 +14,6 @@ import hashlib
 import json
 import os
 from pathlib import Path
-import select
 import subprocess
 import sys
 import tempfile
@@ -24,6 +23,7 @@ from i18n import tr
 
 BASE = Path(__file__).resolve().parent.parent
 CLIENT = Path(__file__).resolve().parent / "lock_client.py"
+READY_GRACE = 5.0
 # Preferred: a dedicated per-display unit installed by tools/deploy.py.
 LOCK_UNIT = "selandia-lock@.service"
 # Compatibility: the already deployed component template, instance "lock-<key>".
@@ -52,7 +52,11 @@ def process_identity(pid):
         fields = proc.joinpath("stat").read_text().rsplit(")", 1)[1].split()
         if fields[0] == "Z":
             return None
-        environment = dict(item.split("=", 1) for item in proc.joinpath("environ").read_bytes().decode().split("\0") if "=" in item)
+        environment = dict(
+            item.split("=", 1)
+            for item in proc.joinpath("environ").read_bytes().decode("utf-8", "surrogateescape").split("\0")
+            if "=" in item
+        )
         return {"pid": pid, "start": fields[19], "display": display_identity(environment)}
     except (OSError, ValueError, KeyError, IndexError, UnicodeError):
         return None
@@ -216,8 +220,8 @@ def select_launcher(runtime, *, loaded=unit_loaded, inside=None):
 
 def lock(*, base=BASE, timeout=10, locker=("swaylock",), runtime=None, launcher=None,
          environment=None):
-    display = display_identity()
     source = os.environ if environment is None else environment
+    display = display_identity(source)
     runtime = Path(runtime or source["XDG_RUNTIME_DIR"])
     key, prefix = paths(runtime, display)
     record_path = prefix.with_suffix(".json")
@@ -239,7 +243,7 @@ def lock(*, base=BASE, timeout=10, locker=("swaylock",), runtime=None, launcher=
         failed = launched if callable(launched) else (lambda: False)
         # Service start is not readiness: wait for the record the client publishes
         # only after swaylock reported ready on this display.
-        deadline = time.monotonic() + max(2.0, float(timeout)) + 5
+        deadline = time.monotonic() + max(0.1, float(timeout)) + READY_GRACE
         while time.monotonic() < deadline:
             record = read_record(record_path)
             if confirmed(record, display):

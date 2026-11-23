@@ -78,14 +78,16 @@ def sleep_blocked(status=None):
 def load_theme():
     """Apply the same native styles the control center uses, scoped by window class."""
     screen = Gdk.Screen.get_default()
-    for path in (BASE / "shell/style.css", BASE / "theme/panel.css",
-                 BASE / "shell/control_center.css"):
+    for path in (
+        BASE / "shell/style.css",
+        BASE / "theme/panel.css",
+        BASE / "shell/control_center.css",
+    ):
         if not path.exists():
             continue
         provider = Gtk.CssProvider()
         provider.load_from_path(str(path))
-        Gtk.StyleContext.add_provider_for_screen(screen, provider,
-                                                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        Gtk.StyleContext.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 
 class PowerMenu(Gtk.ApplicationWindow):
@@ -93,6 +95,13 @@ class PowerMenu(Gtk.ApplicationWindow):
 
     def __init__(self, app, *, blocked=None):
         super().__init__(application=app, title="Selandia · Power")
+        from appearance import load_settings
+        preferences = load_settings()
+        reduced_motion = bool(preferences.get("reduced_motion", False))
+        self.get_settings().set_property(
+            "gtk-application-prefer-dark-theme",
+            preferences.get("color_mode", "dark") == "dark",
+        )
         self.result = None
         self.pending = None
         self.set_decorated(False)
@@ -105,10 +114,15 @@ class PowerMenu(Gtk.ApplicationWindow):
         context = self.get_style_context()
         context.add_class("glass-window")
         context.add_class("power-menu-window")
+        if reduced_motion:
+            context.add_class("reduce-motion")
         surface = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0), "glass-surface")
         self.add(surface)
         header = pack(surface, style(Gtk.Box(spacing=10), "panel-header"))
-        pack(header, icon("system-shutdown-symbolic", 18))
+        header_badge = style(Gtk.Box(), "power-header-icon")
+        header_badge.set_valign(Gtk.Align.CENTER)
+        pack(header_badge, icon("system-shutdown-symbolic", 16))
+        pack(header, header_badge)
         pack(header, style(Gtk.Label(label=tr("Power", "电源"), xalign=0), "control-heading"), True)
         close = style(Gtk.Button(label="×"), "close-button")
         close.set_relief(Gtk.ReliefStyle.NONE)
@@ -118,8 +132,10 @@ class PowerMenu(Gtk.ApplicationWindow):
         content = pack(surface, style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10),
                                       "panel-content"))
         self.stack = Gtk.Stack()
-        self.stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self.stack.set_transition_duration(140)
+        self.stack.set_transition_type(
+            Gtk.StackTransitionType.NONE if reduced_motion else Gtk.StackTransitionType.CROSSFADE
+        )
+        self.stack.set_transition_duration(0 if reduced_motion else 140)
         # Keep the menu width stable, but let the window shrink to the shorter
         # confirmation instead of holding the action list's empty space.
         self.stack.set_vhomogeneous(False)
@@ -135,7 +151,10 @@ class PowerMenu(Gtk.ApplicationWindow):
             if question:
                 style(widget, "danger")
             inner = Gtk.Box(spacing=12)
-            pack(inner, icon(glyph, 18))
+            badge = style(Gtk.Box(), "power-icon")
+            badge.set_valign(Gtk.Align.CENTER)
+            pack(badge, icon(glyph, 16))
+            pack(inner, badge)
             pack(inner, Gtk.Label(label=tr(english, chinese), xalign=0))
             widget.add(inner)
             widget.get_accessible().set_name(tr(english, chinese))

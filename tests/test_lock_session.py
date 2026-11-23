@@ -85,8 +85,8 @@ time.sleep(30)
             except (ProcessLookupError, ChildProcessError):
                 pass
 
-    def lock(self, launcher=None, **options):
-        return locker.lock(base=self.base, timeout=2, locker=(sys.executable, str(self.fake)),
+    def lock(self, launcher=None, timeout=2, **options):
+        return locker.lock(base=self.base, timeout=timeout, locker=(sys.executable, str(self.fake)),
                            launcher=launcher or self.manager.start, **options)
 
     def test_ready_handshake_then_reuse_only_confirmed_process(self):
@@ -123,9 +123,10 @@ time.sleep(30)
 
     def test_successful_start_alone_never_confirms_the_lock(self):
         """A launcher that reports success without a locker must not pass."""
-        with patch.object(locker, "tr", lambda english, chinese: english):
+        with patch.object(locker, "READY_GRACE", 0.05), \
+                patch.object(locker, "tr", lambda english, chinese: english):
             with self.assertRaises(RuntimeError) as raised:
-                self.lock(launcher=lambda key, timeout: None)
+                self.lock(launcher=lambda key, timeout: None, timeout=0.2)
         self.assertIn("not confirmed", str(raised.exception))
         self.assertEqual(list(self.base.glob("*.json")), [])
 
@@ -133,8 +134,9 @@ time.sleep(30)
         record = self.lock()
         for path in self.base.glob("*.json"):
             path.unlink()
-        with self.assertRaises(RuntimeError):
-            self.lock()
+        with patch.object(locker, "READY_GRACE", 0.05):
+            with self.assertRaises(RuntimeError):
+                self.lock(timeout=0.2)
         # The confirmed locker was neither replaced nor killed.
         self.assertTrue(locker.process_identity(record["pid"]))
         self.assertEqual(len(list(self.base.glob("child-*"))), 1)

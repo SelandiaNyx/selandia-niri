@@ -18,8 +18,7 @@ import language_settings
 import ui_assets
 import session_settings
 
-THEMES = ("theme.kdl", "panel.css", "waybar.css", "swaync.css", "kitty.conf",
-          "fuzzel.ini", "swaylock.conf", "waybar.jsonc", "swaync.json")
+THEMES = (*appearance.GENERATED_FILES, "swaync.json")
 STATE_FILES = ("appearance.json", "language.json", "language-backup.json", "application-theme.json", session_settings.JOURNAL)
 
 

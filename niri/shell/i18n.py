@@ -11,9 +11,12 @@ import sys
 
 _language_override = None
 _CJK = re.compile(r"[\u3400-\u9fff]")
+_SPLIT_DETAIL = re.compile(r"(: |：|\n)")
 
 
 def get_language():
+    if _language_override in ("zh_CN", "en_US"):
+        return _language_override
     try:
         from language_settings import resolve_ui_language
         return resolve_ui_language(_language_override)
@@ -242,7 +245,6 @@ _CATALOG.update({
     'Playlist name (1–64 characters)': ('Playlist name (1–64 characters)', '播放集名称（1–64 字）'),
     'Letters, numbers, spaces and _-.(); Save applies all playlist edits.': ('Letters, numbers, spaces and _-.(); Save applies all playlist edits.', '允许汉字、字母、数字、空格和 _-.()；保存后应用所有播放集修改。'),
     'Fade works between static wallpapers. Video, scene and Web backends switch instantly.': ('Fade works between static wallpapers. Video, scene and Web backends switch instantly.', '淡入淡出适用于静态壁纸之间；视频、场景和网页后端使用瞬间切换。'),
-    'Cancel': ('Cancel', '取消'),
     'Confirm': ('Confirm', '确认'),
     'New': ('New', '新建'),
     'Rename': ('Rename', '重命名'),
@@ -281,73 +283,11 @@ _CATALOG.update({
     'Show Questionable': ('Show Questionable', '显示 Questionable 内容'),
     'Show Mature (confirmation required)': ('Show Mature (confirmation required)', '显示 Mature 内容（需要确认）'),
     'Save age filter': ('Save age filter', '保存分级过滤'),
-    'Search wallpapers': ('Search wallpapers', '搜索壁纸'),
-    'Optional: Wallpaper Engine assets folder': ('Optional: Wallpaper Engine assets folder', '可选：Wallpaper Engine assets 目录'),
-    'Original assets required for experimental scene/Web playback': ('Original assets required for experimental scene/Web playback', '实验性场景/网页播放需要正版原始资源；可直接粘贴路径'),
     'Seconds': ('Seconds', '秒'),
     'Minutes': ('Minutes', '分钟'),
-    'Reading local library…': ('Reading local library…', '正在读取本地资源库…'),
-    'Image': ('Image', '图片'),
-    'Video · mpvpaper required': ('Video · mpvpaper required', '视频 · 需要 mpvpaper'),
-    'Scene · experimental backend required': ('Scene · experimental backend required', '场景 · 需要实验性播放后端'),
-    "Web · experimental; playback executes this project's webpage scripts": ("Web · experimental; playback executes this project's webpage scripts", '网页 · 实验性；播放会执行此项目自带网页脚本'),
-    'Select': ('Select', '选择'),
-    'Applying wallpaper…': ('Applying wallpaper…', '正在应用壁纸…'),
-    'Current wallpaper': ('Current wallpaper', '当前壁纸'),
-    'Reading…': ('Reading…', '读取中…'),
-    'Refresh': ('Refresh', '刷新'),
-    'Library': ('Library', '资源库'),
-    'Playlist': ('Playlist', '播放集'),
-    'Playback': ('Playback', '播放设置'),
-    'Local images and Wallpaper Engine downloads': ('Local images and Wallpaper Engine downloads', '本地图片与 Wallpaper Engine 已下载壁纸'),
-    'Grid': ('Grid', '网格'),
-    'List': ('List', '列表'),
-    'Choose file': ('Choose file', '选择文件'),
-    'Add folder': ('Add folder', '添加目录'),
-    'Rescan': ('Rescan', '重新扫描'),
-    'Save sound': ('Save sound', '保存声音'),
-    'Wallpaper sound is on by default; volume applies only to wallpaper.': ('Wallpaper sound is on by default; volume applies only to wallpaper.', '壁纸声音默认开启；此音量仅影响壁纸。'),
-    'Use static wallpaper': ('Use static wallpaper', '设为静态壁纸'),
-    'Apply wallpaper': ('Apply wallpaper', '应用壁纸'),
-    'Sequential': ('Sequential', '顺序'),
     'Random (weighted)': ('Random (weighted)', '随机（按权重）'),
     'Shuffle without repeats': ('Shuffle without repeats', '洗牌不重复'),
-    'Timed switching': ('Timed switching', '定时切换'),
-    'After playback ends': ('After playback ends', '播完切换'),
     'Interval · minimum 1 second': ('Interval · minimum 1 second', '间隔 · 最小 1 秒'),
-    'Videos switch at their real end. Static images and endlessly running scenes/Web pages require timed switching. Changes take effect only after Save playlist.': ('Videos switch at their real end. Static images and endlessly running scenes/Web pages require timed switching. Changes take effect only after Save playlist.', '视频会在实际播完后切换。静态图片和无限运行的场景/网页请用定时切换；修改仅在保存播放集后生效。'),
-    'Save playlist': ('Save playlist', '保存播放集'),
-    'Playlist saved; rotation continues after closing this panel.': ('Playlist saved; rotation continues after closing this panel.', '播放集已保存；关闭面板后仍会自动轮播。'),
-    'Play Web wallpaper (experimental)': ('Play Web wallpaper (experimental)', '播放网页壁纸（实验性）'),
-    'Images, videos or project.json': ('Images, videos or project.json', '图片、视频或 project.json'),
-    'Scene/Web playback resources': ('Scene/Web playback resources', '场景/网页播放资源'),
-    'Mute wallpaper': ('Mute wallpaper', '静音壁纸'),
-    'Automatic wallpaper rotation': ('Automatic wallpaper rotation', '自动轮播壁纸'),
-    'Add selected': ('Add selected', '加入所选'),
-    'Remove selected': ('Remove selected', '移出所选'),
-    'Use filtered library': ('Use filtered library', '使用筛选结果'),
-    'Clear playlist': ('Clear playlist', '清空播放集'),
-    'Previous': ('Previous', '上一条'),
-    'Next': ('Next', '下一条'),
-    'Wallpaper changed.': ('Wallpaper changed.', '壁纸已切换。'),
-    'Playlist is empty.': ('Playlist is empty.', '播放集为空。'),
-    'Default wallpaper · static': ('Default wallpaper · static', '默认壁纸 · 静态'),
-    'Video': ('Video', '视频'),
-    'Scene': ('Scene', '场景'),
-    'Web': ('Web', '网页'),
-    'Some Steam libraries are not mounted.': ('Some Steam libraries are not mounted.', '部分 Steam 库尚未挂载。'),
-    'Add the 431960 folder, a project folder, or an image directory.': ('Add the 431960 folder, a project folder, or an image directory.', '可添加 431960 目录、单个项目目录或图片目录。'),
-    'Showing the first 1000 items; choose a smaller folder.': ('Showing the first 1000 items; choose a smaller folder.', '最多显示 1000 项，请缩小目录范围。'),
-    'Some metadata could not be read.': ('Some metadata could not be read.', '部分项目元数据无法读取。'),
-    'Static wallpaper only': ('Static wallpaper only', '仅支持静态壁纸'),
-    'Wallpaper sound saved.': ('Wallpaper sound saved.', '壁纸声音已保存。'),
-    'Audio service unavailable: picture continues silently. Save sound again after audio recovers.': ('Audio service unavailable: picture continues silently. Save sound again after audio recovers.', '音频服务不可用：画面继续静音播放；音频恢复后再次保存声音即可。'),
-    'Wallpaper saved.': ('Wallpaper saved.', '壁纸已保存。'),
-    'Empty: rotation is idle.': ('Empty: rotation is idle.', '为空时不轮播。'),
-    'Live mode': ('Live mode', '实时模式 (live)'),
-    'Static (preview)': ('Static (preview)', '静态 (preview)'),
-    'Unavailable': ('Unavailable', '不可用'),
-    'Preview unavailable': ('Preview unavailable', '预览不可用'),
     'Invalid wallpaper service message': ('Invalid wallpaper service message', '壁纸服务消息无效'),
     'Untrusted wallpaper service socket': ('Untrusted wallpaper service socket', '壁纸服务套接字不可信'),
     'Wallpaper service owner mismatch': ('Wallpaper service owner mismatch', '壁纸服务所有者不匹配'),
@@ -379,7 +319,7 @@ def tr_legacy(value):
             continue
         first, second = value.split(separator, 1)
         tail = ""
-        second_head = re.split(r"(: |：|\n)", second, maxsplit=1)
+        second_head = _SPLIT_DETAIL.split(second, maxsplit=1)
         if len(second_head) == 3:
             second, delimiter, detail = second_head
             tail = delimiter + detail

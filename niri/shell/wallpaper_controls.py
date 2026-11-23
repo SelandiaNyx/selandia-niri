@@ -129,7 +129,8 @@ class WallpaperControls(Gtk.Box):
         advanced.add(self.assets)
         self.assets.set_placeholder_text(tr("Optional: Wallpaper Engine assets folder", "可选：Wallpaper Engine assets 目录"))
         self.assets.set_tooltip_text(tr("Original assets required for experimental scene/Web playback", "实验性场景/网页播放需要正版原始资源；可直接粘贴路径"))
-        audio = backend.load_settings()["audio"]
+        initial_settings = backend.load_settings()
+        audio = initial_settings["audio"]
         audio_row = pack(self.playback, Gtk.Box(spacing=8))
         self.audio_mute = pack(audio_row, Gtk.CheckButton(label=tr("Mute wallpaper", "静音壁纸")))
         self.audio_mute.set_active(audio["muted"])
@@ -150,7 +151,7 @@ class WallpaperControls(Gtk.Box):
         self.installation_help.set_no_show_all(True)
         self.notice.set_lines(2)
         self.notice.set_ellipsize(Pango.EllipsizeMode.END)
-        self.build_playlist()
+        self.build_playlist(initial_settings["playlist"])
         self.preferences = Preferences(self)
         self.render_playlist()
         self.availability()
@@ -158,8 +159,8 @@ class WallpaperControls(Gtk.Box):
         self.connect("destroy", self.cleanup)
         self.refresh_current()
 
-    def build_playlist(self):
-        playlist = backend.load_settings()["playlist"]
+    def build_playlist(self, playlist=None):
+        playlist = backend.load_settings()["playlist"] if playlist is None else playlist
         self.playlist_items = list(playlist["items"])
         pack(self.playlist_page, text(tr("Playlist", "播放集"), "section-title"))
         self.playlist_enabled = pack(self.playlist_page, Gtk.CheckButton(label=tr("Automatic wallpaper rotation", "自动轮播壁纸")))
@@ -232,7 +233,6 @@ class WallpaperControls(Gtk.Box):
 
     def playlist_filtered(self):
         if not self.busy:
-            query = self.search.get_text().casefold()
             self.playlist_items = [self.playlist_entry(entry["item"]) for entry in self.items.values()
                                    if self.matches(entry["list"])]
             self.render_playlist()

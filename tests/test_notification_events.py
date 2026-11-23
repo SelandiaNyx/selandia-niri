@@ -73,6 +73,9 @@ class FeedTests(unittest.TestCase):
         self.state.mkdir()
         self.events = queue.Queue()
         self.stopping = threading.Event()
+        backoff = patch.multiple(notifications, MIN_BACKOFF=0.05, MAX_BACKOFF=0.2, POLL=0.02)
+        backoff.start()
+        self.addCleanup(backoff.stop)
         self.feed = notifications.NotificationFeed(self.events, self.stopping,
                                                    base=self.state, address=self.address)
         self.feed.thread.start()
@@ -175,7 +178,7 @@ class FeedTests(unittest.TestCase):
         self.assertIn(notifications.NOTIFY,
                       self.bus_call('ListActivatableNames', None, '(as)').unpack()[0])
         self.assert_notifications_unowned()
-        time.sleep(.3)
+        time.sleep(.15)
         self.assertFalse(self.marker.exists(), 'notification feed activated a service')
 
         # Force-closing the feed's own connection must be noticed and retried.
@@ -200,7 +203,7 @@ class FeedTests(unittest.TestCase):
                       flags=Gio.DBusCallFlags.NO_AUTO_START, destination=notifications.NOTIFY,
                       path=notifications.NOTIFY_PATH, interface=notifications.NOTIFY)
         self.client.flush_sync(None)
-        time.sleep(.5)
+        time.sleep(.2)
         events = self.drain()
         self.assertEqual(self.previews(events), [])
         self.assertTrue(all(not report['values']['notifications_available']

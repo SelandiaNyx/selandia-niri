@@ -3,7 +3,6 @@ import json
 import os
 from pathlib import Path
 import shutil
-import subprocess
 import sys
 import time
 from datetime import datetime,timezone
@@ -12,6 +11,40 @@ from i18n import tr
 
 DEFAULTS = {'bar':'eww', 'launcher':'anyrun', 'terminal':'alacritty'}
 CHOICES = {kind:(value,) for kind,value in DEFAULTS.items()}
+HEALTH_MAX_RECORDS = 400
+
+
+def _compact_health(lines):
+    """Keep recent evidence bounded while preserving the clean-stability window."""
+    if len(lines) <= HEALTH_MAX_RECORDS:
+        return lines
+    parsed = []
+    for raw in lines:
+        try:
+            rec = json.loads(raw)
+        except ValueError:
+            continue
+        if isinstance(rec, dict):
+            parsed.append((raw, rec))
+    if len(parsed) <= HEALTH_MAX_RECORDS:
+        return [raw for raw, _ in parsed]
+    # Keep the latest non-drill fallback, earliest ready entry per unique session
+    # after it (so stability() retains exact clean_days and session counts), plus
+    # the most recent tail.
+    tail_count = HEALTH_MAX_RECORDS // 2
+    keep = set(range(max(0, len(parsed) - tail_count), len(parsed)))
+    failures = [i for i, (_, r) in enumerate(parsed) if r.get('event') == 'fallback' and not r.get('deliberate_drill')]
+    start = failures[-1] if failures else 0
+    if failures:
+        keep.add(failures[-1])
+    seen_sessions = set()
+    for i in range(start, len(parsed)):
+        rec = parsed[i][1]
+        if rec.get('event') == 'eww-ready' and isinstance(rec.get('session'), str) and not rec.get('deliberate_drill'):
+            if rec['session'] not in seen_sessions:
+                seen_sessions.add(rec['session'])
+                keep.add(i)
+    return [parsed[i][0] for i in sorted(keep)]
 
 
 def health(event, detail=''):
@@ -31,8 +64,19 @@ def health(event, detail=''):
     except (OSError,ValueError,TypeError):record['deliberate_drill']=False
     try:
         with _lock(log):
-            previous=log.read_bytes() if log.exists() else b''
-            _commit({log:previous+(json.dumps(record,ensure_ascii=False)+'\n').encode()})
+            if log.is_symlink():
+                raise OSError('Refusing to write symlink health log')
+            line = json.dumps(record, ensure_ascii=False)
+            existing = log.read_text(errors='replace').splitlines() if log.exists() else []
+            existing.append(line)
+            if len(existing) > HEALTH_MAX_RECORDS:
+                existing = _compact_health(existing)
+                _commit({log: ('\n'.join(existing) + '\n').encode()})
+            else:
+                log.parent.mkdir(parents=True, exist_ok=True)
+                with log.open('a', encoding='utf-8') as stream:
+                    stream.write(line + '\n')
+                    stream.flush()
     except (OSError,RuntimeError) as error:
         print(tr('Component evidence could not be saved: ','组件证据无法保存：')+str(error),file=sys.stderr)
 
@@ -101,6 +145,9 @@ def choose_many(updates, *, restart=True):
         try:
             reload_components.service('waybar','reset-failed')
             reload_components.service('waybar','restart')
+            tools_dir = str(BASE.parent / 'tools')
+            if tools_dir not in sys.path:
+                sys.path.insert(0, tools_dir)
             from live_update import verify_components
             verify_components(reload_components,['waybar'])
             if socket and effective('bar',values)=='eww':

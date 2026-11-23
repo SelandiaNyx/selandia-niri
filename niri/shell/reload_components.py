@@ -41,13 +41,30 @@ def recover(component: str):
 def validate_css(base: Path):
     import gi
     gi.require_version("Gtk", "3.0")
-    from gi.repository import Gtk
-    for component in ("eww", "swaync"):
-        path = base / "theme" / f"{component}.css"
-        if not path.is_file():
-            path = base / component / "style.css"
+    from gi.repository import GLib, Gtk
+    eww_css = base / "theme/eww.css"
+    if eww_css.is_file():
         provider = Gtk.CssProvider()
-        provider.load_from_path(str(path))
+        try:
+            provider.load_from_path(str(eww_css))
+        except GLib.Error as error:
+            raise RuntimeError(f"{eww_css}: {error.message}") from error
+    swaync_css = base / "theme/swaync.css"
+    if not swaync_css.is_file():
+        swaync_css = base / "swaync/style.css"
+    result = subprocess.run(
+        [sys.executable, "-B", "-c",
+         "import gi,sys; gi.require_version('Gtk','4.0'); from gi.repository import Gtk; "
+         "errs=[]; p=Gtk.CssProvider(); "
+         "p.connect('parsing-error', lambda _p,_s,e: errs.append(f'{sys.argv[1]}: {e.message}')); "
+         "p.load_from_path(sys.argv[1]); "
+         "sys.exit('\\n'.join(errs)) if errs else None",
+         str(swaync_css)],
+        capture_output=True, text=True, timeout=5,
+    )
+    if result.returncode:
+        raise RuntimeError(result.stderr.strip() or result.stdout.strip()
+                           or tr("Invalid notification stylesheet", "通知样式校验失败"))
 
 
 def reload_components(*, full: bool = False, base: Path = BASE):

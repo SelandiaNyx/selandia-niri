@@ -2,9 +2,7 @@
 """Native settings windows and layer-shell panels, without a browser runtime."""
 from __future__ import annotations
 
-import concurrent.futures
 import datetime
-import json
 import os
 from pathlib import Path
 import platform
@@ -15,8 +13,6 @@ import threading
 import time
 
 import gi
-import brightness
-import sleep_guard
 from drawers import BoundedCanvas
 from panel_motion import PanelMotion, animations_enabled, configure_stack
 from page_host import PageEntry, PageHost, PageMap, PageSpec
@@ -55,6 +51,7 @@ def probe(command):
 
 def power_runtime_state():
     try:
+        import sleep_guard
         return sleep_guard.status()
     except Exception as error:
         return {"available": False, "awake": False, "error": True,
@@ -418,6 +415,7 @@ class Panel(Gtk.ApplicationWindow):
             self.page_host = None
         changes = getattr(self, 'audio_changes', None)
         if changes is not None:
+            self.audio_changes = None
             changes.close()
             thread = changes.thread
             # Join only a worker that was started; an unstarted thread raises in
@@ -849,6 +847,13 @@ class Panel(Gtk.ApplicationWindow):
                 media.suspend()
         elif name == 'sound':
             self.stop_audio_tick()
+            changes = getattr(self, 'audio_changes', None)
+            if changes is not None:
+                self.audio_changes = None
+                changes.close()
+                thread = changes.thread
+                if thread.ident is not None:
+                    self.work(lambda: thread.join(3), commit=True)
         elif name == 'system':
             self.metrics_generation = getattr(self, 'metrics_generation', 0) + 1
             self.stop_metrics_tick()
@@ -1658,6 +1663,7 @@ class Panel(Gtk.ApplicationWindow):
             self.system_detail.set_text(tr("Unavailable", "不可用") + f"\n{error}")
             for child in self.system_specs.get_children():
                 self.system_specs.remove(child)
+                child.destroy()
             self.system_specs.attach(label(tr("Unavailable", "不可用") + f"\n{error}", "hint"), 0, 0, 2, 1)
             self.system_specs.show_all()
         self.work(read, done, failed)
@@ -1665,6 +1671,7 @@ class Panel(Gtk.ApplicationWindow):
     def populate_system_specs(self, rows):
         for child in self.system_specs.get_children():
             self.system_specs.remove(child)
+            child.destroy()
         for index, (key, value) in enumerate(rows):
             key_label = label(key, "spec-key", localize=False)
             key_label.set_size_request(150 if self.panel_width >= 1200 else 112, -1)
@@ -1731,6 +1738,17 @@ class Panel(Gtk.ApplicationWindow):
         for key, preset in PRESETS.items():
             self.theme_combo.append(key, tr_legacy(preset["label"]))
         pack(theme, self.theme_combo)
+        swatch_row = pack(theme, box(False, 8, "palette-preview"))
+        self.palette_swatches = []
+        for _ in range(5):
+            chip = box(css="palette-swatch")
+            chip.set_size_request(28, 18)
+            provider = Gtk.CssProvider()
+            chip.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
+            pack(swatch_row, chip)
+            self.palette_swatches.append(provider)
+        self.theme_combo.connect("changed", lambda *_: self._refresh_palette_preview())
+        self.color_mode_combo.connect("changed", lambda *_: self._refresh_palette_preview())
         self.wallpaper_colors_check = Gtk.CheckButton(label=tr("Follow wallpaper colors", "主题配色跟随当前壁纸"))
         pack(theme, self.wallpaper_colors_check)
         self.wallpaper_colors_check.connect("toggled", lambda check: self.theme_combo.set_sensitive(not check.get_active()))
@@ -1793,8 +1811,12 @@ class Panel(Gtk.ApplicationWindow):
         self.color_mode_combo.set_active_id(settings.get("color_mode", "dark"))
         self.reduced_motion_check.set_active(settings.get("reduced_motion", False))
         self.theme_combo.set_active_id(settings["preset"])
+        self._refresh_palette_preview()
         self.opacity_scale.set_value(settings["opacity"] * 100)
-        installed = {family.get_name() for family in self.get_pango_context().list_families()}
+        installed = getattr(self, "_installed_fonts", None)
+        if installed is None:
+            installed = {family.get_name() for family in self.get_pango_context().list_families()}
+            self._installed_fonts = installed
         for key, size_key in [("font", "font_size"), ("mono_font", "mono_size")]:
             requested = settings[key]
             fallbacks = ("Noto Sans CJK SC", "Noto Sans", "Sans") if key == "font" else ("JetBrainsMono Nerd Font", "Monospace")
@@ -1803,6 +1825,22 @@ class Panel(Gtk.ApplicationWindow):
             self.font_buttons[key].set_tooltip_text(
                 None if selected == requested else tr(f"{requested} is unavailable; using {selected}", f"未安装 {requested}；已选择 {selected}"))
             self.font_sizes[key].set_value(settings[size_key])
+
+    def _refresh_palette_preview(self):
+        swatches = getattr(self, "palette_swatches", None)
+        if not swatches:
+            return
+        preset = self.theme_combo.get_active_id() or "glacier"
+        mode = self.color_mode_combo.get_active_id() or "dark"
+        from appearance import palette
+        colors = palette({"preset": preset, "color_mode": mode})
+        keys = ("background", "surface_raised", "accent", "secondary", "ink")
+        for provider, key in zip(swatches, keys):
+            color = colors.get(key, "#5ee7ff")
+            provider.load_from_data(
+                f"box.palette-swatch {{ background-color: {color}; border-radius: 999px; "
+                f"border: 1px solid rgba(255, 255, 255, 0.25); }}".encode()
+            )
 
     def draft_appearance(self):
         return {
@@ -1885,13 +1923,14 @@ class Panel(Gtk.ApplicationWindow):
         self.refreshing = True
 
         def read():
+            import concurrent.futures
+            import brightness
             queries = {
                 "wifi": ["nmcli", "radio", "wifi"],
                 "dnd": ["swaync-client", "--skip-wait", "-D"],
                 "notifications": ["swaync-client", "--skip-wait", "-c"],
                 "volume": ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"],
                 "microphone": ["wpctl", "get-volume", "@DEFAULT_AUDIO_SOURCE@"],
-                "profile": ["powerprofilesctl", "get"],
                 "profiles": ["powerprofilesctl", "list"],
             }
             with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
@@ -1901,7 +1940,10 @@ class Panel(Gtk.ApplicationWindow):
                 tasks["brightness"] = executor.submit(brightness.read_state)
                 if getattr(self, "quick_sampler", None) is not None:
                     tasks["quick_metrics"] = executor.submit(self.quick_sampler.sample)
-                return {key: value.result() for key, value in tasks.items()}
+                results = {key: value.result() for key, value in tasks.items()}
+            active = re.search(r"^\s*\*\s*(power-saver|balanced|performance):", results.get("profiles") or "", re.MULTILINE)
+            results["profile"] = active.group(1) if active else None
+            return results
         self.work(read, self.apply_control, self.control_error)
         return GLib.SOURCE_CONTINUE
 
@@ -2003,8 +2045,12 @@ class Panel(Gtk.ApplicationWindow):
                 # ellipsize in English. Use the same compact fallback as N/A.
                 self.scale_values[key].set_text(tr("N/A", "不可用"))
         self.apply_brightness(state.get("brightness") or {})
-        profile = state["profile"]
-        available_profiles = re.findall(r"^\s*\*?\s*(power-saver|balanced|performance):", state["profiles"] or "", re.MULTILINE)
+        profiles_raw = state.get("profiles") or ""
+        profile = state.get("profile")
+        if profile is None and profiles_raw:
+            active = re.search(r"^\s*\*\s*(power-saver|balanced|performance):", profiles_raw, re.MULTILINE)
+            profile = active.group(1) if active else None
+        available_profiles = re.findall(r"^\s*\*?\s*(power-saver|balanced|performance):", profiles_raw, re.MULTILINE)
         self.profile_combo.remove_all()
         for name, title in [("power-saver", tr_legacy("Power saver · 节能")), ("balanced", tr_legacy("Balanced · 平衡")),
                             ("performance", tr_legacy("Performance · 性能"))]:
@@ -2093,6 +2139,7 @@ class Panel(Gtk.ApplicationWindow):
             self.brightness_combo.set_sensitive(True)
             self.backlight_note.set_text(error)
             self.feedback(error, True)
+        import brightness
         self.work(lambda: brightness.set_percent(identifier, value), done, failed, commit=True)
 
     def toggle_wifi(self):
@@ -2608,8 +2655,8 @@ class Shell(Gtk.Application):
         prepare_icon_theme()
         screen = Gdk.Screen.get_default()
         providers = []
-        for index, path in enumerate((BASE / "shell" / "style.css", BASE / "shell" / "control_center.css",
-                                      BASE / "theme" / "panel.css")):
+        for index, path in enumerate((BASE / "shell" / "style.css", BASE / "theme" / "panel.css",
+                                      BASE / "shell" / "control_center.css")):
             if index and not path.exists():
                 continue
             provider = Gtk.CssProvider()
@@ -2618,7 +2665,7 @@ class Shell(Gtk.Application):
         for provider in self.theme_providers:
             Gtk.StyleContext.remove_provider_for_screen(screen, provider)
         self.theme_providers = providers
-        for index, provider in enumerate(providers):
+        for provider in providers:
             Gtk.StyleContext.add_provider_for_screen(screen, provider,
                                                      Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
@@ -2678,7 +2725,7 @@ class Shell(Gtk.Application):
 
 def main():
     if len(sys.argv) != 2 or sys.argv[1] not in SURFACE_KEYS:
-        print("Usage: panel.py {control|system|appearance|sound|displays|shortcuts|ai}", file=sys.stderr)
+        print(f"Usage: panel.py {{{'|'.join(SURFACE_KEYS)}}}", file=sys.stderr)
         return 2
     return Shell(sys.argv[1]).run(sys.argv)
 

@@ -11,6 +11,8 @@ import threading
 import time
 
 MAX_MESSAGE = 8 * 1024 * 1024
+MIN_BACKOFF = 1.0
+MAX_BACKOFF = 8.0
 
 
 def address():
@@ -107,18 +109,27 @@ class DesktopFeed:
         self.path = path
         self.lock = threading.Lock()
         self.value = DesktopState().snapshot()
+        self.version = 0
         self.thread = threading.Thread(target=self.run, name='niri-events', daemon=True)
 
     def snapshot(self):
         with self.lock:
             return copy.deepcopy(self.value)
 
-    def publish(self, state):
+    def snapshot_if_changed(self, last_version):
         with self.lock:
-            self.value = state.snapshot()
+            if self.version == last_version:
+                return last_version, None
+            return self.version, copy.deepcopy(self.value)
+
+    def publish(self, state):
+        snapshot = state.snapshot()
+        with self.lock:
+            self.value = snapshot
+            self.version += 1
 
     def run(self):
-        retry = 1
+        retry = MIN_BACKOFF
         while not self.stopping.is_set():
             state = DesktopState()
             try:
@@ -141,9 +152,12 @@ class DesktopFeed:
                         pending.extend(block)
                         if len(pending) > MAX_MESSAGE:
                             raise ValueError('Niri event too large')
-                        while b'\n' in pending:
-                            line, _, rest = pending.partition(b'\n')
-                            pending = bytearray(rest)
+                        if b'\n' not in pending:
+                            continue
+                        lines = pending.split(b'\n')
+                        pending = bytearray(lines.pop())
+                        updated = False
+                        for line in lines:
                             event = json.loads(line)
                             if not acknowledged:
                                 if event != {'Ok': 'Handled'}:
@@ -151,13 +165,15 @@ class DesktopFeed:
                                 acknowledged = True
                             else:
                                 state.apply(event)
-                        self.publish(state)
+                                updated = True
+                        if updated:
+                            self.publish(state)
                         if len(state.ready) == 2:
-                            retry = 1
+                            retry = MIN_BACKOFF
             except (OSError, ValueError, KeyError, TypeError):
                 pass
             # Never present stale app/workspace state across a disconnect.
             self.publish(DesktopState())
             if self.stopping.wait(retry):
                 break
-            retry = min(retry * 2, 8)
+            retry = min(retry * 2, MAX_BACKOFF)

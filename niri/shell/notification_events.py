@@ -4,12 +4,17 @@ import json
 import os
 from pathlib import Path
 import queue
+import sys
 import threading
 import time
 
 from gi.repository import Gio, GLib
 from notification_policy import Policy
 from notification_rules import Rules
+
+MIN_BACKOFF = 1.0
+MAX_BACKOFF = 10.0
+POLL = 0.2
 
 BUS = 'org.freedesktop.DBus'
 BUS_PATH = '/org/freedesktop/DBus'
@@ -125,7 +130,7 @@ class NotificationFeed:
         return fallback
 
     def run(self):
-        delay = 1
+        delay = MIN_BACKOFF
         while not self.done():
             monitor = control = None
             policy = Policy(self.events.put)
@@ -219,20 +224,24 @@ class NotificationFeed:
                             value = hints.lookup_value(name, None)
                             if value is not None and value.get_type_string() in types:
                                 wanted[name] = value.unpack()
-                        data = (body.get_child_value(0).unpack(), body.get_child_value(1).unpack(),
-                            body.get_child_value(2).unpack()[:100], body.get_child_value(3).unpack(),
-                            body.get_child_value(4).unpack(), [], wanted, body.get_child_value(7).unpack())
+                        app_name = body.get_child_value(0).unpack()
+                        replaces_id = body.get_child_value(1).unpack()
+                        icon = body.get_child_value(2).unpack()[:100]
+                        summary = body.get_child_value(3).unpack()
+                        body_text = body.get_child_value(4).unpack()
+                        expire_timeout = body.get_child_value(7).unpack()
+                        data = (app_name, replaces_id, icon, summary, body_text, [], wanted, expire_timeout)
                         urgency = urgency_from_hints(hints)
                         visible, wanted['urgency'] = rules.decide(data, urgency)
                         # Match complete text, then retain only the bounded preview.
                         preview_hints = {name:wanted[name] for name in ('urgency','SWAYNC_BYPASS_DND') if name in wanted}
-                        data = ('', data[1], data[2], data[3][:160], data[4][:320], [], preview_hints, data[7])
+                        data = ('', replaces_id, icon, summary[:160], body_text[:320], [], preview_hints, expire_timeout)
                         record_info = {
-                            'app_name': body.get_child_value(0).unpack(),
-                            'summary': body.get_child_value(3).unpack(),
-                            'body': body.get_child_value(4).unpack(),
-                            'icon': body.get_child_value(2).unpack()[:100],
-                            'urgency': urgency,
+                            'app_name': str(app_name)[:80],
+                            'summary': str(summary)[:160],
+                            'body': str(body_text)[:500],
+                            'icon': icon,
+                            'urgency': wanted['urgency'],
                             'category': wanted.get('category', ''),
                         }
                         pending[(sender, message.get_serial())] = (time.monotonic(), data, visible, record_info)
@@ -263,10 +272,10 @@ class NotificationFeed:
                                         rec = dict(entry[3])
                                         rec['id'] = identifier
                                         notification_history.record_notification(rec)
-                                    except Exception:
-                                        pass
+                                    except Exception as error:
+                                        print(f"notification history save failed: {error}", file=sys.stderr)
                 if time.monotonic() - connected_at > 5:
-                    delay = 1
+                    delay = MIN_BACKOFF
             except (GLib.Error, OSError, ValueError, KeyError, RuntimeError):
                 pass
             finally:
@@ -279,5 +288,5 @@ class NotificationFeed:
                         except GLib.Error: pass
             deadline = time.monotonic() + delay
             while not self.done() and time.monotonic() < deadline:
-                self.closed.wait(min(.2, max(0, deadline - time.monotonic())))
-            delay = min(delay * 2, 10)
+                self.closed.wait(min(POLL, max(0, deadline - time.monotonic())))
+            delay = min(delay * 2, MAX_BACKOFF)

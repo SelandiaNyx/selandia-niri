@@ -33,7 +33,9 @@ def main(args):
         raise RuntimeError(tr('Wayland display unavailable', 'Wayland 显示不可用'))
     windows, drawn = [], set()
     started = None
+    ready_sent = False
     def draw(area, context, index):
+        nonlocal ready_sent
         alpha = 1. if started is None else max(0., 1 - (time.monotonic() - started) / args.duration)
         width, height = area.get_allocated_width(), area.get_allocated_height()
         context.push_group()
@@ -50,8 +52,9 @@ def main(args):
             Gdk.cairo_set_source_pixbuf(context, image, 0, 0); context.paint(); context.restore()
         context.pop_group_to_source(); context.paint_with_alpha(alpha)
         drawn.add(index)
-        if len(drawn) == len(windows):
+        if not ready_sent and len(drawn) == len(windows):
             Path(args.ready).touch()
+            ready_sent = True
         return False
     for index in range(display.get_n_monitors()):
         window = Gtk.Window()
@@ -82,7 +85,8 @@ def main(args):
         if started is None and Path(args.begin).exists(): started = now
         if now > deadline or (started is not None and now - started >= args.duration):
             Gtk.main_quit(); return GLib.SOURCE_REMOVE
-        for window in windows: window.queue_draw()
+        if started is not None:
+            for window in windows: window.queue_draw()
         return GLib.SOURCE_CONTINUE
     GLib.timeout_add(16, tick)
     for signum in (signal.SIGINT, signal.SIGTERM):

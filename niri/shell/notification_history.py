@@ -9,6 +9,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 import fcntl
 import json
+import math
 import os
 from pathlib import Path
 import tempfile
@@ -76,7 +77,7 @@ def validate_settings(data: dict) -> dict:
     if not isinstance(data, dict):
         return result
 
-    if "limit" in data:
+    if "limit" in data and not isinstance(data["limit"], bool):
         try:
             limit = int(data["limit"])
             if 0 <= limit <= 5000:
@@ -84,10 +85,10 @@ def validate_settings(data: dict) -> dict:
         except (ValueError, TypeError):
             pass
 
-    if "expire_days" in data:
+    if "expire_days" in data and not isinstance(data["expire_days"], bool):
         try:
             days = float(data["expire_days"])
-            if 0 <= days <= 365:
+            if math.isfinite(days) and 0 <= days <= 365:
                 result["expire_days"] = int(days) if days.is_integer() else round(days, 2)
         except (ValueError, TypeError):
             pass
@@ -132,9 +133,9 @@ def prune_entries(entries: list[dict], settings: dict | None = None, now: float 
         if not isinstance(item, dict):
             continue
         ts = item.get("timestamp")
-        if not isinstance(ts, (int, float)):
+        if isinstance(ts, bool) or not isinstance(ts, (int, float)) or not math.isfinite(ts):
             ts = current_time
-            item["timestamp"] = ts
+            item = {**item, "timestamp": ts}
 
         # Check expiry
         expire_days = cfg.get("expire_days", 0)
@@ -215,11 +216,19 @@ def record_notification(item: dict) -> bool:
     """
     if not isinstance(item, dict):
         return False
-    cfg = load_settings()
-    if not cfg.get("enabled", True):
-        return False
 
     now = time.time()
+    raw_ts = item.get("timestamp")
+    if isinstance(raw_ts, bool) or raw_ts is None:
+        timestamp = now
+    else:
+        try:
+            parsed_ts = float(raw_ts)
+            timestamp = parsed_ts if math.isfinite(parsed_ts) and parsed_ts > 0 else now
+        except (ValueError, TypeError):
+            timestamp = now
+    raw_urgency = item.get("urgency", 1)
+    urgency = raw_urgency if type(raw_urgency) is int and raw_urgency in (0, 1, 2) else 1
     record = {
         "history_id": uuid.uuid4().hex,
         "id": item.get("id") or item.get("notification_id") or int(now * 1000),
@@ -227,19 +236,24 @@ def record_notification(item: dict) -> bool:
         "summary": str(item.get("summary") or item.get("title") or "").strip()[:160],
         "body": str(item.get("body") or item.get("message") or "").strip()[:500],
         "icon": str(item.get("icon") or "").strip()[:120],
-        "timestamp": float(item.get("timestamp") or now),
-        "urgency": int(item.get("urgency", 1)) if item.get("urgency") in (0, 1, 2) else 1,
+        "timestamp": timestamp,
+        "urgency": urgency,
         "category": str(item.get("category") or "").strip()[:40],
     }
 
     with _lock():
+        cfg = load_settings()
+        if not cfg.get("enabled", True):
+            return False
         entries = [entry for entry in _load_history_unlocked() if isinstance(entry, dict)]
         # Avoid exact duplicate spam within 1 second for same app + title + body
         for existing in entries[:5]:
+            existing_ts = existing.get("timestamp", 0)
             if (existing.get("app_name") == record["app_name"] and
                 existing.get("summary") == record["summary"] and
                 existing.get("body") == record["body"] and
-                abs(existing.get("timestamp", 0) - record["timestamp"]) < 1.0):
+                not isinstance(existing_ts, bool) and isinstance(existing_ts, (int, float)) and
+                abs(existing_ts - record["timestamp"]) < 1.0):
                 return False
 
         entries.insert(0, record)

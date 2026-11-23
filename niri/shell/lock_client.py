@@ -95,6 +95,8 @@ def locker_arguments(request, ready_fd):
 def start_locker(request, display, log_path):
     """Run the locker with a readiness pipe; return (process, identity)."""
     read_fd, write_fd = os.pipe()
+    process = None
+    confirmed_ok = False
     try:
         descriptor = os.open(log_path, os.O_WRONLY | os.O_CREAT | os.O_APPEND | os.O_NOFOLLOW, 0o600)
         with os.fdopen(descriptor, "a") as log:
@@ -111,11 +113,28 @@ def start_locker(request, display, log_path):
         if not identity or identity["display"] != display:
             raise RuntimeError(tr("Cannot verify the locker belongs to this display.",
                                   "无法确认锁屏进程属于当前显示会话。"))
+        confirmed_ok = True
         return process, identity
     finally:
         os.close(read_fd)
         if write_fd is not None:
             os.close(write_fd)
+        if process is not None and not confirmed_ok:
+            if process.poll() is None:
+                try:
+                    process.terminate()
+                    process.wait(timeout=2)
+                except (OSError, subprocess.TimeoutExpired):
+                    try:
+                        process.kill()
+                        process.wait(timeout=2)
+                    except (OSError, subprocess.TimeoutExpired):
+                        pass
+            else:
+                try:
+                    process.wait(timeout=1)
+                except (OSError, subprocess.TimeoutExpired):
+                    pass
 
 
 def serve(key):

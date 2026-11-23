@@ -7,10 +7,11 @@ import tempfile
 import threading
 import time
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'niri/shell'))
 import media_backend as backend
+import media_events
 from media_events import Gio, GLib, MediaChanges, PlaybackClock, RefreshGate
 
 
@@ -97,6 +98,9 @@ class SignalTests(unittest.TestCase):
         self.addCleanup(self.stop_buses)
         self.bus = self.start_bus()
         self.stopping = threading.Event()
+        backoff = patch.multiple(media_events, MIN_BACKOFF=0.05, MAX_BACKOFF=0.2, POLL=0.02)
+        backoff.start()
+        self.addCleanup(backoff.stop)
         self.feed = MediaChanges(self.stopping, address=self.address)
         self.feed.thread.start()
         self.addCleanup(self.stop_feed)

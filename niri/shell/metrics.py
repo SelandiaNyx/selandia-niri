@@ -29,6 +29,12 @@ import time
 
 
 UNAVAILABLE = "—"
+_CPU_DIR_RE = re.compile(r"cpu\d+")
+_OCTAL_RE = re.compile(r"\\([0-7]{3})")
+_CARD_RE = re.compile(r"card\d+")
+_PCI_ADDR_RE = re.compile(r"[0-9a-fA-F]{4,8}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-7]")
+_PCI_SPLIT_RE = re.compile(r"[:.]")
+_HEX4 = frozenset("0123456789abcdefABCDEF")
 
 
 def read_text(path: Path) -> str:
@@ -214,7 +220,7 @@ class MetricsSampler:
                     row.get("physical id", "").isdigit() for row in rows) else None
         cpus, sys_topology, complete = [], set(), True
         for cpu in (self.sys / "devices/system/cpu").glob("cpu[0-9]*"):
-            if not re.fullmatch(r"cpu\d+", cpu.name) or read_text(cpu / "online") == "0":
+            if not _CPU_DIR_RE.fullmatch(cpu.name) or read_text(cpu / "online") == "0":
                 continue
             cpus.append(cpu)
             package, core = (read_text(cpu / "topology" / name) for name in ("physical_package_id", "core_id"))
@@ -274,7 +280,7 @@ class MetricsSampler:
             fields, tail = left.split(), right.split()
             if not separator or len(fields) < 6 or len(tail) < 2 or tail[0] in pseudo:
                 continue
-            decode = lambda value: re.sub(r"\\([0-7]{3})", lambda match: chr(int(match[1], 8)), value)
+            decode = lambda value: _OCTAL_RE.sub(lambda match: chr(int(match[1], 8)), value)
             mount, source = decode(fields[4]), decode(tail[1])
             if not mount.startswith("/"):
                 continue
@@ -298,14 +304,20 @@ class MetricsSampler:
             return []
         elapsed = now - self.previous_process_time if self.previous_process_time is not None else 0
         previous, current, rows = self.previous_processes, {}, []
-        for path in self.proc.glob("[0-9]*/stat"):
+        try:
+            proc_entries = list(os.scandir(self.proc))
+        except OSError:
+            proc_entries = []
+        for entry in proc_entries:
+            if not entry.name.isdigit():
+                continue
             try:
-                raw = read_text(path)
+                raw = read_text(Path(entry.path) / "stat")
                 header, tail = raw.rsplit(")", 1)
                 fields = tail.split()
                 if fields[0] == "Z":
                     continue
-                pid, start = int(path.parent.name), int(fields[19])
+                pid, start = int(entry.name), int(fields[19])
                 cpu = int(fields[11]) + int(fields[12])
                 resident = int(fields[21])
                 if cpu < 0 or resident < 0:
@@ -324,15 +336,36 @@ class MetricsSampler:
                                             row["memory"]), reverse=True)[:8]
 
     def _pci_name(self, vendor, device):
+        """Stream pci.ids on demand and retain only looked-up GPU IDs (not all ~22k rows)."""
+        v = vendor.removeprefix("0x").lower()
+        d = device.removeprefix("0x").lower()
+        if len(v) != 4 or len(d) != 4:
+            return None
         if self.pci_names is None:
             self.pci_names = {}
-            current = None
-            for line in read_text(self.pci_ids).splitlines():
-                if re.match(r"^[0-9a-fA-F]{4}  ", line):
-                    current = line[:4].lower()
-                elif current and re.match(r"^\t[0-9a-fA-F]{4}  ", line):
-                    self.pci_names[(current, line[1:5].lower())] = line[7:].strip()
-        return self.pci_names.get((vendor.removeprefix("0x"), device.removeprefix("0x")))
+        key = (v, d)
+        if key in self.pci_names:
+            return self.pci_names[key]
+        found = None
+        in_vendor = False
+        try:
+            with self.pci_ids.open(encoding="utf-8", errors="replace") as stream:
+                for line in stream:
+                    if not line or line[0] == "#":
+                        continue
+                    if in_vendor:
+                        if line[0] == "\t":
+                            if len(line) > 6 and line[1] != "\t" and line[5:7] == "  " and line[1:5].lower() == d:
+                                found = line[7:].strip()
+                                break
+                        elif line[0] in _HEX4:
+                            break
+                    elif len(line) > 5 and line[4:6] == "  " and line[:4].lower() == v:
+                        in_vendor = True
+        except OSError:
+            pass
+        self.pci_names[key] = found
+        return found
 
     def _cpu(self):
         current = parse_cpu(read_text(self.proc / "stat"))
@@ -408,9 +441,12 @@ class MetricsSampler:
                 continue
             for path in sorted(directory.glob("temp*_input")):
                 value = number(read_text(path), -50000, 200000)
-                if (value is None and not self.detailed) or path.resolve() in seen:
+                if value is None and not self.detailed:
                     continue
-                seen.add(path.resolve())
+                resolved = path.resolve()
+                if resolved in seen:
+                    continue
+                seen.add(resolved)
                 label = read_text(path.with_name(path.name.replace("_input", "_label")))
                 readings.append({"name": f"{chip} · {label or path.stem}", "celsius": value / 1000 if value is not None else None})
         if not any(item['celsius'] is not None for item in readings):
@@ -421,45 +457,51 @@ class MetricsSampler:
                                      "celsius": value / 1000 if value is not None else None})
         return readings
 
-    def _gpus(self):
+    def _gpus(self, *, probe_clients=True):
         readings, seen, nvidia_paths, pci_readings = [], set(), [], {}
         client_devices, client_readings, nvidia_targets = {}, {}, []
         vendors = {"0x1002": "AMD", "0x8086": "Intel", "0x10de": "NVIDIA"}
         for card in sorted((self.sys / "class/drm").glob("card*")):
-            if not re.fullmatch(r"card\d+", card.name):
+            if not _CARD_RE.fullmatch(card.name):
                 continue
             device = card / "device"
-            if not device.exists() or device.resolve() in seen:
+            if not device.exists():
                 continue
-            seen.add(device.resolve())
-            vendor = vendors.get(read_text(device / "vendor"), "GPU")
+            resolved = device.resolve()
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            vendor_id = read_text(device / "vendor")
+            device_id = read_text(device / "device")
+            vendor = vendors.get(vendor_id, "GPU")
             if vendor == "NVIDIA":
                 nvidia_paths.append(device)
             suspended_card = read_text(device / "power/runtime_status") in ("suspended", "suspending", "resuming")
             temperatures = [] if suspended_card else [number(read_text(path), -50000, 200000)
                             for path in device.glob("hwmon/hwmon*/temp*_input")]
             temperatures = [value / 1000 for value in temperatures if value is not None]
+            driver_path = device / "driver"
             reading = {
                 "name": read_text(device / "product_name") or
-                        (self._pci_name(read_text(device / "vendor"), read_text(device / "device")) if self.detailed else None) or f"{vendor} · {card.name}",
+                        (self._pci_name(vendor_id, device_id) if self.detailed else None) or f"{vendor} · {card.name}",
                 "percent": None if suspended_card else number(read_text(device / "gpu_busy_percent"), 0, 100),
                 "temperature": max(temperatures) if temperatures else None,
                 "memory_used": None if suspended_card else number(read_text(device / "mem_info_vram_used"), 0),
                 "memory_total": None if suspended_card else number(read_text(device / "mem_info_vram_total"), 0),
                 "source": vendor,
-                "driver": device.joinpath("driver").resolve().name if device.joinpath("driver").exists() else None,
-                "pci_id": (read_text(device / "vendor") + ":" + read_text(device / "device")) if read_text(device / "device") else None,
+                "driver": driver_path.resolve().name if driver_path.exists() else None,
+                "pci_id": (vendor_id + ":" + device_id) if device_id else None,
                 "status": "suspended" if suspended_card else "available",
             }
             reading['utilization_source'] = 'sysfs' if reading['percent'] is not None else None
             reading['coverage'] = 'whole-device' if reading['percent'] is not None else None
             readings.append(reading)
-            address = device.resolve().name
-            if re.fullmatch(r"[0-9a-fA-F]{4,8}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-7]", address):
-                pci_readings[tuple(int(part, 16) for part in re.split(r"[:.]", address))] = reading
+            address = resolved.name
+            if _PCI_ADDR_RE.fullmatch(address):
+                pci_readings[tuple(int(part, 16) for part in _PCI_SPLIT_RE.split(address))] = reading
                 if vendor == "NVIDIA":
                     nvidia_targets.append((address, device, reading))
-                if self.detailed and reading['percent'] is None and reading['driver'] in ('i915', 'xe', 'amdgpu'):
+                if probe_clients and self.detailed and reading['percent'] is None and reading['driver'] in ('i915', 'xe', 'amdgpu'):
                     client_devices[address] = device
                     client_readings[address] = reading
         # Detailed System-page sampling only. Decorative bar/Quick sampling must
@@ -509,8 +551,8 @@ class MetricsSampler:
                         original = {}
                         if len(fields) == 7:
                             reported = fields[5].strip()
-                            if re.fullmatch(r"[0-9a-fA-F]{4,8}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-7]", reported):
-                                original = pci_readings.get(tuple(int(part, 16) for part in re.split(r"[:.]", reported)), {})
+                            if _PCI_ADDR_RE.fullmatch(reported):
+                                original = pci_readings.get(tuple(int(part, 16) for part in _PCI_SPLIT_RE.split(reported)), {})
                         # Never merge an unexpected response into another card,
                         # or accept an identity-free result for a targeted query.
                         if selected is not None and original is not selected:
@@ -544,6 +586,26 @@ class MetricsSampler:
         self.previous_cpu = parse_cpu(read_text(self.proc / "stat"))
         self.previous_time = self.clock()
         self._network(self.previous_time)
+
+    def inventory_sample(self) -> dict:
+        """Static + coarse inventory for system_info without scanning /proc processes or DRM clients."""
+        memory, swap = parse_memory(read_text(self.proc / "meminfo"))
+        try:
+            usage = self.disk_usage(self.disk_path)
+            disk = {"total": usage.total, "used": usage.used, "free": usage.free,
+                    "percent": 100 * usage.used / usage.total if usage.total else None}
+        except OSError:
+            disk = None
+        uptime = read_text(self.proc / "uptime").split()
+        return {
+            "system": dict(self._cached_inventory("system", 300, self._system)),
+            "cpu": self._cpu_info(),
+            "gpus": self._gpus(probe_clients=False),
+            "memory": memory,
+            "swap": swap,
+            "disk": disk,
+            "uptime_seconds": number(uptime[0], 0) if uptime else None,
+        }
 
     def sample(self) -> dict:
         now = self.clock()
