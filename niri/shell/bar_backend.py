@@ -52,7 +52,7 @@ def geometry(width, size=12):
     # Keep a real gap on both sides even when the output is very narrow.
     right=min(right,max(96,int(width/2-12-maximum/2)))
     # Added software gets its own bounded space; existing capsule widths and island limit stay unchanged.
-    left=min(left+round(160*factor),max(left,int(width/2-maximum/2-24)))
+    left=min(left+round(250*factor),max(left,int(width/2-maximum/2-24)))
     target_collapsed=round((144 if compact else 214)*factor)
     collapsed=min(target_collapsed,max(96,maximum-36)) if maximum>132 else min(target_collapsed,maximum)
     return {'left':left,'right':right,'island':maximum,'collapsed':collapsed,

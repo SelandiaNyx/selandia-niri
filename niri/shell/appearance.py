@@ -1007,14 +1007,14 @@ def _render_eww(*, bg, css_header, dark_mode, family, grad_accent, grad_bar, mon
     100% {{ opacity: 0.72; }}
 }}
 @keyframes nyx-ws-glow {{
-    0% {{ box-shadow: 0 2px 10px {rgba(r['primary'], .36)}; }}
-    50% {{ box-shadow: 0 2px 16px {rgba(r['primary'], .62)}; }}
-    100% {{ box-shadow: 0 2px 10px {rgba(r['primary'], .36)}; }}
+    0% {{ box-shadow: inset 0 1px {rgba('#ffffff', .32)}; }}
+    50% {{ box-shadow: inset 0 1px {rgba('#ffffff', .58)}, inset 0 0 8px {rgba(r['secondary'], .45)}; }}
+    100% {{ box-shadow: inset 0 1px {rgba('#ffffff', .32)}; }}
 }}
 @keyframes nyx-island-pulse {{
-    0% {{ box-shadow: inset 0 1px {top_edge}, 0 0 10px {rgba(r['primary'], .24)}; }}
-    50% {{ box-shadow: inset 0 1px {top_edge}, 0 0 18px {rgba(r['secondary'], .44)}; }}
-    100% {{ box-shadow: inset 0 1px {top_edge}, 0 0 10px {rgba(r['primary'], .24)}; }}
+    0% {{ border-color: {r['primary']}; }}
+    50% {{ border-color: {r['secondary']}; }}
+    100% {{ border-color: {r['primary']}; }}
 }}
 * {{ font-family: {family}; font-size: {size:g}px; color: {r['on_surface']}; }}
 window.background, window, .background {{ background-color: rgba(0, 0, 0, 0); background-image: none; border: none; box-shadow: none; }}
@@ -1022,13 +1022,13 @@ window.background, window, .background {{ background-color: rgba(0, 0, 0, 0); ba
 .segment {{ background-color: {rgba(r['surface_container_high'], opacity)};
     background-image: none;
     border: 1px solid {rgba(r['primary'], rim_alpha)}; border-radius: 22px; padding: 2px 10px;
-    box-shadow: inset 0 1px {top_edge}, 0 6px 18px {rgba('#000000', .22 if dark_mode else .10)}; }}
+    box-shadow: inset 0 1px {top_edge}; }}
 button {{ background: transparent; border: none; box-shadow: none; }}
 .pill {{ color: {r['on_surface']}; background: transparent; border: none; border-radius: {MD3_SHAPE['pill']}px; padding: 3px 8px; transition: background-color 140ms ease-out, color 140ms ease-out, box-shadow 140ms ease-out; }}
 .segment .pill * {{ background-color: transparent; background-image: none; box-shadow: none; }}
 .segment .pill, .segment .workspace {{ background: transparent; border: none; }}
 .segment .pill.launcher-btn {{ color: {r['primary']}; background: {rgba(r['primary'], .16)}; border: 1px solid {rgba(r['primary'], .42)}; padding: 2px 8px; font-weight: 700; }}
-.segment .pill.launcher-btn:hover {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent}; border-color: {r['secondary']}; box-shadow: 0 2px 12px {rgba(r['primary'], .48)}; }}
+.segment .pill.launcher-btn:hover {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent}; border-color: {r['secondary']}; }}
 .launcher-avatar {{ border-radius: 999px; }}
 .segment .pill.control-btn {{ color: {r['primary']}; }}
 .segment .pill.audio-btn.muted {{ color: {r['error']}; background: {rgba(r['error'], .16)}; }}
@@ -1036,8 +1036,9 @@ button {{ background: transparent; border: none; box-shadow: none; }}
     background-color: {rgba(r['surface_container_low'], .88)};
     background-image: none;
     border: 1px solid {rgba(r['on_surface'], .12)};
-    border-radius: 999px; padding: 2px 10px; margin: 0 2px; }}
-.segment .pill.current-app {{ border-color: {rgba(r['primary'], .30)}; }}
+    border-radius: 999px; padding: 2px 12px; margin: 0 2px; }}
+.segment .pill.current-app {{ border-color: {rgba(r['primary'], .30)}; padding: 0; }}
+.segment .pill.current-app > box {{ padding: 2px 12px; }}
 .app-dot {{ color: {r['primary']}; font-size: {round(size * .72, 2):g}px; margin-right: 4px; }}
 .app-label {{ font-weight: 700; color: {r['on_surface']}; }}
 .segment .pill.resources:hover, .segment .pill.current-app:hover {{
@@ -1049,7 +1050,7 @@ button {{ background: transparent; border: none; box-shadow: none; }}
 .workspace:hover, .pill:hover {{ color: {r['on_primary_container']}; background: {r['primary_container']}; border-radius: 999px; }}
 .workspace.active, .workspace:active {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent};
     border-radius: 999px; font-weight: 700; min-width: 34px; padding: 3px 12px;
-    box-shadow: 0 2px 10px {rgba(r['primary'], .42)}; animation: nyx-ws-glow 2.8s ease-in-out infinite; }}
+    box-shadow: inset 0 1px {rgba('#ffffff', .35)}; animation: nyx-ws-glow 2.8s ease-in-out infinite; }}
 .pill:active, .pill:checked {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent}; }}
 .workspace.active label, .workspace:active label, .pill:active label, .pill:checked label {{ color: {r['on_primary']}; }}
 .compact .pill, .compact .workspace {{ padding: 2px 5px; }}
@@ -1069,17 +1070,17 @@ button {{ background: transparent; border: none; box-shadow: none; }}
 .clock-time {{ color: {r['on_surface']}; font-family: {mono_family}; font-size: {round(size * 1.06, 2):g}px; font-weight: 700; letter-spacing: -0.3px; font-feature-settings: "tnum 1, cv01 1"; }}
 .clock-date {{ color: {r['primary']}; font-size: {round(size * .78, 2):g}px; font-weight: 700; letter-spacing: .04em; margin-top: 0; }}
 .island {{ background-color: {rgba(r['surface_container_highest'], opacity)};
-    background-image: url("../assets/anime/cat-ears.svg");
-    background-repeat: no-repeat; background-position: center top; background-size: 40px 14px;
-    border: 1px solid {rgba(r['primary'], .42 if dark_mode else .34)}; border-radius: 22px; padding: 8px 12px;
-    box-shadow: inset 0 1px {top_edge}, 0 6px 20px {rgba('#000000', .24 if dark_mode else .10)}; }}
+    background-image: url("../assets/anime/sakura.svg");
+    background-repeat: no-repeat; background-position: 95% center; background-size: 18px 18px;
+    border: 1px solid {rgba(r['primary'], .44 if dark_mode else .36)}; border-radius: 22px; padding: 8px 12px;
+    box-shadow: inset 0 1px {top_edge}; }}
 .island.playing, .island.expanded {{ border-color: {r['primary']};
-    box-shadow: inset 0 1px {top_edge}, 0 0 16px {rgba(r['primary'], .34)}; }}
+    box-shadow: inset 0 1px {top_edge}, inset 0 0 0 1px {rgba(r['primary'], .36)}; }}
 .island.playing {{ animation: nyx-island-pulse 2.6s ease-in-out infinite; }}
-.island-idle-row {{ background: transparent; }}
+.island-idle-row {{ background: transparent; padding-right: 16px; }}
 .island-idle-icon {{ color: {r['primary']}; font-size: {round(size * 1.05, 2):g}px; font-weight: 700; animation: nyx-sparkle 2.2s ease-in-out infinite; }}
 .island.playing .island-idle-icon {{ color: {r['secondary']}; }}
-.island-clock {{ padding: 2px 10px; border-radius: 999px; background-color: {rgba(r['surface_container_low'], .72)}; border: 1px solid {rgba(r['primary'], .24)}; }}
+.island-clock {{ padding: 2px 10px; border-radius: 999px; background-color: transparent; border: 1px solid transparent; }}
 .island-clock:hover {{ background-color: {r['primary_container']}; border-color: {r['primary']}; }}
 .island-title {{ color: {r['on_surface']}; font-weight: 700; }}
 .island-summary {{ color: {r['on_surface_variant']}; font-size: {round(size * .90, 2):g}px; }}
