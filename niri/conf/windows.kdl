@@ -21,7 +21,7 @@ window-rule {
     open-floating true
     default-column-width {}
     default-window-height {}
-    geometry-corner-radius 24
+    geometry-corner-radius 28
     border { off; }
     focus-ring { off; }
     background-effect {

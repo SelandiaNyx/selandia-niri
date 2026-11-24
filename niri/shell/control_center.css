@@ -1,25 +1,10 @@
-/* Sakura Nyan · Material Design 3 + Heavy Anime Frontend Stylesheet (GTK 3).
+/* Sakura Nyan OS 2.0 · Material Design 3 + High-Anime Eye-Care Stylesheet (GTK 3).
  *
  * Loaded after style.css and generated theme/panel.css. Owns layout polish,
- * MD3 tonal layering, mascot artwork composition, sticker accents and GTK3
- * @keyframes motion (completely disabled under .reduce-motion).
+ * MD3 tonal layering, Gemini cat-girl artwork, contextual guide bubbles,
+ * responsive 2-column grids, sticky action bars, command palette, and crisp
+ * event-driven transitions (zero infinite idle @keyframes).
  * All selectors stay scoped so native GTK dialogs remain opaque. */
-
-@keyframes nyx-live-breathe {
-    0% { box-shadow: 0 0 8px alpha(@success, .20); opacity: .88; }
-    50% { box-shadow: 0 0 18px alpha(@success, .52); opacity: 1.0; }
-    100% { box-shadow: 0 0 8px alpha(@success, .20); opacity: .88; }
-}
-@keyframes nyx-avatar-halo {
-    0% { box-shadow: 0 0 0 2px alpha(@md3_primary, .36), 0 4px 14px alpha(@md3_primary, .20); }
-    50% { box-shadow: 0 0 0 3px alpha(@md3_secondary, .52), 0 4px 20px alpha(@md3_primary, .36); }
-    100% { box-shadow: 0 0 0 2px alpha(@md3_primary, .36), 0 4px 14px alpha(@md3_primary, .20); }
-}
-@keyframes nyx-sparkle-float {
-    0% { opacity: .72; }
-    50% { opacity: 1.0; }
-    100% { opacity: .72; }
-}
 
 /* ---- Window shell ------------------------------------------------------- */
 window.glass-window.control-center-window { border-radius: 28px; }
@@ -28,7 +13,7 @@ window.glass-window.control-center-window .glass-surface {
     border: 1px solid alpha(@md3_primary, .38);
     border-radius: 28px;
     background-image: none;
-    box-shadow: inset 0 1px alpha(@md3_primary, .22), 0 28px 72px alpha(black, .42);
+    box-shadow: inset 0 1px alpha(@md3_primary, .22), 0 18px 44px alpha(black, .34);
 }
 window.glass-window.control-center-window .panel-frame {
     border: 1px solid alpha(@md3_primary, .24);
@@ -38,22 +23,22 @@ window.glass-window.control-center-window .panel-frame {
 }
 window.glass-window.control-center-window .panel-header,
 window.glass-window.control-center-window .control-header {
-    min-height: 76px;
-    padding: 16px 22px 14px;
+    min-height: 70px;
+    padding: 14px 20px 12px;
     background-color: @md3_surface_container_low;
-    background-image: url("../assets/anime/mascot-peek.png"), url("../assets/anime/sakura.svg");
+    background-image: url("../assets/anime/mascot-peek.png"), url("../assets/anime/star-sparkle.svg");
     background-repeat: no-repeat, no-repeat;
-    background-position: 74% bottom, 62% 24%;
-    background-size: auto 92%, 40px 40px;
+    background-position: 73% bottom, 61% 24%;
+    background-size: auto 94%, 30px 30px;
     border-bottom: 1px solid alpha(@md3_primary, .28);
     border-radius: 27px 27px 0 0;
 }
 window.glass-window.control-center-window .mascot-avatar-frame {
-    padding: 3px;
+    padding: 2px;
     border-radius: 999px;
     border: 2px solid @md3_primary;
     background-color: @md3_surface_container_high;
-    animation: nyx-avatar-halo 3.4s ease-in-out infinite;
+    box-shadow: 0 0 0 2px alpha(@md3_primary, .28);
 }
 window.glass-window.control-center-window .panel-content { padding: 18px 20px 20px; }
 window.glass-window.control-center-window .control-heading {
@@ -102,18 +87,17 @@ window.glass-window.control-center-window button.close-button:checked {
 
 /* ---- Mode-specific anime banners (AI / Calendar / Shortcuts) ------------ */
 window.glass-window.ai-window .panel-header {
-    min-height: 92px;
-    padding: 16px 20px 14px;
+    min-height: 66px;
+    padding: 12px 18px 10px;
     background-color: @md3_surface_container_low;
     background-image: url("../assets/anime/mascot-thinking.png"), url("../assets/anime/star-sparkle.svg");
     background-repeat: no-repeat, no-repeat;
-    background-position: 76% bottom, 58% 22%;
-    background-size: auto 94%, 22px 22px;
+    background-position: 78% bottom, 60% 22%;
+    background-size: auto 96%, 22px 22px;
     border-radius: 27px 27px 0 0;
 }
 window.glass-window.ai-window .welcome-icon {
     color: @md3_primary;
-    animation: nyx-sparkle-float 2.4s ease-in-out infinite;
 }
 window.glass-window.calendar-window .panel-header {
     min-height: 84px;
@@ -628,11 +612,159 @@ window.glass-window.control-center-window .live-badge {
     background-color: alpha(@success, .16);
     border: 1px solid alpha(@success, .48);
     border-radius: 999px;
-    padding: 5px 12px;
-    font-size: .74em;
+    padding: 4px 11px;
+    font-size: .78em;
     font-weight: 800;
-    letter-spacing: .09em;
-    animation: nyx-live-breathe 2.8s ease-in-out infinite;
+    letter-spacing: .06em;
+}
+window.glass-window.control-center-window .live-badge.unsaved {
+    color: @warning;
+    background-color: alpha(@warning, .18);
+    border-color: alpha(@warning, .55);
+}
+/* ---- OS 2.0: Nyx Guide Banner, Subtabs, Data Rows, Sticky Bar & Palette - */
+window.glass-window.control-center-window .nyx-guide-banner {
+    padding: 10px 14px;
+    border: 1px solid alpha(@md3_primary, .30);
+    border-radius: 18px;
+    background-color: alpha(@md3_primary_container, .36);
+}
+window.glass-window.control-center-window .nyx-guide-avatar {
+    border-radius: 999px;
+    border: 1.5px solid @md3_primary;
+    padding: 1px;
+    background-color: @md3_surface_container_high;
+}
+window.glass-window.control-center-window .nyx-guide-text {
+    color: @md3_on_surface;
+    font-size: .92em;
+    font-weight: 500;
+}
+window.glass-window.control-center-window .md3-subtabs {
+    padding: 4px;
+    border: 1px solid alpha(@md3_primary, .26);
+    border-radius: 999px;
+    background-color: @md3_surface_container_low;
+}
+window.glass-window.control-center-window .md3-subtabs button {
+    min-height: 30px;
+    padding: 5px 14px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: @md3_on_surface_variant;
+    font-weight: 600;
+}
+window.glass-window.control-center-window .md3-subtabs button:hover {
+    color: @md3_on_surface;
+    background-color: alpha(@md3_primary, .14);
+}
+window.glass-window.control-center-window .md3-subtabs button:checked,
+window.glass-window.control-center-window .md3-subtabs button.active {
+    color: @md3_on_primary_container;
+    background-color: @md3_primary_container;
+    border-color: @md3_primary;
+    font-weight: 700;
+}
+window.glass-window.control-center-window .sticky-action-bar {
+    padding: 10px 16px;
+    margin-top: 8px;
+    border: 1px solid alpha(@md3_primary, .30);
+    border-radius: 18px;
+    background-color: @md3_surface_container_high;
+}
+window.glass-window.control-center-window .data-row {
+    padding: 10px 12px;
+    border: 1px solid alpha(@md3_on_surface, .10);
+    border-radius: 14px;
+    background-color: @md3_surface_container_low;
+}
+window.glass-window.control-center-window .data-row:hover {
+    border-color: alpha(@md3_primary, .36);
+    background-color: @md3_surface_container_high;
+}
+window.glass-window.control-center-window .status-badge {
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: .78em;
+    font-weight: 700;
+    border: 1px solid alpha(@md3_on_surface, .18);
+    background-color: alpha(@md3_on_surface, .08);
+    color: @md3_on_surface_variant;
+}
+window.glass-window.control-center-window .status-badge.ok {
+    color: @success;
+    background-color: alpha(@success, .16);
+    border-color: alpha(@success, .45);
+}
+window.glass-window.control-center-window .status-badge.warn {
+    color: @warning;
+    background-color: alpha(@warning, .16);
+    border-color: alpha(@warning, .45);
+}
+window.glass-window.control-center-window .status-badge.err {
+    color: @md3_error;
+    background-color: alpha(@md3_error, .16);
+    border-color: alpha(@md3_error, .45);
+}
+window.glass-window.control-center-window .status-badge.info {
+    color: @md3_primary;
+    background-color: alpha(@md3_primary, .16);
+    border-color: alpha(@md3_primary, .45);
+}
+window.glass-window.control-center-window .preset-card {
+    padding: 10px 12px;
+    border: 1.5px solid alpha(@md3_on_surface, .14);
+    border-radius: 16px;
+    background-color: @md3_surface_container;
+}
+window.glass-window.control-center-window .preset-card:hover {
+    border-color: alpha(@md3_primary, .52);
+    background-color: @md3_surface_container_high;
+}
+window.glass-window.control-center-window .preset-card.active,
+window.glass-window.control-center-window .preset-card:checked {
+    border-color: @md3_primary;
+    background-color: @md3_primary_container;
+    color: @md3_on_primary_container;
+}
+window.glass-window.control-center-window .command-palette-scrim {
+    background-color: alpha(black, .46);
+    border-radius: 28px;
+}
+window.glass-window.control-center-window .command-palette-box {
+    padding: 16px;
+    border: 1.5px solid @md3_primary;
+    border-radius: 22px;
+    background-color: @md3_surface_container_high;
+    box-shadow: 0 20px 56px alpha(black, .48);
+}
+window.glass-window.control-center-window .search-highlight {
+    border-color: @md3_primary;
+    box-shadow: 0 0 0 2px alpha(@md3_primary, .45);
+}
+window.glass-window.control-center-window .inline-confirm {
+    padding: 10px 12px;
+    border: 1px solid alpha(@md3_error, .50);
+    border-radius: 14px;
+    background-color: alpha(@md3_error_container, .65);
+}
+window.glass-window.ai-window .code-block {
+    padding: 10px 12px;
+    margin: 4px 0;
+    border: 1px solid alpha(@md3_primary, .26);
+    border-radius: 12px;
+    background-color: @md3_surface_sunken;
+}
+window.glass-window.ai-window .code-text {
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: .90em;
+    color: @md3_on_surface;
+}
+window.glass-window.calendar-window .lunar-label {
+    color: @md3_primary;
+    font-size: .86em;
+    font-weight: 600;
 }
 window.glass-window.control-center-window .pulse-card {
     padding: 14px 18px;

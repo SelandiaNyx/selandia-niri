@@ -3,36 +3,36 @@
  * theme/swaync.css is imported after this file and supplies the generated MD3
  * roles for the active preset, colour mode and font size.  The constants below
  * are the dark Sakura Nyan fallback tokens. */
-@define-color md3_primary #ff8fbf;
-@define-color md3_on_primary #3a0a20;
-@define-color md3_primary_container #74465e;
-@define-color md3_on_primary_container #fff4f8;
-@define-color md3_secondary #8fd3ff;
-@define-color md3_secondary_container #4d5469;
-@define-color md3_on_secondary_container #fff4f8;
-@define-color md3_surface #1a1118;
-@define-color md3_surface_container_low #21161e;
-@define-color md3_surface_container #271a24;
-@define-color md3_surface_container_high #33232f;
-@define-color md3_surface_container_highest #3d2d39;
-@define-color md3_surface_sunken #120b10;
-@define-color md3_on_surface #fff4f8;
-@define-color md3_on_surface_variant #ecd3df;
-@define-color md3_outline rgba(255, 244, 248, 0.140);
-@define-color md3_outline_variant rgba(255, 244, 248, 0.060);
-@define-color md3_error #ff8a9a;
-@define-color md3_error_container #70424f;
-@define-color md3_on_error_container #fff4f8;
-@define-color bg #1a1118;
-@define-color cc-bg rgba(33, 22, 30, 0.940);
-@define-color noti-bg rgba(51, 35, 47, 0.940);
-@define-color noti-border-color rgba(255, 143, 191, 0.320);
+@define-color md3_primary #9da8ff;
+@define-color md3_on_primary #16112b;
+@define-color md3_primary_container #4f4b78;
+@define-color md3_on_primary_container #efeaf8;
+@define-color md3_secondary #ff8dc7;
+@define-color md3_secondary_container #5b4363;
+@define-color md3_on_secondary_container #efeaf8;
+@define-color md3_surface #1b1728;
+@define-color md3_surface_container_low #211c30;
+@define-color md3_surface_container #262138;
+@define-color md3_surface_container_high #312a47;
+@define-color md3_surface_container_highest #3b3451;
+@define-color md3_surface_sunken #13101d;
+@define-color md3_on_surface #efeaf8;
+@define-color md3_on_surface_variant #cfc5e4;
+@define-color md3_outline rgba(239, 234, 248, 0.140);
+@define-color md3_outline_variant rgba(239, 234, 248, 0.060);
+@define-color md3_error #ff8aa0;
+@define-color md3_error_container #694158;
+@define-color md3_on_error_container #efeaf8;
+@define-color bg #1b1728;
+@define-color cc-bg rgba(33, 28, 48, 0.950);
+@define-color noti-bg rgba(49, 42, 71, 0.950);
+@define-color noti-border-color rgba(157, 168, 255, 0.340);
 @define-color text-color @md3_on_surface;
 @define-color text-color-disabled @md3_on_surface_variant;
 
 * {
     font-family: "Adwaita Sans", "Noto Sans CJK SC", "Noto Sans", sans-serif;
-    font-size: 13px;
+    font-size: 14px;
     color: @md3_on_surface;
 }
 .control-center {

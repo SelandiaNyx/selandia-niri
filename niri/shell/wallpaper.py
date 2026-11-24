@@ -811,9 +811,11 @@ class PlaylistRenderer:
                         raise RuntimeError(tr("Fade overlay did not become ready", "淡入淡出图层未就绪"))
                     time.sleep(.02)
             fallback = static_command(current_image(), display)
-            guard = subprocess.Popen(fallback, start_new_session=True)
             command = playback_command(item, selection["mode"], assets=settings["assets"], audio=settings["audio"],
                                        audio_available=ready, display=display) if selection else fallback
+            # Avoid spawning a duplicate swaybg guard when the primary renderer
+            # is itself the exact same static swaybg command (~16 MiB saved).
+            guard = None if command == fallback else subprocess.Popen(fallback, start_new_session=True)
             if item and item["type"] == "video" and selection["mode"] == "live":
                 if finite:
                     command[2] = command[2].replace("loop-file=inf", "loop-file=no keep-open=yes idle=yes")
@@ -822,7 +824,7 @@ class PlaylistRenderer:
             renderer = subprocess.Popen(command, env=environment, start_new_session=True)
             deadline = time.monotonic() + 4
             while time.monotonic() < deadline:
-                if renderer.poll() is not None or guard.poll() is not None:
+                if renderer.poll() is not None or (guard is not None and guard.poll() is not None):
                     raise RuntimeError(tr("New wallpaper renderer failed; keeping the previous one", "新壁纸渲染器失败，保留原壁纸"))
                 if ready and item and item["type"] in ("video", "scene", "web"):
                     # Initialize each new stream once, including while readiness

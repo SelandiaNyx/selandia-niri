@@ -322,7 +322,7 @@ class IndependentSettingsDraftTests(unittest.TestCase):
                     for key, english, chinese, _icon, _group, terms in PAGES}
         for term in ("input method", "输入法", "fcitx5"):
             self.assertIn(term, searches["input"])
-            self.assertNotIn(term, searches["hardware"])
+            self.assertNotIn(term, searches["storage"])
         self.assertFalse(any("fcitx" in command[0]
                              for _titles, _descriptions, candidates, _package in controls.TOOLS["hardware"]
                              for command in candidates))

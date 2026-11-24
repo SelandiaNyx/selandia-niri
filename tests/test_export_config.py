@@ -128,7 +128,7 @@ assert target.read_text()==manual
                     self.assertTrue((document.parent / link).is_file(), f"{document.name}: {link}")
             self.assertEqual((target / "tools/wallpaper_engine_compat.py").read_bytes(),
                              (ROOT / "tools/wallpaper_engine_compat.py").read_bytes())
-            self.assertIn("font-size: 13px", (target / "niri/theme/panel.css").read_text())
+            self.assertIn("font-size: 14px", (target / "niri/theme/panel.css").read_text())
             for line in (target / "SHA256SUMS").read_text().splitlines():
                 expected, relative = line.split("  ", 1)
                 self.assertEqual(hashlib.sha256((target / relative).read_bytes()).hexdigest(), expected)

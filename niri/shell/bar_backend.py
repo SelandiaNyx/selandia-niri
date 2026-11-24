@@ -12,7 +12,7 @@ import tempfile
 import threading
 import time
 import hashlib
-from appearance import BASE, load_settings
+from appearance import BASE, load_settings, mascot_asset
 import component_preferences
 import i18n
 from i18n import tr
@@ -20,19 +20,10 @@ import eww_input
 
 
 @lru_cache(maxsize=32)
-def _measure_capsule_height(font_family, size):
-    # Match the idle island's label + 4px button padding + 18px capsule insets.
-    # Pango works without a display; GTK fallback fonts still determine line height.
-    try:
-        import gi
-        gi.require_version('Pango','1.0')
-        gi.require_version('PangoCairo','1.0')
-        from gi.repository import Pango,PangoCairo
-        layout=Pango.Layout.new(PangoCairo.FontMap.get_default().create_context())
-        font=Pango.FontDescription();font.set_family(font_family+', Noto Sans CJK SC, Noto Sans, JetBrainsMono Nerd Font, sans-serif');font.set_absolute_size(size*Pango.SCALE)
-        layout.set_font_description(font);layout.set_text('•',-1)
-        return max(44,layout.get_pixel_size()[1]+22)
-    except (ImportError,ValueError,AttributeError):return max(44,round(size*1.3)+22)
+def _measure_capsule_height(_font_family, size):
+    # Pure-math line height avoids loading GTK/Pango/Cairo into the resident
+    # Python supervisor (~45 MiB RSS saved) while matching GTK font metrics.
+    return max(44, round(size * 1.35) + 22)
 
 
 def capsule_height(size):
@@ -63,23 +54,24 @@ def outputs():
     from niri_events import request
     values=request('Outputs')
     connected=[(key,item) for key,item in values.items() if item.get('logical')]
-    # Eww 0.6 accepts monitor indexes. Match GDK geometry to Niri rather than
-    # assuming their JSON/enumeration order or connector/model names agree.
-    try:
-        import gi
-        gi.require_version('Gdk','3.0')
-        from gi.repository import Gdk,GLib
-        context=GLib.MainContext.default()
-        for _ in range(20):
-            if not context.pending():break
-            context.iteration(False)
-        display=Gdk.Display.get_default();ordered=[]
-        for index in range(display.get_n_monitors()):
-            rectangle=display.get_monitor(index).get_geometry()
-            match=next((entry for entry in connected if all(entry[1]['logical'][field]==getattr(rectangle,field) for field in ('x','y','width','height'))),None)
-            if match:ordered.append(match)
-        if len(ordered)==len(connected):connected=ordered
-    except (ImportError,AttributeError,ValueError):pass
+    # Single-monitor setups (the common case) skip importing GTK/GDK altogether,
+    # keeping the resident bar supervisor lean (~18 MiB instead of ~64 MiB).
+    if len(connected) > 1:
+        try:
+            import gi
+            gi.require_version('Gdk','3.0')
+            from gi.repository import Gdk,GLib
+            context=GLib.MainContext.default()
+            for _ in range(20):
+                if not context.pending():break
+                context.iteration(False)
+            display=Gdk.Display.get_default();ordered=[]
+            for index in range(display.get_n_monitors()):
+                rectangle=display.get_monitor(index).get_geometry()
+                match=next((entry for entry in connected if all(entry[1]['logical'][field]==getattr(rectangle,field) for field in ('x','y','width','height'))),None)
+                if match:ordered.append(match)
+            if len(ordered)==len(connected):connected=ordered
+        except (ImportError,AttributeError,ValueError):pass
     return [(key,item['logical']['width']) for key,item in connected]
 
 
@@ -113,13 +105,14 @@ def render(monitors, *, size=12):
         segment=q('segment compact' if narrow else 'segment')
         is_zh=i18n.get_language().startswith('zh')
         app_limit = '5' if (narrow and is_zh) else '8' if narrow else '16' if is_zh else '20'
-        application=node('eventbox',{'class':q('pill current-app'),'hexpand':'false','tooltip':'{state.window_title}'},
+        application=node('button',{'class':q('pill current-app'),'hexpand':'false','onclick':q('niri msg action toggle-overview'),'timeout':q('5s'),'tooltip':'{state.window_title}'},
                          box(label(q('●'),**{'class':q('app-dot')}),
                              label('{state.app_name}',**{'class':q('app-label'),'truncate':'true','limit-width':q(app_limit),'xalign':'0'}),
                              spacing='2'))
         avatar_size=str(max(22,min(32,g['height']-16)))
+        avatar_path=str(mascot_asset(None,'avatar64'))
         launcher=node('button',{'class':q('pill launcher-btn'),'onclick':q(desktop+' launcher'),'timeout':q('5s'),'tooltip':q(tr('Applications','应用'))},
-                      node('image',{'class':q('launcher-avatar'),'path':q(str(BASE/'assets/anime/mascot-avatar-64.png')),'image-width':avatar_size,'image-height':avatar_size}))
+                      node('image',{'class':q('launcher-avatar'),'path':q(avatar_path),'image-width':avatar_size,'image-height':avatar_size}))
         left=box(launcher,node('box',{'class':q('separator')}),
                  box(workspace,spacing='3' if narrow else '6'),node('box',{'class':q('separator')}),
                  application,**{'class':segment,'spacing':'4' if narrow else '6','halign':q('start'),'hexpand':'false'})

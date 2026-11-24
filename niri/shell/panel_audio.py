@@ -135,6 +135,11 @@ class AudioPage:
             scale.connect("button-release-event", lambda _w, _e, k=kind: self.audio_dragging.discard(k) or False)
             scale.connect("focus-out-event", lambda _w, _e, k=kind: self.audio_dragging.discard(k) or False)
             self.audio_volumes[kind] = pack(card, scale)
+            if kind == "sink":
+                self.audio_overamp = Gtk.CheckButton.new_with_label(
+                    tr("Allow over-amplification (up to 150%)", "允许超 100% 音量增益（最高 150%）"))
+                self.audio_overamp.connect("toggled", self._audio_overamp_toggled)
+                pack(card, self.audio_overamp)
             port_row = pack(card, box(spacing=6))
             port_row.set_no_show_all(True)
             self.audio_port_rows[kind] = port_row
@@ -165,7 +170,7 @@ class AudioPage:
         pack(profiles, self.compact_label(tr_legacy("模式决定模拟、数字或蓝牙连接；Off 会关闭该声卡。\nProfiles select analog, digital or Bluetooth modes; Off disables the card.")))
         pack(body, self.compact_label(tr_legacy("选择后点击「设为默认」或「应用接口」。音量和静音控制当前所选设备。\nConfirm device and port changes with the buttons. Volume and mute affect the selected device.")))
         pack(body, button(tr("Advanced mixer", "高级混音器"),
-                          lambda: self.desktop("launch", "audio"), "accent-button"))
+                          lambda: self.launch_external([self.desktop_script(), "launch", "audio"]), "accent-button"))
         self.audio_refresh_button = pack(body, button(tr_legacy("Refresh audio devices · 刷新音频设备"), self.refresh_audio))
         self.audio_controls.set_sensitive(False)
         self.audio_changes = None
@@ -198,6 +203,19 @@ class AudioPage:
                 or time.monotonic() >= self.audio_refresh_at):
             self.refresh_audio()
         return GLib.SOURCE_CONTINUE
+
+    def _audio_overamp_toggled(self, check):
+        scale = self.audio_volumes.get("sink")
+        if scale is None:
+            return
+        upper = 150 if check.get_active() else 100
+        self.audio_updating = True
+        try:
+            scale.set_range(0, upper)
+            if scale.get_value() > upper:
+                scale.set_value(upper)
+        finally:
+            self.audio_updating = False
 
     def audio_advanced_changed(self, _check):
         self.audio_generation += 1
@@ -320,7 +338,11 @@ class AudioPage:
         scale.set_sensitive(volume is not None)
         if volume is not None:
             if kind not in self.audio_timers and kind not in self.audio_dragging:
-                scale.set_value(min(volume, 100))
+                limit = 150 if (kind == "sink" and getattr(self, "audio_overamp", None) and self.audio_overamp.get_active()) else 100
+                if kind == "sink" and volume > 100 and getattr(self, "audio_overamp", None) and not self.audio_overamp.get_active():
+                    self.audio_overamp.set_active(True)
+                    limit = 150
+                scale.set_value(min(volume, limit))
                 self.audio_values[kind].set_text(f"{volume:.0f}%")
         else:
             self.audio_values[kind].set_text(tr_legacy("Unavailable · 不可用"))

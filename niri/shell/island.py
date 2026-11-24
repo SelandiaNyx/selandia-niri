@@ -265,14 +265,14 @@ def listen():
         from media_events import MediaChanges,RefreshGate,PlaybackClock
         audio_changes=AudioChanges(stopping);media_changes=MediaChanges(stopping)
         audio_gate=RefreshGate(audio_changes.changed,interval=120);media_gate=RefreshGate(media_changes.changed,interval=120)
-        battery_gate=RefreshGate(interval=30);metrics_gate=RefreshGate(interval=2);playback=PlaybackClock()
+        battery_gate=RefreshGate(interval=30);metrics_gate=RefreshGate(interval=3);playback=PlaybackClock()
         # Only an explicit brightness preview requests this potentially slow DDC read.
         brightness_gate=RefreshGate(interval=float('inf'));brightness_gate.changed.clear()
         brightness_gate.fallback=float('inf')
         audio_changes.thread.start();media_changes.thread.start()
         last='';previous_audio=None;settings_at=0;snapshot_at=0;title_at=0;progress_at=0
         desktop_version=-1;clock_key=None
-        last_frame=time.monotonic();frame_interval=1/120;width_tau=.055
+        last_frame=time.monotonic();frame_interval=1/60;width_tau=.055
         try:monitors=niri_request('Outputs')
         except (OSError,ValueError,RuntimeError):monitors={}
         feed=DesktopFeed(stopping);feed.thread.start()
@@ -368,7 +368,7 @@ def listen():
                     os.replace(temporary,snapshot_path)
                     snapshot_at=now+2
                 # A bounded local snapshot lets controls pin the displayed player/device.
-                select.select([stream],[],[],frame_interval if state['width']!=target else .25)
+                select.select([stream],[],[],frame_interval if state['width']!=target else .5)
     finally:
         stream.close();path.unlink(missing_ok=True);snapshot_path.unlink(missing_ok=True)
         stopping.set()

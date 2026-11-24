@@ -220,7 +220,9 @@ class PowerMenu(Gtk.ApplicationWindow):
         self.pending = identifier
         self.confirm_label.set_text(tr(*question))
         self.stack.set_visible_child_name("confirm")
-        self.confirm_button.grab_focus()
+        # Keep the non-destructive action focused by default so an accidental
+        # Enter never triggers logout, reboot or shutdown.
+        self.cancel_button.grab_focus()
 
     def back(self):
         restore = self.pending

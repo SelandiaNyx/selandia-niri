@@ -1,4 +1,4 @@
-"""Consume wheel events before GTK's nested selector widgets can change values."""
+"""Consume wheel events before unfocused nested selector widgets can edit values."""
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gdk, Gtk
@@ -19,21 +19,30 @@ def handle(widget, event):
     control = _control(widget)
     if control is None:
         return False
-    # A popup is a separate list: its own scrolling remains available. This
-    # handler only sees the closed selector and its internal button/entry.
+    # A popup is a separate list: its own scrolling remains available.
     if isinstance(control, Gtk.ComboBox) and control.get_property("popup-shown"):
+        return False
+    # Explicitly focused Scale/SpinButton allows intentional wheel fine-tuning.
+    if isinstance(control, (Gtk.Scale, Gtk.SpinButton)) and control.has_focus():
         return False
     parent = control.get_parent()
     while parent and not isinstance(parent, Gtk.ScrolledWindow):
         parent = parent.get_parent()
     if parent:
+        dx = 0.0
         delta = {Gdk.ScrollDirection.UP: -1, Gdk.ScrollDirection.DOWN: 1}.get(event.direction, 0)
         if event.direction == Gdk.ScrollDirection.SMOOTH:
-            _, _dx, delta = event.get_scroll_deltas()
+            _, dx, delta = event.get_scroll_deltas()
+        elif event.direction in (Gdk.ScrollDirection.LEFT, Gdk.ScrollDirection.RIGHT):
+            return False
+        if delta == 0 and dx != 0:
+            return False
         adjustment = parent.get_vadjustment()
         low = adjustment.get_lower()
-        high = max(low, adjustment.get_upper() - adjustment.get_page_size())
-        adjustment.set_value(min(high, max(low, adjustment.get_value() + delta * 40)))
+        page = adjustment.get_page_size()
+        step = max(40.0, min(96.0, page * 0.12)) if page > 0 else 48.0
+        high = max(low, adjustment.get_upper() - page)
+        adjustment.set_value(min(high, max(low, adjustment.get_value() + delta * step)))
     return True
 
 

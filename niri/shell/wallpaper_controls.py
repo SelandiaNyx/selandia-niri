@@ -25,6 +25,8 @@ class WallpaperControls(Gtk.Box):
         self.catalog = {}
         self.items = {}
         self.thumbnail_queue = []
+        self.thumbnail_lru = []
+        self.max_thumbnails = 64
         self.thumbnail_running = 0
         self.thumbnail_source = None
         self.generation = 0
@@ -52,6 +54,10 @@ class WallpaperControls(Gtk.Box):
         self.workspace_pane = Gtk.Paned(orientation=orientation)
         self.workspace_pane.pack1(self.library, resize=True, shrink=narrow)
         self.workspace_pane.pack2(self.details_scroll, resize=True, shrink=True)
+        if orientation == Gtk.Orientation.HORIZONTAL:
+            self.workspace_pane.set_position(max(440, int((panel.panel_width - 280) * 0.56)))
+        else:
+            self.workspace_pane.set_position(280)
 
         current = pack(self, Gtk.Box(spacing=8))
         self.current_thumbnail = pack(current, Gtk.Image())
@@ -89,6 +95,7 @@ class WallpaperControls(Gtk.Box):
         self.list.set_selection_mode(Gtk.SelectionMode.SINGLE)
         self.list.set_filter_func(lambda row: self.matches(row))
         self.list.connect("row-selected", self.select)
+        self.list.connect("row-activated", lambda _lb, row: self._activate_item(row))
         self.grid = Gtk.FlowBox()
         style(self.grid, "wallpaper-grid")
         self.grid.set_selection_mode(Gtk.SelectionMode.SINGLE)
@@ -100,6 +107,7 @@ class WallpaperControls(Gtk.Box):
         self.grid.set_filter_func(lambda child: self.matches(child))
         self.grid.connect("selected-children-changed", lambda grid: self.select(grid,
                           next(iter(grid.get_selected_children()), None)))
+        self.grid.connect("child-activated", lambda _grid, child: self._activate_item(child))
         self.views = Gtk.Stack()
         self.views.set_hhomogeneous(False)
         self.views.set_vhomogeneous(False)
@@ -310,8 +318,26 @@ class WallpaperControls(Gtk.Box):
                 self.current_description.set_text(self.current_description.get_text().replace("\n", " · "))
         self.panel.work(read, done, lambda error: self.current_description.set_text(tr("Unavailable", "不可用") + "\n" + str(error)))
 
+    def _activate_item(self, row):
+        if row is not None:
+            self.select(None, row)
+            if self.live_button.get_sensitive():
+                self.apply("live")
+            elif self.preview_button.get_sensitive():
+                self.apply("preview")
+
+    def _evict_thumbnails(self, *, keep: int = 0):
+        while len(self.thumbnail_lru) > keep:
+            path = self.thumbnail_lru.pop(0)
+            entry = self.items.get(path)
+            if entry is None:
+                continue
+            entry["loaded"] = False
+            entry["grid_image"].clear()
+            entry["list_image"].clear()
+
     def suspend(self):
-        """Stop page-local thumbnail work without discarding drafts or catalog."""
+        """Stop page-local thumbnail work and release cached Pixbufs while hidden."""
         self._page_visible = False
         self._thumbnail_suspended = True
         if self.thumbnail_source is not None:
@@ -324,6 +350,7 @@ class WallpaperControls(Gtk.Box):
                 entry["queued"] = False
         self.generation += 1
         self.thumbnail_queue.clear()
+        self._evict_thumbnails(keep=0)
 
     def resume(self):
         self._page_visible = True
@@ -406,6 +433,10 @@ class WallpaperControls(Gtk.Box):
                 entry["queued"] = False
                 if valid:
                     entry["loaded"] = True
+                    path = item["path"]
+                    if path in self.thumbnail_lru:
+                        self.thumbnail_lru.remove(path)
+                    self.thumbnail_lru.append(path)
                     if image is None:
                         entry["grid_image"].set_from_icon_name("image-missing-symbolic", Gtk.IconSize.DIALOG)
                         entry["list_image"].set_from_icon_name("image-missing-symbolic", Gtk.IconSize.DIALOG)
@@ -415,6 +446,7 @@ class WallpaperControls(Gtk.Box):
                         scale = min(96 / image.get_width(), 54 / image.get_height())
                         entry["list_image"].set_from_pixbuf(image.scale_simple(max(1, round(image.get_width() * scale)),
                                                              max(1, round(image.get_height() * scale)), GdkPixbuf.InterpType.BILINEAR))
+                    self._evict_thumbnails(keep=self.max_thumbnails)
                 elif not getattr(self, "_thumbnail_suspended", False):
                     # A cancelled in-flight item must become schedulable again.
                     self.request_thumbnails()

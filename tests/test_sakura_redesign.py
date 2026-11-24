@@ -22,32 +22,37 @@ class SakuraRedesignTests(unittest.TestCase):
         i18n.set_language(None)
 
     def test_defaults_and_anime_presets_lead_picker(self):
-        self.assertEqual(appearance.DEFAULTS["preset"], "sakura")
-        self.assertEqual(appearance.DEFAULTS["font_size"], 13)
-        self.assertEqual(appearance.DEFAULTS["opacity"], 0.94)
+        self.assertEqual(appearance.DEFAULTS["preset"], "gemini")
+        self.assertEqual(appearance.DEFAULTS["font_size"], 14)
+        self.assertEqual(appearance.DEFAULTS["opacity"], 0.95)
+        self.assertEqual(appearance.DEFAULTS["eye_care"], "comfort")
+        self.assertEqual(appearance.DEFAULTS["mascot"], "gemini")
         self.assertEqual(appearance.TEXT_CONTRAST, 7.0)
         self.assertEqual(appearance.MD3_SHAPE, {"window": 28, "card": 24, "tile": 20, "pill": 16, "button": 14, "badge": 999})
-        self.assertEqual(tuple(appearance.PRESETS)[:4], ("sakura", "sora", "lavender", "mint"))
+        self.assertEqual(tuple(appearance.PRESETS)[:5], ("gemini", "sakura", "sora", "lavender", "mint"))
         i18n.set_language("zh_CN")
+        self.assertEqual(appearance.preset_label("gemini"), "星辉双子")
         self.assertEqual(appearance.preset_label("sakura"), "樱花喵")
         self.assertEqual(appearance.preset_label("sora"), "晴空喵")
         i18n.set_language("en_US")
+        self.assertEqual(appearance.preset_label("gemini"), "Gemini Starlight")
         self.assertEqual(appearance.preset_label("sakura"), "Sakura Nyan")
         self.assertEqual(appearance.preset_label("mint"), "Mint Nyan")
 
-    def test_all_twenty_six_palettes_meet_aaa_text_and_secondary_contrast(self):
+    def test_all_palettes_and_eye_care_modes_meet_aaa_text_and_secondary_contrast(self):
         for preset in appearance.PRESETS:
             for mode in ("dark", "light"):
-                with self.subTest(preset=preset, mode=mode):
-                    p = appearance.palette({"preset": preset, "color_mode": mode})
-                    r = appearance.semantic_roles(p, mode)
-                    self.assertGreaterEqual(appearance._contrast(r["on_surface"], r["surface"]), 7.0)
-                    self.assertGreaterEqual(appearance._contrast(r["on_surface_variant"], r["surface_container_highest"]), 7.0)
-                    self.assertGreaterEqual(appearance._contrast(r["on_primary"], r["primary"]), 7.0)
-                    self.assertGreaterEqual(appearance._contrast(r["on_primary_container"], r["primary_container"]), 7.0)
-                    self.assertGreaterEqual(appearance._contrast(r["on_secondary_container"], r["secondary_container"]), 7.0)
-                    self.assertGreaterEqual(appearance._contrast(r["on_error_container"], r["error_container"]), 7.0)
-                    self.assertGreaterEqual(appearance._contrast(r["secondary"], r["surface_container_highest"]), 4.5)
+                for eye_care in ("off", "comfort", "night_warm"):
+                    with self.subTest(preset=preset, mode=mode, eye_care=eye_care):
+                        p = appearance.palette({"preset": preset, "color_mode": mode, "eye_care": eye_care})
+                        r = appearance.semantic_roles(p, mode)
+                        self.assertGreaterEqual(appearance._contrast(r["on_surface"], r["surface"]), 7.0)
+                        self.assertGreaterEqual(appearance._contrast(r["on_surface_variant"], r["surface_container_highest"]), 7.0)
+                        self.assertGreaterEqual(appearance._contrast(r["on_primary"], r["primary"]), 7.0)
+                        self.assertGreaterEqual(appearance._contrast(r["on_primary_container"], r["primary_container"]), 7.0)
+                        self.assertGreaterEqual(appearance._contrast(r["on_secondary_container"], r["secondary_container"]), 7.0)
+                        self.assertGreaterEqual(appearance._contrast(r["on_error_container"], r["error_container"]), 7.0)
+                        self.assertGreaterEqual(appearance._contrast(r["secondary"], r["surface_container_highest"]), 4.5)
 
     def test_anime_assets_exist_render_and_are_registered_for_deploy(self):
         import gi
@@ -56,8 +61,12 @@ class SakuraRedesignTests(unittest.TestCase):
 
         anime_dir = ROOT / "niri/assets/anime"
         expected_pngs = (
-            "mascot-full.png", "mascot-peek.png", "mascot-avatar.png",
-            "mascot-avatar-64.png", "mascot-sleepy.png", "mascot-thinking.png", "lock-bg.png",
+            "mascot-full.png", "mascot-gemini.png", "mascot-antigravity.png",
+            "mascot-engineer.png", "mascot-obsidian.png", "mascot-peek.png",
+            "mascot-avatar.png", "mascot-avatar-64.png", "mascot-avatar-gemini.png",
+            "mascot-avatar-antigravity.png", "mascot-avatar-engineer.png",
+            "mascot-avatar-obsidian.png", "mascot-sleepy.png", "mascot-thinking.png",
+            "lock-bg.png", "lock-bg-light.png",
         )
         expected_svgs = (
             "paw.svg", "paw-symbolic.svg",
@@ -102,12 +111,12 @@ class SakuraRedesignTests(unittest.TestCase):
         rust_source = (ROOT / "niri/eww/input_region.rs").read_text()
         self.assertIn('b"bar-right\\0"', rust_source)
 
-    def test_reduced_motion_disables_css_animations(self):
+    def test_reduced_motion_and_zero_infinite_idle_keyframes(self):
         eww_css = appearance.render_files(dict(appearance.DEFAULTS))["eww.css"]
         cc_css = (ROOT / "niri/shell/control_center.css").read_text()
-        self.assertIn("@keyframes nyx-sparkle", eww_css)
+        self.assertNotIn("infinite;", eww_css)
         self.assertIn("animation: none;", eww_css)
-        self.assertIn("@keyframes nyx-live-breathe", cc_css)
+        self.assertNotIn("infinite;", cc_css)
         self.assertIn("animation: none;", cc_css)
 
     def test_all_gtk4_stylesheets_parse_without_errors(self):

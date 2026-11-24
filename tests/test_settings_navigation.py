@@ -12,7 +12,7 @@ gi.require_version("Gdk", "3.0")
 from gi.repository import Gdk, GLib, Gtk
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "niri/shell"))
-from navigation_catalog import PAGES, PAGE_KEYS
+from navigation_catalog import PAGE_ALIASES, PAGE_KEYS, PAGES, resolve_route
 from settings_navigation import SettingsNavigation
 
 
@@ -37,14 +37,23 @@ class TestSettingsNavigation(unittest.TestCase):
         self.assertEqual(len(self.nav.rows), 18)
         self.assertIn("notifications", self.nav.rows)
         self.assertIn("quick", self.nav.rows)
-        self.assertIn("system", self.nav.rows)
+        self.assertIn("monitor", self.nav.rows)
+        self.assertIn("bluetooth", self.nav.rows)
+        self.assertIn("storage", self.nav.rows)
+        self.assertIn("packages", self.nav.rows)
+        # Legacy aliases resolve cleanly to new canonical pages and subtabs.
+        self.assertEqual(resolve_route("system"), ("monitor", None))
+        self.assertEqual(resolve_route("hardware"), ("storage", None))
+        self.assertEqual(resolve_route("language"), ("preferences", "language"))
+        for alias in PAGE_ALIASES:
+            target, _sub = resolve_route(alias)
+            self.assertIn(target, self.nav.rows)
 
     def test_search_filtering(self):
         self.nav.search.set_text("bluetooth")
         self.nav.filter()
-        # Row for network should match ("bluetooth" is in keywords)
         matched_keys = [k for k, r in self.nav.rows.items() if self.nav.matches(r)]
-        self.assertIn("network", matched_keys)
+        self.assertIn("bluetooth", matched_keys)
         self.assertNotIn("appearance", matched_keys)
         self.assertFalse(self.nav.empty.get_visible())
 

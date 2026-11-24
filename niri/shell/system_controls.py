@@ -172,9 +172,13 @@ class PowerSettings(SettingsPage):
         runtime = self.card(tr("Current power state", "当前电源状态"))
         self.runtime_label = pack(runtime, text(tr("Checking…", "检测中…"), "section-title"))
         self.runtime_detail = pack(runtime, text("", "hint"))
+        self.battery_detail = pack(runtime, text("", "hint"))
+        self.battery_detail.set_no_show_all(True)
         self.config_warning = pack(runtime, text("", "hint"))
         self.config_warning.set_no_show_all(True)
-        self.status_refresh = pack(runtime, button(tr("Refresh status", "刷新状态"), self.refresh_status))
+        rt_btns = pack(runtime, Gtk.Box(spacing=8))
+        self.awake_toggle_btn = pack(rt_btns, button(tr("Toggle stay awake", "切换保持唤醒"), self.toggle_stay_awake))
+        self.status_refresh = pack(rt_btns, button(tr("Refresh status", "刷新状态"), self.refresh_status))
         card = self.card(tr("Automatic locking and sleep", "自动锁屏与睡眠"))
         for key, title in [("lock_minutes", tr("Lock screen", "锁屏")),
                            ("screen_minutes", tr("Turn off display", "息屏")),
@@ -200,6 +204,23 @@ class PowerSettings(SettingsPage):
             "保持唤醒会在本次 Niri 会话中申请 logind 空闲与睡眠抑制锁，注销后结束；管理员操作仍可绕过。"), "hint"))
 
     @staticmethod
+    def _read_battery_summary() -> str:
+        base = Path("/sys/class/power_supply")
+        if not base.is_dir():
+            return ""
+        parts = []
+        for dev in sorted(base.iterdir()):
+            try:
+                kind = (dev / "type").read_text().strip()
+                if kind == "Battery":
+                    cap = (dev / "capacity").read_text().strip()
+                    st = (dev / "status").read_text().strip()
+                    parts.append(f"{dev.name}: {cap}% ({st})")
+            except OSError:
+                continue
+        return " · ".join(parts)
+
+    @staticmethod
     def read_state():
         import sleep_guard
         settings = backend.power_state()
@@ -209,6 +230,7 @@ class PowerSettings(SettingsPage):
             runtime = {"awake": False, "error": True,
                        "label": tr("Power state unavailable", "无法读取电源状态"),
                        "detail": str(error)}
+        runtime["battery"] = PowerSettings._read_battery_summary()
         return settings, runtime
 
     def show_state(self, result, *, populate=False):
@@ -218,6 +240,13 @@ class PowerSettings(SettingsPage):
                 self.spins[key].set_value(value)
         self.runtime_label.set_text(runtime.get("label", tr("Unavailable", "不可用")))
         self.runtime_detail.set_text(runtime.get("detail", ""))
+        bat = runtime.get("battery", "")
+        self.battery_detail.set_text(tr("Battery: ", "电池状态：") + bat if bat else "")
+        self.battery_detail.set_visible(bool(bat))
+        self.awake_toggle_btn.set_label(
+            tr("Disable stay awake", "关闭保持唤醒") if runtime.get("awake")
+            else tr("Enable stay awake", "开启保持唤醒")
+        )
         context = self.runtime_label.get_style_context()
         (context.add_class if runtime.get("error") else context.remove_class)("error")
         warning = ""
@@ -229,6 +258,10 @@ class PowerSettings(SettingsPage):
                 "当前计时配置文件与下方保存的数值不一致。应用超时设置后会用这些数值替换计时配置。")
         self.config_warning.set_text(warning)
         self.config_warning.set_visible(bool(warning))
+
+    def toggle_stay_awake(self):
+        import sleep_guard
+        self.task(sleep_guard.toggle, lambda _res: self.refresh_status())
 
     def refresh(self):
         self.load(self.read_state, lambda result: self.show_state(result, populate=True))
@@ -598,11 +631,16 @@ class NotificationSettings(SettingsPage):
         self.history_more = pack(self.history_card, button("", self.show_more_history))
         self.history_more.set_no_show_all(True)
 
-        # 3. Notification service controls
+        # 3. Notification service controls (never destroy Control Center!)
         service_card = self.card(tr("Notification controls", "通知服务与控制"))
         svc_row = pack(service_card, Gtk.Box(spacing=8))
-        pack(svc_row, button(tr("Open notification center", "打开通知中心"), lambda: panel.launch(["swaync-client", "--skip-wait", "-t"])))
-        pack(svc_row, button(tr("Toggle Do Not Disturb", "切换勿扰模式"), lambda: panel.launch(["swaync-client", "--skip-wait", "-d"])))
+        open_nc = button(tr("Open notification center", "打开通知中心"),
+                         lambda: (panel.launch_external if hasattr(panel, "launch_external") else panel.launch)(["swaync-client", "--skip-wait", "-t"]))
+        dnd_btn = button(tr("Toggle Do Not Disturb", "切换勿扰模式"),
+                         lambda: (panel.action if hasattr(panel, "action") else panel.launch)(["swaync-client", "--skip-wait", "-d"]))
+        pack(svc_row, open_nc, True)
+        pack(svc_row, dnd_btn, True)
+        self._history_search_timer = None
 
     def draft_settings(self):
         expiry = float(self.expire_combo.get_active_id() or "7")
@@ -718,7 +756,7 @@ class NotificationSettings(SettingsPage):
 
     def _build_history_row(self, item):
         import datetime
-        box = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4), "card")
+        box = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4), "data-row")
 
         header = pack(box, Gtk.Box(spacing=8))
         app_icon = item.get("icon") or "preferences-system-notifications-symbolic"

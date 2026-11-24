@@ -1,24 +1,21 @@
-"""Canonical surface keys, command validation, and drawer metadata."""
+"""Canonical surface keys, route aliases, command validation, and drawer metadata."""
 from __future__ import annotations
 
-from navigation_catalog import PAGE_KEYS
+from navigation_catalog import PAGE_ALIASES, PAGE_KEYS
 
-CONTROL_MODES = frozenset(PAGE_KEYS) | {"control"}
+CONTROL_MODES = frozenset(PAGE_KEYS) | frozenset(PAGE_ALIASES) | {"control"}
 AUXILIARY_MODES = ("shortcuts", "ai", "calendar")
-SURFACE_KEYS = tuple(dict.fromkeys((*PAGE_KEYS, "control", *AUXILIARY_MODES)))
+SURFACE_KEYS = tuple(dict.fromkeys((*PAGE_KEYS, *PAGE_ALIASES, "control", *AUXILIARY_MODES)))
 DRAWER_SIDES = {"ai": "left", "calendar": "right"}
 
 # English/Chinese title, then subtitle. Control keeps its existing dedicated
 # header text in Panel; these entries cover the secondary surfaces.
 SURFACE_COPY = {
-    "calendar": ("Calendar", "日历", "Choose a date", "选择日期"),
-    "shortcuts": ("Keyboard Atlas", "Keyboard Atlas",
-                  "快捷键总览  ·  Find your next move",
-                  "快捷键总览  ·  Find your next move"),
-    "ai": ("Intelligence", "Intelligence",
-           "AI 侧边栏  ·  A little room to think",
-           "AI 侧边栏  ·  A little room to think"),
+    "calendar": ("Calendar", "日历", "Date, lunar calendar & quick copy", "公历、农历与快速复制"),
+    "shortcuts": ("Keyboard Atlas", "快捷键总览",
+                  "Find any Niri binding instantly",
+                  "快速检索任意 Niri 快捷键"),
+    "ai": ("Gemini Assistant", "AI 助手侧栏",
+           "Streaming chat & local models",
+           "流式对话与本地模型"),
 }
-
-
-

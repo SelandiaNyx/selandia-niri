@@ -1,8 +1,4 @@
-"""Appearance page: palette drafts, previews and transactional apply.
-
-Mixed into ``panel.Panel``; methods rely on the panel's shared state
-(``self.work``, ``self.feedback`` and the widgets built in ``__init__``).
-"""
+"""Appearance & Eye-Care page 2.0: visual preset grid, eye-care warmth & Gemini mascot skins."""
 from __future__ import annotations
 
 import subprocess
@@ -10,107 +6,245 @@ import subprocess
 import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
-gi.require_version("GtkLayerShell", "0.1")
 from gi.repository import GLib, Gtk
 
+from control_widgets import (
+    StickyActionBar,
+    card_grid,
+    grid_add,
+    nyx_guide_banner,
+    pack,
+    setting_row,
+    style,
+    wrap_label,
+)
 from i18n import tr, tr_legacy
 from page_host import PageEntry
-from panel_motion import animations_enabled
-from panel_motion import configure_stack
-from panel_support import DESKTOP, box, button, capture, label, pack, scroller
+from panel_motion import animations_enabled, configure_stack
+from panel_support import DESKTOP, box, capture, label, scroller
 
 
 class AppearancePage:
     def _build_appearance(self):
-        from appearance import DEFAULTS, PRESETS, load_settings, preset_label
+        from appearance import DEFAULTS, EYE_CARE_MODES, MASCOT_SKINS, PRESETS, load_settings, preset_label
         self.appearance_busy = True
+        self._appearance_guard = False
+        self._saved_appearance = dict(DEFAULTS)
+
+        wrapper = box(spacing=10)
         body = box(spacing=12)
         self.appearance_body = body
-        theme = self.card(body, tr("COLOR & THEME", "主题与配色"))
-        pack(theme, label(tr("Apps & desktop", "应用与桌面"), "control-label"))
+
+        pack(body, nyx_guide_banner(
+            "appearance",
+            tr("Pick an anime MD3 theme, switch between 4 Gemini cat-girl forms, and tune eye-care warmth & typography.",
+               "点击卡片即可切换二次元 MD3 主题，支持 4 种 Gemini 猫娘立绘形态与三档护眼暖色模式，选完点击底栏「应用设置」生效。"),
+        ))
+
+        wide = getattr(self, "panel_width", 1200) >= 1040
+        grid = pack(body, card_grid(wide, 12))
+
+        # Left column: Visual Preset Grid + Mode & Eye Care
+        theme = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10), "card")
+        pack(theme, label(tr("ANIME & MD3 THEMES", "动漫主题与护眼模式"), "section-title"))
+
+        mode_row = pack(theme, Gtk.Box(spacing=8))
         self.color_mode_combo = Gtk.ComboBoxText()
-        self.color_mode_combo.append("dark", tr_legacy("深色 · Dark"))
-        self.color_mode_combo.append("light", tr_legacy("浅色 · Light"))
-        pack(theme, self.color_mode_combo)
+        self.color_mode_combo.append("dark", tr("Dark mode", "深色护眼"))
+        self.color_mode_combo.append("light", tr("Light paper", "浅色柔纸"))
+        pack(mode_row, self.color_mode_combo, True)
+
+        self.eye_care_combo = Gtk.ComboBoxText()
+        for key, (en, zh) in EYE_CARE_MODES.items():
+            self.eye_care_combo.append(key, tr(en, zh))
+        pack(mode_row, self.eye_care_combo, True)
+
+        # Keep theme_combo synced for compatibility while showing the visual card grid.
         self.theme_combo = Gtk.ComboBoxText()
         for key in PRESETS:
             self.theme_combo.append(key, preset_label(key))
+        self.theme_combo.set_no_show_all(True)
+        self.theme_combo.hide()
         pack(theme, self.theme_combo)
+
+        # Visual clickable preset cards (compact 2-col FlowBox)
+        self.preset_buttons = {}
+        preset_flow = Gtk.FlowBox()
+        preset_flow.set_selection_mode(Gtk.SelectionMode.NONE)
+        preset_flow.set_min_children_per_line(2)
+        preset_flow.set_max_children_per_line(3 if wide else 2)
+        preset_flow.set_column_spacing(6)
+        preset_flow.set_row_spacing(6)
+        for key in PRESETS:
+            btn = style(Gtk.ToggleButton(), "preset-card")
+            inner = Gtk.Box(spacing=6)
+            dot = Gtk.Box()
+            dot.set_size_request(14, 14)
+            dot.set_valign(Gtk.Align.CENTER)
+            prov = Gtk.CssProvider()
+            p_accent = PRESETS[key]["accent"]
+            p_sec = PRESETS[key]["secondary"]
+            prov.load_from_data(
+                f"box {{ background-image: linear-gradient(135deg, {p_accent}, {p_sec}); border-radius: 999px; }}".encode()
+            )
+            dot.get_style_context().add_provider(prov, Gtk.STYLE_PROVIDER_PRIORITY_USER)
+            pack(inner, dot)
+            pack(inner, Gtk.Label(label=preset_label(key), xalign=0), True)
+            btn.add(inner)
+            btn.connect("toggled", self._on_preset_card_toggled, key)
+            self.preset_buttons[key] = btn
+            preset_flow.add(btn)
+        pack(theme, preset_flow)
+
         swatch_row = pack(theme, box(False, 8, "palette-preview"))
         self.palette_swatches = []
         for _ in range(5):
             chip = box(css="palette-swatch")
-            chip.set_size_request(28, 18)
+            chip.set_size_request(30, 18)
             provider = Gtk.CssProvider()
             chip.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
             pack(swatch_row, chip)
             self.palette_swatches.append(provider)
-        self.theme_combo.connect("changed", lambda *_: self._refresh_palette_preview())
-        self.color_mode_combo.connect("changed", lambda *_: self._refresh_palette_preview())
+
+        self.theme_combo.connect("changed", self._on_appearance_changed)
+        self.color_mode_combo.connect("changed", self._on_appearance_changed)
+        self.eye_care_combo.connect("changed", self._on_appearance_changed)
+
         self.wallpaper_colors_check = Gtk.CheckButton(label=tr("Follow wallpaper colors", "主题配色跟随当前壁纸"))
         pack(theme, self.wallpaper_colors_check)
-        self.wallpaper_colors_check.connect("toggled", lambda check: self.theme_combo.set_sensitive(not check.get_active()))
-        pack(theme, self.compact_label(tr("Uses the image or project preview; keeps your chosen light/dark mode.", "根据图片或项目预览图取色；保留所选明暗模式。")))
-        pack(theme, self.compact_label(tr_legacy("统一桌面配色，并同步 GTK / Qt 应用的明暗模式。\nShared desktop palette and matching GTK / Qt light or dark mode.")))
-        self.reduced_motion_check = Gtk.CheckButton(label=tr_legacy("减少动态效果 · Reduce motion"))
-        pack(theme, self.reduced_motion_check)
-        opacity_row = pack(theme, box(False, 6))
-        pack(opacity_row, label(tr_legacy("Surface opacity · 面板不透明度"), "control-label"), True)
+        self.wallpaper_colors_check.connect("toggled", self._on_wallpaper_color_toggled)
+        grid_add(grid, theme)
+
+        # Right column: Mascot Skin + Surface/Motion + Fonts
+        right = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+
+        mascot_card = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10), "card")
+        pack(mascot_card, label(tr("GEMINI MASCOT & SURFACE", "看板娘形态与表面质感"), "section-title"))
+        self.mascot_combo = Gtk.ComboBoxText()
+        for key, (en, zh) in MASCOT_SKINS.items():
+            self.mascot_combo.append(key, tr(en, zh))
+        self.mascot_combo.connect("changed", self._on_mascot_changed)
+        pack(mascot_card, setting_row(tr("Gemini mascot form", "Gemini 猫娘立绘形态"), self.mascot_combo,
+                                      tr("Updates sidebar artwork and launcher avatar immediately", "切换侧栏立绘与顶栏头像形态")))
+
+        self.reduced_motion_check = Gtk.CheckButton(label=tr("Reduce motion & transitions", "减少动态与过渡效果"))
+        self.reduced_motion_check.connect("toggled", self._on_appearance_changed)
+        pack(mascot_card, self.reduced_motion_check)
+
+        opacity_row = pack(mascot_card, box(False, 6))
+        pack(opacity_row, label(tr("Surface opacity", "面板不透明度"), "control-label"), True)
         self.opacity_value = pack(opacity_row, label("", "value"))
         self.opacity_scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 20, 100, 1)
         self.opacity_scale.set_draw_value(False)
-        self.opacity_scale.connect("value-changed", lambda scale: self.opacity_value.set_text(f"{scale.get_value():.0f}%"))
-        pack(theme, self.opacity_scale)
-        pack(theme, self.compact_label(tr("20–100%. Below 40%, text edges and separators are strengthened; readability still depends on the wallpaper.",
-                                         "可调 20–100%。低于 40% 会加强文字边缘和分隔线；可读性仍取决于壁纸。")))
-        fonts = self.card(body, tr_legacy("FONTS  /  字体"))
+        self.opacity_scale.connect("value-changed", self._on_opacity_changed)
+        pack(mascot_card, self.opacity_scale)
+        pack(mascot_card, wrap_label(tr("Recommended 90–100% for crisp eye-care legibility.",
+                                        "建议保持 90–100% 以获得最清晰护眼的文字对比度。"), "hint"))
+        pack(right, mascot_card)
+
+        fonts = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10), "card")
+        pack(fonts, label(tr("TYPOGRAPHY", "字体与清晰度"), "section-title"))
         self.font_buttons = {}
         self.font_sizes = {}
         for key, title, minimum, maximum, unit in [
-            ("font", tr_legacy("Interface · 界面字体"), 9, 20, "px"),
-            ("mono_font", tr_legacy("Terminal · 终端字体"), 8, 24, "pt"),
+            ("font", tr("Interface font", "界面字体"), 9, 20, "px"),
+            ("mono_font", tr("Terminal monospace", "终端等宽字体"), 8, 24, "pt"),
         ]:
-            pack(fonts, label(title, "control-label"))
             chooser = Gtk.FontButton()
             chooser.set_show_style(False)
             chooser.set_show_size(False)
             chooser.set_use_font(False)
             chooser.set_use_size(False)
             chooser.set_title(title)
-            self.font_buttons[key] = pack(fonts, chooser)
-            row = pack(fonts, box(False, 8))
-            pack(row, label(tr(f"Size ({unit})", f"字号 ({unit})"), "hint"), True)
-            size = Gtk.SpinButton.new_with_range(minimum, maximum, 0.5)
-            size.set_digits(1)
-            self.font_sizes[key] = pack(row, size)
-        pack(fonts, self.compact_label(tr_legacy("Applies to this desktop's components. Existing terminals use the new font when reopened.\n应用于本桌面组件；已有终端重新打开后使用新字体。")))
-        actions = pack(body, box(False, 8))
-        self.appearance_apply = pack(actions, button(tr_legacy("Apply · 应用设置"), self.apply_appearance, "accent-button"), True)
-        self.appearance_reset = pack(actions, button(tr_legacy("Defaults · 恢复默认"), lambda: self.apply_appearance(reset=True)), True)
-        pack(body, self.compact_label(tr_legacy("Preferences are saved locally when you Apply.\n偏好保存在本地，选好主题与字体后点击应用。")))
+            chooser.connect("font-set", self._on_appearance_changed)
+            self.font_buttons[key] = chooser
+            pack(fonts, setting_row(title, chooser))
+            size_spin = Gtk.SpinButton.new_with_range(minimum, maximum, 0.5)
+            size_spin.set_digits(1)
+            size_spin.connect("value-changed", self._on_appearance_changed)
+            self.font_sizes[key] = size_spin
+            pack(fonts, setting_row(tr(f"{title} size ({unit})", f"{title}字号（{unit}）"), size_spin))
+        pack(right, fonts)
+        grid_add(grid, right)
+
+        pack(wrapper, scroller(body), True)
+        self.appearance_bar = StickyActionBar(
+            on_apply=self.apply_appearance,
+            on_discard=lambda: self.populate_appearance(self._saved_appearance),
+            on_defaults=lambda: self.apply_appearance(reset=True),
+            apply_label=tr("Apply appearance", "应用外观设置"),
+        )
+        self.appearance_apply = self.appearance_bar.apply_btn
+        self.appearance_reset = self.appearance_bar.defaults_btn
+        pack(wrapper, self.appearance_bar)
+
         self.populate_appearance(DEFAULTS)
-        body.set_sensitive(False)
 
         def loaded(settings):
+            self._saved_appearance = dict(settings)
             self.populate_appearance(settings)
             self.apply_local_appearance(settings)
             self.appearance_busy = False
-            body.set_sensitive(True)
 
         def failed(error):
             self.appearance_busy = False
-            body.set_sensitive(True)
             self.feedback(tr("Could not load appearance: ", "无法加载外观设置：") + str(error), True)
+
         self.work(load_settings, loaded, failed)
-        return PageEntry(body, scroller(body))
+        return PageEntry(body, wrapper)
+
+    def _on_preset_card_toggled(self, btn, key):
+        if self._appearance_guard or not btn.get_active():
+            return
+        self.theme_combo.set_active_id(key)
+
+    def _on_wallpaper_color_toggled(self, check):
+        self.theme_combo.set_sensitive(not check.get_active())
+        self._on_appearance_changed()
+
+    def _on_mascot_changed(self, *_):
+        if self._appearance_guard:
+            return
+        skin = self.mascot_combo.get_active_id() or "gemini"
+        if getattr(self, "navigation", None) is not None:
+            self.navigation.refresh_mascot(skin)
+        self._on_appearance_changed()
+
+    def _on_opacity_changed(self, scale):
+        self.opacity_value.set_text(f"{scale.get_value():.0f}%")
+        self._on_appearance_changed()
+
+    def _on_appearance_changed(self, *_):
+        if self._appearance_guard:
+            return
+        self._sync_preset_cards()
+        self._refresh_palette_preview()
+        bar = getattr(self, "appearance_bar", None)
+        if bar is not None:
+            bar.set_dirty(self.draft_appearance() != {k: self._saved_appearance.get(k) for k in self.draft_appearance()})
+
+    def _sync_preset_cards(self):
+        active = self.theme_combo.get_active_id()
+        prev = self._appearance_guard
+        self._appearance_guard = True
+        for key, btn in getattr(self, "preset_buttons", {}).items():
+            on = key == active
+            btn.set_active(on)
+            ctx = btn.get_style_context()
+            (ctx.add_class if on else ctx.remove_class)("active")
+        self._appearance_guard = prev
 
     def populate_appearance(self, settings):
+        self._appearance_guard = True
         self.wallpaper_colors_check.set_active(settings.get("wallpaper_colors", False))
         self.color_mode_combo.set_active_id(settings.get("color_mode", "dark"))
+        self.eye_care_combo.set_active_id(settings.get("eye_care", "comfort"))
+        self.mascot_combo.set_active_id(settings.get("mascot", "gemini"))
         self.reduced_motion_check.set_active(settings.get("reduced_motion", False))
         self.theme_combo.set_active_id(settings["preset"])
-        self._refresh_palette_preview()
+        self.theme_combo.set_sensitive(not self.wallpaper_colors_check.get_active())
         self.opacity_scale.set_value(settings["opacity"] * 100)
+        self.opacity_value.set_text(f"{settings['opacity'] * 100:.0f}%")
         installed = getattr(self, "_installed_fonts", None)
         if installed is None:
             installed = {family.get_name() for family in self.get_pango_context().list_families()}
@@ -123,6 +257,11 @@ class AppearancePage:
             self.font_buttons[key].set_tooltip_text(
                 None if selected == requested else tr(f"{requested} is unavailable; using {selected}", f"未安装 {requested}；已选择 {selected}"))
             self.font_sizes[key].set_value(settings[size_key])
+        self._appearance_guard = False
+        self._sync_preset_cards()
+        self._refresh_palette_preview()
+        if getattr(self, "appearance_bar", None) is not None:
+            self.appearance_bar.set_dirty(False)
 
     def _refresh_palette_preview(self):
         swatches = getattr(self, "palette_swatches", None)
@@ -131,10 +270,16 @@ class AppearancePage:
         from appearance import DEFAULTS, palette
         preset = self.theme_combo.get_active_id() or DEFAULTS["preset"]
         mode = self.color_mode_combo.get_active_id() or "dark"
-        colors = palette({"preset": preset, "color_mode": mode})
+        eye_care = self.eye_care_combo.get_active_id() or "comfort"
+        req = {
+            "preset": preset, "color_mode": mode, "eye_care": eye_care,
+            "wallpaper_colors": self.wallpaper_colors_check.get_active(),
+            "wallpaper_seed": self._saved_appearance.get("wallpaper_seed"),
+        }
+        colors = palette(req)
         keys = ("background", "surface_raised", "accent", "secondary", "ink")
         for provider, key in zip(swatches, keys):
-            color = colors.get(key, "#5ee7ff")
+            color = colors.get(key, "#9da8ff")
             provider.load_from_data(
                 f"box.palette-swatch {{ background-color: {color}; border-radius: 999px; "
                 f"border: 1px solid rgba(255, 255, 255, 0.25); }}".encode()
@@ -144,13 +289,15 @@ class AppearancePage:
         return {
             "wallpaper_colors": self.wallpaper_colors_check.get_active(),
             "color_mode": self.color_mode_combo.get_active_id(),
+            "eye_care": self.eye_care_combo.get_active_id() or "comfort",
+            "mascot": self.mascot_combo.get_active_id() or "gemini",
             "reduced_motion": self.reduced_motion_check.get_active(),
             "preset": self.theme_combo.get_active_id(),
             "font": self.font_buttons["font"].get_font_desc().get_family(),
             "font_size": self.font_sizes["font"].get_value(),
             "mono_font": self.font_buttons["mono_font"].get_font_desc().get_family(),
             "mono_size": self.font_sizes["mono_font"].get_value(),
-            "opacity": self.opacity_scale.get_value() / 100,
+            "opacity": round(self.opacity_scale.get_value() / 100, 2),
         }
 
     def apply_local_appearance(self, settings):
@@ -160,10 +307,14 @@ class AppearancePage:
         revealer = getattr(self, "quick_details_revealer", None)
         if revealer is not None:
             revealer.set_transition_duration(
-                180 if animations_enabled(self.surface, not self.reduced_motion) else 0)
+                160 if animations_enabled(self.surface, not self.reduced_motion) else 0)
         context = self.get_style_context()
         (context.add_class if not animations_enabled(self.surface, not self.reduced_motion)
          else context.remove_class)("reduce-motion")
+        if getattr(self, "navigation", None) is not None:
+            self.navigation.refresh_mascot(settings.get("mascot", "gemini"))
+        if hasattr(self, "refresh_header_avatar"):
+            self.refresh_header_avatar(settings.get("mascot", "gemini"))
 
     def apply_appearance(self, reset=False):
         if self.appearance_busy:
@@ -172,8 +323,9 @@ class AppearancePage:
         from application_theme import apply_mode
         settings = self.draft_appearance()
         self.appearance_busy = True
-        self.appearance_body.set_sensitive(False)
-        self.feedback(tr_legacy("Applying appearance… · 正在应用外观…"))
+        if self.appearance_apply:
+            self.appearance_apply.set_sensitive(False)
+        self.feedback(tr("Applying appearance & eye-care theme…", "正在应用外观与护眼主题…"))
 
         def apply():
             from wallpaper import with_wallpaper_colors
@@ -193,7 +345,9 @@ class AppearancePage:
         def done(result):
             settings, reload_error = result
             self.appearance_busy = False
-            self.appearance_body.set_sensitive(True)
+            if self.appearance_apply:
+                self.appearance_apply.set_sensitive(True)
+            self._saved_appearance = dict(settings)
             self.populate_appearance(settings)
             self.apply_local_appearance(settings)
             try:
@@ -203,10 +357,13 @@ class AppearancePage:
             if reload_error:
                 self.feedback(tr("Saved with issues: ", "已保存，部分设置未生效：") + reload_error, True)
             else:
-                self.feedback(tr_legacy("外观已同步；部分应用需重新打开。\nAppearance synced; some apps need reopening."))
+                self.feedback(tr("Appearance synced across desktop, bar & applications.",
+                                 "外观与护眼配色已同步至桌面、顶栏与系统应用。"))
 
         def failed(error):
             self.appearance_busy = False
-            self.appearance_body.set_sensitive(True)
+            if self.appearance_apply:
+                self.appearance_apply.set_sensitive(True)
             self.feedback(tr("Could not apply appearance: ", "无法应用外观：") + str(error), True)
+
         self.work(apply, done, failed, commit=True)

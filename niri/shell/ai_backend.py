@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import re
+import select
 import subprocess
 import sys
 import tempfile
@@ -100,7 +101,7 @@ class NoRedirect(request.HTTPRedirectHandler):
         return None
 
 
-def _request(settings, suffix, payload=None, timeout=120):
+def _prepare_headers(settings):
     headers = {"Accept": "application/json", "Content-Type": "application/json"}
     key_name = settings["api_key_env"]
     if key_name:
@@ -110,6 +111,11 @@ def _request(settings, suffix, payload=None, timeout=120):
         if not key.isascii() or any(ord(char) < 33 or ord(char) > 126 for char in key):
             raise ValueError("API key contains invalid characters / 密钥含无效字符，请检查环境变量")
         headers["Authorization"] = f"Bearer {key}"
+    return headers
+
+
+def _request(settings, suffix, payload=None, timeout=120):
+    headers = _prepare_headers(settings)
     body = json.dumps(payload, ensure_ascii=False).encode() if payload is not None else None
     req = request.Request(settings["endpoint"] + suffix, data=body, headers=headers)
     try:
@@ -134,8 +140,7 @@ def _request(settings, suffix, payload=None, timeout=120):
         raise ValueError("Server did not return valid JSON / 服务未返回有效 JSON") from exc
 
 
-def chat(messages, settings):
-    settings = validate_settings(settings, require_model=True)
+def _validate_messages(messages):
     clean = []
     for message in messages:
         if message.get("role") not in ("user", "assistant", "system") or not isinstance(message.get("content"), str):
@@ -143,6 +148,12 @@ def chat(messages, settings):
         clean.append({"role": message["role"], "content": message["content"]})
     if not clean:
         raise ValueError("Write a message first / 请先输入消息")
+    return clean
+
+
+def chat(messages, settings):
+    settings = validate_settings(settings, require_model=True)
+    clean = _validate_messages(messages)
     payload = {"model": settings["model"], "messages": clean, "stream": False}
     ollama = settings["provider"] == "ollama"
     data = _request(settings, "/api/chat" if ollama else "/chat/completions", payload)
@@ -153,6 +164,71 @@ def chat(messages, settings):
         return content
     except (KeyError, IndexError, TypeError, ValueError):
         raise ValueError("No text answer returned; choose a text chat model / 未收到文本回复，请选择文本聊天模型") from None
+
+
+def chat_stream(messages, settings, emit_chunk):
+    """Stream text deltas from Ollama NDJSON or OpenAI-compatible SSE endpoints."""
+    settings = validate_settings(settings, require_model=True)
+    clean = _validate_messages(messages)
+    ollama = settings["provider"] == "ollama"
+    payload = {"model": settings["model"], "messages": clean, "stream": True}
+    headers = _prepare_headers(settings)
+    headers["Accept"] = "text/event-stream, application/x-ndjson, application/json"
+    body = json.dumps(payload, ensure_ascii=False).encode()
+    req = request.Request(settings["endpoint"] + ("/api/chat" if ollama else "/chat/completions"),
+                          data=body, headers=headers)
+    parts = []
+    total_bytes = 0
+    try:
+        with request.build_opener(NoRedirect).open(req, timeout=CHAT_REQUEST_TIMEOUT) as response:
+            for raw_line in response:
+                total_bytes += len(raw_line)
+                if total_bytes > MAX_RESPONSE:
+                    raise ValueError("Response too large / 服务响应过大")
+                line = raw_line.decode("utf-8", errors="replace").strip()
+                if not line:
+                    continue
+                if line.startswith("data:"):
+                    line = line[5:].strip()
+                    if line == "[DONE]":
+                        break
+                if not line.startswith("{"):
+                    continue
+                try:
+                    item = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if not isinstance(item, dict):
+                    continue
+                if item.get("error"):
+                    raise ValueError("Provider returned an error; check model and server / 服务报错，请检查模型和服务")
+                delta = ""
+                if ollama:
+                    msg = item.get("message")
+                    if isinstance(msg, dict) and isinstance(msg.get("content"), str):
+                        delta = msg["content"]
+                else:
+                    choices = item.get("choices")
+                    if isinstance(choices, list) and choices:
+                        choice = choices[0] or {}
+                        d = choice.get("delta") or choice.get("message") or {}
+                        if isinstance(d, dict) and isinstance(d.get("content"), str):
+                            delta = d["content"]
+                if delta:
+                    parts.append(delta)
+                    emit_chunk(delta)
+                if ollama and item.get("done") is True:
+                    break
+    except error.HTTPError as exc:
+        code = exc.code
+        exc.close()
+        raise ValueError(f"Server HTTP {code}; check endpoint, model and credentials / 请检查地址、模型和认证") from None
+    except (error.URLError, TimeoutError, OSError) as exc:
+        raise ValueError("Cannot reach AI server or request timed out / 无法连接 AI 服务或请求超时") from exc
+    full = "".join(parts)
+    if not full.strip():
+        raise ValueError("No text answer returned; choose a text chat model / 未收到文本回复，请选择文本聊天模型")
+    return full
 
 
 def discover_models(settings):
@@ -187,9 +263,10 @@ class ChatRequest:
     returns immediately, while ``run`` polls and reaps the worker.
     """
 
-    def __init__(self, messages, settings):
+    def __init__(self, messages, settings, *, on_chunk=None):
         self.messages = copy.deepcopy(list(messages))
         self.settings = copy.deepcopy(dict(settings))
+        self.on_chunk = on_chunk
         self._lock = threading.Lock()
         self._state = _PENDING
         self._cancelled = False
@@ -252,7 +329,10 @@ class ChatRequest:
 
     def _run_worker(self):
         deadline = time.monotonic() + CHAT_REQUEST_TIMEOUT
-        payload = json.dumps({"messages": self.messages, "settings": self.settings}, ensure_ascii=False).encode()
+        body = {"messages": self.messages, "settings": self.settings}
+        if self.on_chunk is not None:
+            body["stream"] = True
+        payload = json.dumps(body, ensure_ascii=False).encode()
         try:
             process = subprocess.Popen(
                 [sys.executable, "-B", str(Path(__file__).resolve()), WORKER_FLAG],
@@ -267,12 +347,68 @@ class ChatRequest:
             self._reap(process)
             raise Cancelled("Chat request cancelled / 聊天请求已取消")
         try:
+            if self.on_chunk is not None:
+                return self._wait_stream(process, payload, deadline)
             stdout = self._wait(process, payload, deadline)
         finally:
             self._reap(process)
             with self._lock:
                 self._process = None
         return self._reply_from(stdout)
+
+    def _wait_stream(self, process, payload, deadline):
+        def writer():
+            try:
+                if process.stdin is not None:
+                    process.stdin.write(payload)
+                    process.stdin.close()
+            except OSError:
+                pass
+        threading.Thread(target=writer, daemon=True).start()
+        fd = process.stdout.fileno()
+        buf = b""
+        final_reply = None
+        while True:
+            if self._cancelled:
+                raise Cancelled("Chat request cancelled / 聊天请求已取消")
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise ValueError(TIMEOUT_ERROR)
+            ready, _, _ = select.select([fd], [], [], min(CANCEL_POLL_INTERVAL, remaining))
+            if not ready:
+                if process.poll() is not None:
+                    break
+                continue
+            chunk = os.read(fd, 8192)
+            if not chunk:
+                break
+            buf += chunk
+            while b"\n" in buf:
+                line, buf = buf.split(b"\n", 1)
+                if not line.strip():
+                    continue
+                try:
+                    msg = json.loads(line.decode("utf-8"))
+                except (UnicodeError, json.JSONDecodeError):
+                    raise ValueError(INVALID_REPLY) from None
+                if not isinstance(msg, dict):
+                    raise ValueError(INVALID_REPLY)
+                if msg.get("error"):
+                    raise ValueError(str(msg["error"]))
+                if "chunk" in msg and isinstance(msg["chunk"], str):
+                    try:
+                        self.on_chunk(msg["chunk"])
+                    except Exception:
+                        pass
+                if "reply" in msg:
+                    final_reply = msg["reply"]
+        if self._cancelled:
+            raise Cancelled("Chat request cancelled / 聊天请求已取消")
+        if buf.strip() and final_reply is None:
+            return self._reply_from(buf)
+        if not isinstance(final_reply, str) or not final_reply.strip():
+            raise ValueError(INVALID_REPLY)
+        return final_reply
 
     def _wait(self, process, payload, deadline):
         # communicate applies its timeout while writing stdin too: even a
@@ -340,11 +476,15 @@ def _chat_worker():
     try:
         request = json.loads(sys.stdin.buffer.read().decode("utf-8"))
         messages, settings = request["messages"], request["settings"]
+        stream = bool(request.get("stream", False))
     except (UnicodeError, ValueError, KeyError, TypeError):
         _emit_worker({"error": "Invalid worker request / 工作进程请求无效"})
         return
     try:
-        reply = chat(messages, settings)
+        if stream:
+            reply = chat_stream(messages, settings, lambda delta: _emit_worker({"chunk": delta}))
+        else:
+            reply = chat(messages, settings)
     except ValueError as exc:
         # chat/validate_settings only raise curated, credential-free messages.
         _emit_worker({"error": str(exc)})

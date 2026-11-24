@@ -212,7 +212,8 @@ class InputSettings(SettingsPage):
         self.add(card, self.panel.compact_label(tr("Fcitx 5 manages input methods separately from the keyboard layout below.",
                                                   "Fcitx 5 管理输入法，下方的键盘布局设置独立生效。")))
         self.add(card, self.button(tr("Configure Fcitx 5", "配置 Fcitx 5 输入法"),
-                                   lambda: self.panel.desktop("launch", "input")))
+                                   lambda: (self.panel.launch_external([self.panel.desktop_script(), "launch", "input"])
+                                            if hasattr(self.panel, "launch_external") else self.panel.desktop("launch", "input"))))
         card = self.card(tr("Keyboard", "键盘"))
         self.entry(card, "keyboard_layout", tr("Keyboard layouts", "键盘布局"), "us / us,de")
         self.entry(card, "keyboard_variant", tr("Layout variants", "布局变体"), " / dvorak")
@@ -221,6 +222,9 @@ class InputSettings(SettingsPage):
                                                   "多个 XKB 名称用逗号分隔。ctrl:nocaps 将大写锁定键改为 Ctrl；grp:win_space_toggle 使用 Super+空格切换布局。")))
         self.number(card, "keyboard_repeat_delay", tr("Repeat delay (ms)", "按键重复延迟（毫秒）"), 25)
         self.number(card, "keyboard_repeat_rate", tr("Repeat rate (per second)", "按键重复速度（次/秒）"))
+        test_entry = Gtk.Entry()
+        test_entry.set_placeholder_text(tr("Hold a key here to test repeat delay & rate…", "在此按住任意键测试重复延迟与速度…"))
+        self.add(card, test_entry)
         self.check(card, "keyboard_numlock", tr("Num Lock at login", "登录时启用数字锁定"))
         self.choice(card, "keyboard_track_layout", tr("Remember layout", "记忆布局"),
                     [("global", tr("Globally", "全局")), ("window", tr("Per window", "每个窗口"))])

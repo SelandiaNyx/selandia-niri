@@ -5,7 +5,10 @@ Mixed into ``panel.Panel``; methods rely on the panel's shared state
 """
 from __future__ import annotations
 
+import re
 import subprocess
+import threading
+import time
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -15,6 +18,24 @@ from gi.repository import GLib, Gdk, Gtk
 
 from i18n import tr, tr_legacy
 from panel_support import box, button, label, pack, scroller
+
+_CODE_FENCE_RE = re.compile(r"```([A-Za-z0-9_+-]*)\n(.*?)```", re.DOTALL)
+
+
+def _split_markdown_blocks(text: str) -> list[tuple[str, str, str]]:
+    """Split text into ('text', '', chunk) and ('code', lang, code) blocks."""
+    blocks: list[tuple[str, str, str]] = []
+    pos = 0
+    for match in _CODE_FENCE_RE.finditer(text):
+        before = text[pos:match.start()].strip()
+        if before:
+            blocks.append(("text", "", before))
+        blocks.append(("code", match.group(1).strip() or "code", match.group(2).rstrip("\n")))
+        pos = match.end()
+    tail = text[pos:].strip()
+    if tail or not blocks:
+        blocks.append(("text", "", tail if blocks else text))
+    return blocks
 
 
 class AiPage:
@@ -87,12 +108,8 @@ class AiPage:
         self.update_provider_status()
         self.chat_body = box(spacing=12)
         self.chat_scroll = pack(self.content, scroller(self.chat_body), True)
-        self.welcome = self.card(self.chat_body)
-        pack(self.welcome, label("✦", "welcome-icon"))
-        pack(self.welcome, label(tr("Start with an idea.", "从一个想法开始。"), "welcome-title"))
-        pack(self.welcome, label(tr_legacy("Ask, draft, debug, or explore. Connect Ollama locally or configure an API endpoint.\n提问、写作、调试或探索。连接本地 Ollama，或配置 API 服务。"), "welcome-copy", wrap=True))
-        pack(self.welcome, label(tr("Conversations are saved locally. Each keeps its own connection; only Send contacts that provider. API keys are never saved.",
-                                   "对话保存在本机，每个对话保留自己的连接；点击发送才会联系该服务。密钥不会保存。"), "hint", wrap=True))
+        self.welcome = None
+        self._build_welcome()
         self.chat_scroll.get_vadjustment().connect("changed", self.scroll_chat)
         composer = pack(self.content, box(spacing=8, css="composer"))
         self.input = Gtk.TextView()
@@ -121,6 +138,18 @@ class AiPage:
         GLib.idle_add(self.input.grab_focus)
         if settings_error:
             self.feedback(settings_error, True)
+
+    def _build_welcome(self):
+        if self.welcome is not None:
+            return
+        self.welcome = self.card(self.chat_body)
+        pack(self.welcome, label("✦", "welcome-icon"))
+        pack(self.welcome, label(tr("Start with an idea.", "从一个想法开始。"), "welcome-title"))
+        pack(self.welcome, label(tr("Ask, draft, debug, or explore. Connect Ollama locally or configure an API endpoint.",
+                                    "提问、写作、调试或探索。连接本地 Ollama，或配置兼容 API 服务（支持流式输出与代码块复制）。"), "welcome-copy", wrap=True))
+        pack(self.welcome, label(tr("Conversations are saved locally. Each keeps its own connection; only Send contacts that provider. API keys are never saved.",
+                                   "对话保存在本机，每个对话保留自己的连接；点击发送才会联系该服务。密钥不会保存。"), "hint", wrap=True))
+        self.welcome.show_all()
 
     def scroll_chat(self, adjustment):
         adjustment.set_value(max(adjustment.get_lower(), adjustment.get_upper() - adjustment.get_page_size()))
@@ -166,7 +195,7 @@ class AiPage:
                        self.conversation_choices, self.add_profile_button, self.new_chat_button):
             widget.set_sensitive(sensitive)
 
-    def ai_commit(self, task, *, after=None):
+    def ai_commit(self, task, *, after=None, clear_input=False):
         if self.ai_busy or self.ai_saving:
             return
         self.ai_saving = True
@@ -177,7 +206,8 @@ class AiPage:
             self.set_ai_sensitive(True)
         def done(value):
             reset()
-            self.input.get_buffer().set_text("")
+            if clear_input:
+                self.input.get_buffer().set_text("")
             self.update_ai_workspace(value)
             if after:
                 after()
@@ -220,9 +250,11 @@ class AiPage:
             self.welcome = None
             for message in self.messages:
                 self.add_message(message["role"], message["content"])
-        elif self.welcome is None:
+        else:
             for child in self.chat_body.get_children():
                 child.destroy()
+            self.welcome = None
+            self._build_welcome()
         self.update_provider_status()
         self.ai_refreshing = False
 
@@ -292,18 +324,39 @@ class AiPage:
             return True
         return False
 
-    def add_message(self, role, text):
+    def _copy_snippet(self, snippet: str):
+        self.work(lambda: subprocess.run(["wl-copy"], input=snippet, capture_output=True,
+                                         text=True, check=True, timeout=5),
+                  lambda _: self.feedback(tr("Code copied", "代码已复制")), commit=True)
+
+    def add_message(self, role, text, *, streaming=False):
         if self.welcome:
             self.welcome.destroy()
             self.welcome = None
         bubble = pack(self.chat_body, box(spacing=6, css="message"))
         bubble.get_style_context().add_class("user-message" if role == "user" else "assistant-message")
-        pack(bubble, label(tr_legacy("YOU · 你") if role == "user" else tr_legacy("ASSISTANT · 助手"), "message-role"))
-        content = pack(bubble, label(text, "message-text", wrap=True, localize=False))
-        content.set_selectable(True)
-        content.set_max_width_chars(40)
+        pack(bubble, label(tr("You", "你") if role == "user" else tr("Assistant", "助手"), "message-role"))
+        primary_label = None
+        blocks = [("text", "", text)] if streaming or role == "user" or "```" not in text else _split_markdown_blocks(text)
+        for kind, lang, chunk in blocks:
+            if kind == "code":
+                code_card = pack(bubble, box(spacing=6, css="code-block"))
+                code_head = pack(code_card, box(False, 8))
+                pack(code_head, label(lang.upper(), "hint", localize=False), True)
+                pack(code_head, button(tr("Copy", "复制"), lambda c=chunk: self._copy_snippet(c), "small-button"))
+                code_lbl = pack(code_card, label(chunk, "code-text", wrap=True, localize=False))
+                code_lbl.set_selectable(True)
+                code_lbl.set_max_width_chars(44)
+                if primary_label is None:
+                    primary_label = code_lbl
+            else:
+                content = pack(bubble, label(chunk, "message-text", wrap=True, localize=False))
+                content.set_selectable(True)
+                content.set_max_width_chars(40)
+                if primary_label is None:
+                    primary_label = content
         bubble.show_all()
-        return content
+        return primary_label
 
     def stop_chat(self):
         request = self.ai_request
@@ -340,11 +393,30 @@ class AiPage:
         self.messages.append({"role": "user", "content": text})
         self.add_message("user", text)
         buffer.set_text("")
-        self.feedback(tr_legacy("Waiting for your model… · 正在等待模型回复…"))
-        pending = self.add_message("assistant", "•••")
+        self.feedback(tr("Streaming reply…", "正在流式接收回复…"))
+        pending = self.add_message("assistant", "•••", streaming=True)
         snapshot = [dict(message) for message in self.messages]
         settings = dict(self.settings)
-        request = ChatRequest(snapshot, settings)
+        stream_buf = []
+        stream_lock = threading.Lock()
+        stream_scheduled = [False]
+
+        def flush_stream():
+            with stream_lock:
+                stream_scheduled[0] = False
+                full = "".join(stream_buf)
+            if self.alive and self.ai_request is request and full:
+                pending.set_text(full)
+            return GLib.SOURCE_REMOVE
+
+        def on_chunk(delta):
+            with stream_lock:
+                stream_buf.append(delta)
+                if not stream_scheduled[0]:
+                    stream_scheduled[0] = True
+                    GLib.timeout_add(50, flush_stream)
+
+        request = ChatRequest(snapshot, settings, on_chunk=on_chunk)
         self.ai_request = request
         import ai_store
         profile_id = self.workspace["active_profile"]

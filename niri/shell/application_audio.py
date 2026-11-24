@@ -14,6 +14,7 @@ class ApplicationAudioControls(Gtk.Box):
         self.panel = panel
         self.entries = {}
         style(self, "card")
+        style(self, "application-audio")
         pack(self, text(tr("Application volume", "应用音量"), "section-title"))
         self.notice = pack(self, text(tr("Reading playback and recording streams…", "正在读取播放与录音应用…"), "hint"))
         self.rows = pack(self, Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10))

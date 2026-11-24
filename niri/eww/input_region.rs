@@ -1,10 +1,21 @@
 //! Scoped GTK3 input regions for Eww 0.6; no external Rust crates.
 //! Bindings use GTK/GDK's public C ABI. Applied only to our capsule classes.
+use std::collections::HashMap;
 use std::ffi::{c_char,c_int,c_void};
+use std::sync::{Mutex,OnceLock};
 use std::{env,fs,path::PathBuf};
-#[repr(C)] struct Rect { x:c_int,y:c_int,width:c_int,height:c_int }
+#[repr(C)] #[derive(Clone,Copy,PartialEq,Eq)] struct Rect { x:c_int,y:c_int,width:c_int,height:c_int }
 #[repr(C)] struct List { data:*mut c_void,next:*mut List,prev:*mut List }
 #[repr(C)] struct Color {r:f64,g:f64,b:f64,a:f64}
+#[derive(PartialEq,Eq)] struct CachedSignature {
+    kind:&'static str,
+    width:c_int,
+    height:c_int,
+    preferred:c_int,
+    exclusive_zone:c_int,
+    rects:Vec<(Rect,i32)>,
+}
+static CACHE:OnceLock<Mutex<HashMap<usize,CachedSignature>>>=OnceLock::new();
 unsafe extern "C" {
     fn dlsym(handle:*mut c_void,name:*const c_char)->*mut c_void;
     fn gtk_widget_get_style_context(widget:*mut c_void)->*mut c_void;
@@ -119,6 +130,22 @@ unsafe fn update(widget:*mut c_void) {
                 }
             }
         }
+        let alloc_w=gtk_widget_get_allocated_width(widget);
+        let alloc_h=gtk_widget_get_allocated_height(widget);
+        let probe=env::var("SELANDIA_PRIVATE_PROBE").ok().as_deref()==Some("1");
+        let sig=CachedSignature{kind,width:alloc_w,height:alloc_h,preferred,exclusive_zone:actual_exclusive_zone,rects:rectangles.clone()};
+        let mut changed=true;
+        if !probe {
+            let map=CACHE.get_or_init(|| Mutex::new(HashMap::new()));
+            if let Ok(mut guard)=map.lock() {
+                if guard.get(&(widget as usize))==Some(&sig) {
+                    changed=false;
+                } else {
+                    guard.insert(widget as usize,sig);
+                }
+            }
+        }
+        if !changed {return;}
         let region=cairo_region_create();
         for (rectangle,radius) in &rectangles {
             let radius=(*radius).min(rectangle.width/2).min(rectangle.height/2).max(0) as f64;
@@ -135,11 +162,11 @@ unsafe fn update(widget:*mut c_void) {
             let rects=rectangles.iter().map(|(r,_)|format!("{{\"x\":{},\"y\":{},\"width\":{},\"height\":{}}}",r.x,r.y,r.width,r.height)).collect::<Vec<_>>().join(",");
             let mut palette=Vec::new();colors(widget,&mut palette);
             let mut debug=Vec::new();let mut controls=Vec::new();
-            if env::var("SELANDIA_PRIVATE_PROBE").ok().as_deref()==Some("1"){
+            if probe {
                 stacks(widget,&mut debug);let mut unused="left";walk(widget,widget,&mut controls,&mut unused,false);
             }
             let control_rects=controls.iter().map(|(r,_)|format!("{{\"x\":{},\"y\":{},\"width\":{},\"height\":{}}}",r.x,r.y,r.width,r.height)).collect::<Vec<_>>().join(",");
-            let text=format!("{{\"kind\":\"{}\",\"width\":{},\"height\":{},\"preferred_height\":{},\"exclusive_zone\":{},\"capsules\":[{}],\"colors\":[{}],\"stacks\":[{}],\"controls\":[{}]}}",kind,gtk_widget_get_allocated_width(widget),gtk_widget_get_allocated_height(widget),preferred,actual_exclusive_zone,rects,palette.join(","),debug.join(","),control_rects);
+            let text=format!("{{\"kind\":\"{}\",\"width\":{},\"height\":{},\"preferred_height\":{},\"exclusive_zone\":{},\"capsules\":[{}],\"colors\":[{}],\"stacks\":[{}],\"controls\":[{}]}}",kind,alloc_w,alloc_h,preferred,actual_exclusive_zone,rects,palette.join(","),debug.join(","),control_rects);
             let temporary=root.join(format!("{}.partial",kind));let final_path=root.join(format!("{}.json",kind));
             if fs::write(&temporary,text).is_ok(){let _=fs::rename(temporary,final_path);}
         }

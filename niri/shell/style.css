@@ -7,49 +7,49 @@
  * layers component-specific composition on top.  Every widget selector stays scoped
  * to window.glass-window (or a native dialog) so GTK's font chooser keeps its
  * own opaque surface. */
-@define-color md3_primary #ff8fbf;
-@define-color md3_on_primary #3a0a20;
-@define-color md3_primary_container #74465e;
-@define-color md3_on_primary_container #fff4f8;
-@define-color md3_secondary #8fd3ff;
-@define-color md3_on_secondary #3a0a20;
-@define-color md3_secondary_container #4d5469;
-@define-color md3_on_secondary_container #fff4f8;
-@define-color md3_surface #1a1118;
-@define-color md3_surface_container_low #21161e;
-@define-color md3_surface_container #271a24;
-@define-color md3_surface_container_high #33232f;
-@define-color md3_surface_container_highest #3d2d39;
-@define-color md3_surface_sunken #120b10;
-@define-color md3_on_surface #fff4f8;
-@define-color md3_on_surface_variant #ecd3df;
-@define-color md3_outline rgba(255, 244, 248, 0.140);
-@define-color md3_outline_variant rgba(255, 244, 248, 0.060);
-@define-color md3_error #ff8a9a;
-@define-color md3_on_error #1a1118;
-@define-color md3_error_container #70424f;
-@define-color md3_on_error_container #fff4f8;
-@define-color md3_inverse_surface #fff4f8;
-@define-color md3_inverse_on_surface #1a1118;
+@define-color md3_primary #9da8ff;
+@define-color md3_on_primary #16112b;
+@define-color md3_primary_container #4f4b78;
+@define-color md3_on_primary_container #efeaf8;
+@define-color md3_secondary #ff8dc7;
+@define-color md3_on_secondary #16112b;
+@define-color md3_secondary_container #5b4363;
+@define-color md3_on_secondary_container #efeaf8;
+@define-color md3_surface #1b1728;
+@define-color md3_surface_container_low #211c30;
+@define-color md3_surface_container #262138;
+@define-color md3_surface_container_high #312a47;
+@define-color md3_surface_container_highest #3b3451;
+@define-color md3_surface_sunken #13101d;
+@define-color md3_on_surface #efeaf8;
+@define-color md3_on_surface_variant #cfc5e4;
+@define-color md3_outline rgba(239, 234, 248, 0.140);
+@define-color md3_outline_variant rgba(239, 234, 248, 0.060);
+@define-color md3_error #ff8aa0;
+@define-color md3_on_error #1b1728;
+@define-color md3_error_container #694158;
+@define-color md3_on_error_container #efeaf8;
+@define-color md3_inverse_surface #efeaf8;
+@define-color md3_inverse_on_surface #1b1728;
 /* Compatibility aliases used by the rest of the shell templates. */
-@define-color ink #fff4f8;
-@define-color muted #ecd3df;
-@define-color cyan #ff8fbf;
-@define-color violet #8fd3ff;
-@define-color accent #ff8fbf;
-@define-color secondary #8fd3ff;
-@define-color surface #251a23;
-@define-color surface_raised #33232f;
-@define-color bg #1a1118;
-@define-color border #c98aa8;
-@define-color on_accent #3a0a20;
-@define-color danger #ff8a9a;
-@define-color success #7ee2b8;
-@define-color warning #ffd479;
+@define-color ink #efeaf8;
+@define-color muted #cfc5e4;
+@define-color cyan #9da8ff;
+@define-color violet #ff8dc7;
+@define-color accent #9da8ff;
+@define-color secondary #ff8dc7;
+@define-color surface #241f35;
+@define-color surface_raised #312a47;
+@define-color bg #1b1728;
+@define-color border #968ec9;
+@define-color on_accent #16112b;
+@define-color danger #ff8aa0;
+@define-color success #7ce0be;
+@define-color warning #ffd878;
 
 window.glass-window * {
     font-family: "Adwaita Sans", "Noto Sans CJK SC", "Noto Sans", sans-serif;
-    font-size: 13px;
+    font-size: 14px;
 }
 window.glass-window { background: transparent; color: @md3_on_surface; }
 window.glass-window .glass-surface {

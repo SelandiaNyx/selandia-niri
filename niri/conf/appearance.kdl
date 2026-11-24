@@ -56,10 +56,10 @@ overview {
 layer-rule {
     // SwayNC includes invisible margins in its surfaces; keep its glass CSS only.
     // 通知组件的透明边距属于窗口表面，不强制模糊，避免边缘出现矩形色块。
-    match namespace="^(launcher|selandia-.*)$"
+    match namespace="^(launcher|anyrun|selandia-.*)$"
     // Niri 26.04 also uses this radius for the compositor's blur geometry.
     // 与面板外框保持一致，避免圆角外露出矩形模糊区域。
-    geometry-corner-radius 24
+    geometry-corner-radius 28
     background-effect {
         blur true
         xray true
@@ -72,8 +72,8 @@ layer-rule {
     geometry-corner-radius 22
 }
 layer-rule {
-    match namespace="^launcher$"
-    geometry-corner-radius 24
+    match namespace="^(launcher|anyrun)$"
+    geometry-corner-radius 28
     shadow {
         on
         softness 40

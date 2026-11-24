@@ -70,7 +70,7 @@ case "${1:-}" in
     notification-toggle) exec swaync-client -t ;;
     bar-backend) exec python3 -B "$base/shell/component_preferences.py" bar "${2:-}" ;;
     daily-components) exec python3 -B "$base/shell/component_preferences.py" daily ;;
-    control|quick|system|appearance|wallpapers|sound|displays|input|desktop|network|hardware|applications|language|power-settings|time|startup|services|notifications|security|shortcuts|ai|calendar)
+    control|quick|system|monitor|appearance|wallpapers|sound|displays|input|desktop|network|bluetooth|hardware|storage|applications|language|power-settings|time|startup|services|logs|packages|notifications|security|preferences|shortcuts|ai|calendar)
         panel_mode=$1
         [[ "$panel_mode" != power-settings ]] || panel_mode=power
         exec python3 -B "$base/shell/panel.py" "$panel_mode"

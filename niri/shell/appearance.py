@@ -65,67 +65,81 @@ LIGHT_PRESETS = {
                  "success": "#15803d", "warning": "#a16207", "error": "#b91c1c", "danger": "#b91c1c"},
 }
 # Each collection has a curated dual-tone light and dark Liquid Glass palette.
-for name, label, dark_bg, dark_surface, dark_raised, dark_sunken, dark_border, light_bg, light_raised, accent, secondary, light_accent, light_secondary in (
-    ("aurora", "Aurora · 极光翡翠", "#09191f", "#122931", "#1b3842", "#051014", "#558c99", "#ebf8f6", "#dcf2ee", "#5eead4", "#60a5fa", "#0d7a69", "#2563eb"),
-    ("ocean", "Ocean · 蔚蓝深海", "#091529", "#122440", "#1b3459", "#050d1a", "#587eb0", "#ecf5ff", "#ddebfc", "#38bdf8", "#2dd4bf", "#0369a1", "#0e7490"),
-    ("rose", "Rose Quartz · 晨曦蔷薇", "#1f111c", "#321c2e", "#44273e", "#140a12", "#a8709b", "#fdf1f5", "#f8e2eb", "#fda4af", "#d8b4fe", "#be185d", "#7e22ce"),
-    ("amber", "Amber · 落日琥珀", "#1c140d", "#2d2015", "#3e2d1f", "#120c07", "#a68560", "#fcf6ea", "#f6ead4", "#fcd34d", "#fb923c", "#b45309", "#c2410c"),
-    ("forest", "Forest · 幽林清露", "#0e1a13", "#182b20", "#233b2d", "#08110c", "#628f74", "#eef7ef", "#dfefe1", "#6ee7b7", "#bef264", "#15803d", "#65a30d"),
-    ("pearl", "Pearl · 虹彩珍珠", "#141824", "#21273a", "#2e364d", "#0d1018", "#7c89ad", "#f3f5fc", "#e6eaf8", "#93c5fd", "#f0abfc", "#3b5bdb", "#9c36b5"),
+# Warm collections carry their own warm ink/muted tones instead of cool blue-grey.
+for name, label, dark_bg, dark_surface, dark_raised, dark_sunken, dark_border, dark_ink, dark_muted, light_bg, light_surface, light_raised, accent, secondary, light_accent, light_secondary in (
+    ("aurora", "Aurora · 极光翡翠", "#101e24", "#182d35", "#223d48", "#0b151a", "#5f96a3", "#eaf5f7", "#b5d1d8", "#eaf4f3", "#f6fbfa", "#dcece9", "#5eead4", "#60a5fa", "#0d7a69", "#2563eb"),
+    ("ocean", "Ocean · 蔚蓝深海", "#101b2d", "#182843", "#22385c", "#0b1320", "#6489bb", "#ecf3fc", "#b7cae2", "#ebf2fb", "#f7faff", "#dce8f8", "#38bdf8", "#2dd4bf", "#0369a1", "#0e7490"),
+    ("rose", "Rose Quartz · 晨曦蔷薇", "#231620", "#33202f", "#452d40", "#180f16", "#b27ba6", "#f5eaf0", "#cfb5c4", "#f8edf2", "#fdf7fa", "#f1dde6", "#fda4af", "#d8b4fe", "#be185d", "#7e22ce"),
+    ("amber", "Amber · 落日琥珀", "#211912", "#31251b", "#423325", "#17110c", "#b0906c", "#f5ede2", "#cebeaa", "#f7f0e4", "#fcf8f1", "#efe3cf", "#fcd34d", "#fb923c", "#b45309", "#c2410c"),
+    ("forest", "Forest · 幽林清露", "#142019", "#1e3025", "#294032", "#0e1712", "#6e9b80", "#ebf4ee", "#b4ccb9", "#edf5ee", "#f7fbf7", "#deeadd", "#6ee7b7", "#bef264", "#15803d", "#65a30d"),
+    ("pearl", "Pearl · 虹彩珍珠", "#191d2a", "#252b3e", "#323b52", "#12151f", "#8491b5", "#f0f2fa", "#bfc6dc", "#f1f3fa", "#fafbfe", "#e4e8f6", "#93c5fd", "#f0abfc", "#3b5bdb", "#9c36b5"),
 ):
     PRESETS[name] = {**PRESETS["glacier"], "label": label, "background": dark_bg,
                      "surface": dark_surface, "surface_raised": dark_raised, "surface_sunken": dark_sunken,
+                     "ink": dark_ink, "muted": dark_muted,
                      "border": dark_border, "accent": accent, "secondary": secondary, "accent_hover": secondary}
-    LIGHT_PRESETS[name] = {**LIGHT_PRESETS["glacier"], "background": light_bg,
+    LIGHT_PRESETS[name] = {**LIGHT_PRESETS["glacier"], "background": light_bg, "surface": light_surface,
                            "surface_raised": light_raised, "surface_sunken": light_raised,
                            "accent": light_accent, "secondary": light_secondary, "accent_hover": light_secondary}
-# Sakura Nyan anime collections: near-opaque MD3 tonal surfaces, a candy
-# primary plus a complementary secondary, and ink that clears 7:1 everywhere.
+# Gemini Starlight & Sakura Nyan anime collections: high-clarity eye-care MD3
+# tonal surfaces (11.5-13.8:1 dark anti-halation contrast, warm paper light
+# surfaces without #ffffff glare) plus saturated dual-tone anime accents.
 ANIME_PRESETS = {
+    "gemini": (("Gemini Starlight", "星辉双子"),
+               {"background": "#1b1728", "surface": "#241f35", "surface_raised": "#312a47", "surface_sunken": "#13101d",
+                "ink": "#efeaf8", "muted": "#cfc5e4", "faint": "#5a5078", "accent": "#9da8ff", "secondary": "#ff8dc7",
+                "accent_hover": "#b8c0ff", "on_accent": "#16112b", "border": "#968ec9",
+                "border_subtle": "rgba(239, 234, 248, 0.10)", "success": "#7ce0be", "warning": "#ffd878",
+                "error": "#ff8aa0", "danger": "#ff8aa0"},
+               {"background": "#f4f1fa", "surface": "#fbf9fe", "surface_raised": "#e7e1f7", "surface_sunken": "#ece7f8",
+                "ink": "#1f1833", "muted": "#4b4166", "faint": "#cbc2e4", "accent": "#4d46b8", "secondary": "#b51f6e",
+                "accent_hover": "#3d379c", "on_accent": "#fbf9fe", "border": "#9990cc",
+                "border_subtle": "rgba(31, 24, 51, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
+                "error": "#b8143b", "danger": "#b8143b"}),
     "sakura": (("Sakura Nyan", "樱花喵"),
-               {"background": "#1a1118", "surface": "#251a23", "surface_raised": "#33232f", "surface_sunken": "#120b10",
-                "ink": "#fff4f8", "muted": "#ecd3df", "faint": "#5c4253", "accent": "#ff8fbf", "secondary": "#8fd3ff",
-                "accent_hover": "#ffb3d4", "on_accent": "#3a0a20", "border": "#c98aa8",
-                "border_subtle": "rgba(255, 244, 248, 0.10)", "success": "#7ee2b8", "warning": "#ffd479",
+               {"background": "#201720", "surface": "#2b202b", "surface_raised": "#3a2b3a", "surface_sunken": "#160f16",
+                "ink": "#f5e9ef", "muted": "#d9c2ce", "faint": "#634b5c", "accent": "#ff8fbf", "secondary": "#8fd3ff",
+                "accent_hover": "#ffb3d4", "on_accent": "#340a1e", "border": "#c98aa8",
+                "border_subtle": "rgba(245, 233, 239, 0.10)", "success": "#7ce0be", "warning": "#ffd479",
                 "error": "#ff8a9a", "danger": "#ff8a9a"},
-               {"background": "#fff5f8", "surface": "#ffffff", "surface_raised": "#ffe4ee", "surface_sunken": "#fbe9f0",
-                "ink": "#2a1020", "muted": "#553245", "faint": "#e8bfd0", "accent": "#c2185b", "secondary": "#0270b0",
-                "accent_hover": "#a3124c", "on_accent": "#ffffff", "border": "#d98fb0",
-                "border_subtle": "rgba(42, 16, 32, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
-                "error": "#c0123c", "danger": "#c0123c"}),
+               {"background": "#f8eef2", "surface": "#fff8fa", "surface_raised": "#f2dde6", "surface_sunken": "#f3e3ea",
+                "ink": "#2a1421", "muted": "#5a394b", "faint": "#e0bdd0", "accent": "#b81858", "secondary": "#026aa8",
+                "accent_hover": "#991248", "on_accent": "#fff8fa", "border": "#d48cad",
+                "border_subtle": "rgba(42, 20, 33, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
+                "error": "#b8143b", "danger": "#b8143b"}),
     "sora": (("Sora Nyan", "晴空喵"),
-             {"background": "#0e1522", "surface": "#162133", "surface_raised": "#1f2e46", "surface_sunken": "#090e17",
-              "ink": "#f2f8ff", "muted": "#cddcf0", "faint": "#3e5272", "accent": "#7cc8ff", "secondary": "#ffa6c9",
-              "accent_hover": "#a6dbff", "on_accent": "#06213a", "border": "#7f9fc9",
-              "border_subtle": "rgba(242, 248, 255, 0.10)", "success": "#7ee2b8", "warning": "#ffd479",
+             {"background": "#151d2b", "surface": "#1d283b", "surface_raised": "#27364f", "surface_sunken": "#0e141f",
+              "ink": "#ebf2fb", "muted": "#c4d5ea", "faint": "#475c7a", "accent": "#7cc8ff", "secondary": "#ffa6c9",
+              "accent_hover": "#a6dbff", "on_accent": "#071f36", "border": "#7f9fc9",
+              "border_subtle": "rgba(235, 242, 251, 0.10)", "success": "#7ce0be", "warning": "#ffd479",
               "error": "#ff8a9a", "danger": "#ff8a9a"},
-             {"background": "#f3f8ff", "surface": "#ffffff", "surface_raised": "#e2eefc", "surface_sunken": "#e8f1fc",
-              "ink": "#0b1a2e", "muted": "#2f4561", "faint": "#bcd0ea", "accent": "#0a62b0", "secondary": "#c2185b",
-              "accent_hover": "#08508f", "on_accent": "#ffffff", "border": "#8fb0d8",
-              "border_subtle": "rgba(11, 26, 46, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
-              "error": "#c0123c", "danger": "#c0123c"}),
+             {"background": "#eef4fb", "surface": "#f9fcff", "surface_raised": "#dfeafa", "surface_sunken": "#e5eef9",
+              "ink": "#101f33", "muted": "#364d68", "faint": "#b8cce5", "accent": "#0a5ea8", "secondary": "#b81858",
+              "accent_hover": "#084c8a", "on_accent": "#f9fcff", "border": "#8aadcf",
+              "border_subtle": "rgba(16, 31, 51, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
+              "error": "#b8143b", "danger": "#b8143b"}),
     "lavender": (("Lavender Nyan", "薰衣草喵"),
-                 {"background": "#16121f", "surface": "#211a2e", "surface_raised": "#2d2440", "surface_sunken": "#0e0b15",
-                  "ink": "#f8f3ff", "muted": "#dccff0", "faint": "#54467a", "accent": "#c7a6ff", "secondary": "#ffb0d0",
-                  "accent_hover": "#dac4ff", "on_accent": "#25104a", "border": "#a48bcc",
-                  "border_subtle": "rgba(248, 243, 255, 0.10)", "success": "#7ee2b8", "warning": "#ffd479",
+                 {"background": "#1b1726", "surface": "#262036", "surface_raised": "#332b48", "surface_sunken": "#120f1b",
+                  "ink": "#f1ebf9", "muted": "#d3c6e8", "faint": "#5a4d7d", "accent": "#c7a6ff", "secondary": "#ffb0d0",
+                  "accent_hover": "#dac4ff", "on_accent": "#231045", "border": "#a48bcc",
+                  "border_subtle": "rgba(241, 235, 249, 0.10)", "success": "#7ce0be", "warning": "#ffd479",
                   "error": "#ff8a9a", "danger": "#ff8a9a"},
-                 {"background": "#f8f4ff", "surface": "#ffffff", "surface_raised": "#ece3fd", "surface_sunken": "#f0e9fd",
-                  "ink": "#1f1433", "muted": "#47386a", "faint": "#d2c4ef", "accent": "#6a3fc4", "secondary": "#b8135a",
-                  "accent_hover": "#5730a6", "on_accent": "#ffffff", "border": "#ab96d8",
-                  "border_subtle": "rgba(31, 20, 51, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
-                  "error": "#c0123c", "danger": "#c0123c"}),
+                 {"background": "#f3effa", "surface": "#fbf9ff", "surface_raised": "#e7def9", "surface_sunken": "#ece4fa",
+                  "ink": "#211636", "muted": "#4b3d6b", "faint": "#cec1ea", "accent": "#643bba", "secondary": "#b21558",
+                  "accent_hover": "#512d9c", "on_accent": "#fbf9ff", "border": "#a692d4",
+                  "border_subtle": "rgba(33, 22, 54, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
+                  "error": "#b8143b", "danger": "#b8143b"}),
     "mint": (("Mint Nyan", "薄荷喵"),
-             {"background": "#0e1916", "surface": "#162520", "surface_raised": "#1f332c", "surface_sunken": "#09110e",
-              "ink": "#f0fff9", "muted": "#cbe9dd", "faint": "#3d6355", "accent": "#7fe8c4", "secondary": "#ffb38a",
-              "accent_hover": "#a6f0d6", "on_accent": "#06261b", "border": "#79b8a1",
-              "border_subtle": "rgba(240, 255, 249, 0.10)", "success": "#7ee2b8", "warning": "#ffd479",
+             {"background": "#14201c", "surface": "#1c2d27", "surface_raised": "#263c35", "surface_sunken": "#0e1714",
+              "ink": "#e9f5f0", "muted": "#c2dfd4", "faint": "#43695b", "accent": "#7fe8c4", "secondary": "#ffb38a",
+              "accent_hover": "#a6f0d6", "on_accent": "#07261c", "border": "#79b8a1",
+              "border_subtle": "rgba(233, 245, 240, 0.10)", "success": "#7ce0be", "warning": "#ffd479",
               "error": "#ff8a9a", "danger": "#ff8a9a"},
-             {"background": "#f2fbf7", "surface": "#ffffff", "surface_raised": "#dcf3ea", "surface_sunken": "#e6f6ef",
-              "ink": "#0b241b", "muted": "#2b4a3e", "faint": "#b9dfd0", "accent": "#0b7a57", "secondary": "#b2470e",
-              "accent_hover": "#086347", "on_accent": "#ffffff", "border": "#86c4ad",
-              "border_subtle": "rgba(11, 36, 27, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
-              "error": "#c0123c", "danger": "#c0123c"}),
+             {"background": "#edf6f2", "surface": "#f8fcfa", "surface_raised": "#daeee5", "surface_sunken": "#e2f2eb",
+              "ink": "#0e261d", "muted": "#315044", "faint": "#b5dbcc", "accent": "#0a7453", "secondary": "#ad450e",
+              "accent_hover": "#085e43", "on_accent": "#f8fcfa", "border": "#82bfa8",
+              "border_subtle": "rgba(14, 38, 29, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
+              "error": "#b8143b", "danger": "#b8143b"}),
 }
 for name, ((label_en, label_zh), dark_values, light_values) in ANIME_PRESETS.items():
     PRESETS[name] = {"label_en": label_en, "label_zh": label_zh, "label": label_en, **dark_values}
@@ -134,6 +148,18 @@ for name, ((label_en, label_zh), dark_values, light_values) in ANIME_PRESETS.ite
 PRESETS = {name: PRESETS[name] for name in (*ANIME_PRESETS, *(key for key in PRESETS if key not in ANIME_PRESETS))}
 LIGHT_PRESETS = {name: LIGHT_PRESETS[name] for name in PRESETS}
 
+EYE_CARE_MODES = {
+    "off": ("Standard vivid", "标准鲜明"),
+    "comfort": ("Eye-care comfort", "舒目护眼"),
+    "night_warm": ("Night warm paper", "夜间暖纸"),
+}
+MASCOT_SKINS = {
+    "gemini": ("Gemini Starlight", "经典全能 Gemini"),
+    "antigravity": ("Antigravity Balloon", "Antigravity 气球"),
+    "engineer": ("Cyber Engineer", "赛博工程师"),
+    "obsidian": ("Obsidian Prism", "黑曜棱镜"),
+}
+
 
 def preset_label(name: str) -> str:
     """Return the localized display label for a theme preset."""
@@ -141,8 +167,29 @@ def preset_label(name: str) -> str:
     if "label_en" in preset and "label_zh" in preset:
         return tr(preset["label_en"], preset["label_zh"])
     return tr_legacy(preset["label"])
-DEFAULTS = {"preset": "sakura", "color_mode": "dark", "reduced_motion": False, "font": "Adwaita Sans", "font_size": 13,
-            "mono_font": "JetBrainsMono Nerd Font", "mono_size": 11.5, "opacity": 0.94,
+
+
+def mascot_asset(skin: str | None = None, variant: str = "full", *, base: Path | None = None) -> Path:
+    """Resolve the active Gemini mascot artwork file for a chosen skin and pose."""
+    root = Path(base or BASE) / "assets/anime"
+    chosen = skin if skin in MASCOT_SKINS else load_settings().get("mascot", "gemini")
+    if variant == "full":
+        candidate = root / f"mascot-{chosen}.png"
+        return candidate if candidate.is_file() else root / "mascot-full.png"
+    if variant == "avatar":
+        candidate = root / f"mascot-avatar-{chosen}.png"
+        return candidate if candidate.is_file() else root / "mascot-avatar.png"
+    if variant == "avatar64":
+        if chosen == "gemini":
+            return root / "mascot-avatar-64.png"
+        candidate = root / f"mascot-avatar-{chosen}.png"
+        return candidate if candidate.is_file() else root / "mascot-avatar-64.png"
+    return root / f"mascot-{variant}.png"
+
+
+DEFAULTS = {"preset": "gemini", "color_mode": "dark", "eye_care": "comfort", "mascot": "gemini",
+            "reduced_motion": False, "font": "Adwaita Sans", "font_size": 14,
+            "mono_font": "JetBrainsMono Nerd Font", "mono_size": 11.5, "opacity": 0.95,
             "wallpaper_colors": False, "wallpaper_seed": None}
 # Text roles must clear this ratio on every generated surface (WCAG AAA).
 TEXT_CONTRAST = 7.0
@@ -177,6 +224,10 @@ def validate_settings(settings: dict) -> dict:
         raise ValueError("Unknown theme preset / 主题不存在")
     if values["color_mode"] not in ("dark", "light"):
         raise ValueError("Color mode must be dark or light / 请选择深色或浅色模式")
+    if values["eye_care"] not in EYE_CARE_MODES:
+        raise ValueError(tr("Invalid eye-care mode", "护眼模式选项无效"))
+    if values["mascot"] not in MASCOT_SKINS:
+        raise ValueError(tr("Invalid mascot skin", "看板娘形态选项无效"))
     if not isinstance(values["reduced_motion"], bool):
         raise ValueError("Reduced motion must be true or false / 减少动态效果选项须为布尔值")
     if not isinstance(values["wallpaper_colors"], bool):
@@ -247,6 +298,19 @@ def palette(settings: dict) -> dict:
                       secondary=tint(.80 if dark else .27, .85, 0),
                       accent_hover=tint(.82 if dark else .24),
                       border=tint(.88 if dark else .25, .4))
+    if values["eye_care"] == "night_warm":
+        dark = values["color_mode"] == "dark"
+        warm_bg = "#261d15" if dark else "#f3e8d6"
+        warm_ink = "#f2e5d2" if dark else "#2b1f14"
+        for key, weight in (("background", .26), ("surface", .24), ("surface_raised", .22), ("surface_sunken", .26)):
+            if key in result:
+                result[key] = _mix(result[key], warm_bg, weight)
+        result["ink"] = _mix(result["ink"], warm_ink, .22)
+        result["muted"] = _mix(result["muted"], warm_ink, .18)
+    elif values["eye_care"] == "off":
+        dark = values["color_mode"] == "dark"
+        result["background"] = _mix(result["background"], "#08080c" if dark else "#ffffff", .22)
+        result["ink"] = _mix(result["ink"], "#ffffff" if dark else "#0a0a10", .25)
     return result
 
 
@@ -262,9 +326,9 @@ def _alpha(color, opacity):
 # live desktop or hardcodes one collection.
 MD3_SHAPE = {"window": 28, "card": 24, "tile": 20, "pill": 16,
              "button": 14, "badge": 999}
-MD3_TYPE = {"display": 2.25, "headline": 1.50, "title_large": 1.25,
-            "title_medium": 1.0, "body": 0.875, "caption": 0.75,
-            "overline": 0.6875}
+MD3_TYPE = {"display": 2.15, "headline": 1.45, "title_large": 1.22,
+            "title_medium": 1.0, "body": 0.94, "caption": 0.84,
+            "overline": 0.78}
 
 
 def _mix(first, second, weight):
@@ -464,7 +528,8 @@ def _role_definitions(roles: dict) -> str:
 
 
 def _font_sizes(size: float) -> dict:
-    return {name: max(8, round(size * factor, 2)) for name, factor in MD3_TYPE.items()}
+    floors = {"body": 12.0, "caption": 11.5, "overline": 11.0} if size >= 12 else {}
+    return {name: max(floors.get(name, 8.0), round(size * factor, 2)) for name, factor in MD3_TYPE.items()}
 
 
 def _scope_panel_css(css: str) -> str:
@@ -719,8 +784,8 @@ button.close-button:checked, button.close-button:active {{ border-radius: {MD3_S
 scale trough {{ min-height: 7px; border: 1px solid {rgba(r['on_surface'], .14)}; border-radius: {MD3_SHAPE['badge']}px; background-color: {rgba(r['surface_sunken'], .92)}; background-image: none; }}
 scale highlight {{ min-height: 7px; border: none; border-radius: {MD3_SHAPE['badge']}px; background-color: {r['primary']}; background-image: {grad_bar}; }}
 scale slider {{ min-width: 18px; min-height: 18px; margin: -6px; border: 2px solid {r['primary']};
-    border-radius: {MD3_SHAPE['badge']}px; background-color: #ffffff; background-image: none;
-    box-shadow: 0 2px 8px {rgba('#000000', .36)}, 0 0 0 2px {rgba(r['primary'], .24)}; }}
+    border-radius: {MD3_SHAPE['badge']}px; background-color: {r['on_surface'] if dark_mode else r['surface']}; background-image: none;
+    box-shadow: 0 2px 6px {rgba('#000000', .32)}, 0 0 0 2px {rgba(r['primary'], .24)}; }}
 scale:focus trough {{ outline: none; box-shadow: 0 0 0 2px {rgba(r['primary'], .55)}; }}
 scale:disabled {{ opacity: .38; }}
 progressbar trough, .metric-progress trough {{ min-height: 7px; border: 1px solid {rgba(r['on_surface'], .14)}; border-radius: {MD3_SHAPE['badge']}px;
@@ -906,7 +971,7 @@ button.suggested-action {{ background-color: {r['primary']}; background-image: {
 .close-button:hover {{ background-color: {rgba(r['error'], .22)}; color: {r['error']}; }}
 switch {{ background-color: {rgba(r['surface_sunken'], .92)}; border: 1px solid {rgba(r['on_surface'], .16)}; border-radius: {MD3_SHAPE['badge']}px; }}
 switch:checked {{ background-color: {r['primary']}; background-image: {grad_bar}; border-color: {r['primary']}; }}
-switch slider {{ background-color: #ffffff; border-radius: {MD3_SHAPE['badge']}px; box-shadow: 0 1px 4px rgba(0, 0, 0, .35); }}
+switch slider {{ background-color: {r['on_surface'] if dark_mode else r['surface']}; border-radius: {MD3_SHAPE['badge']}px; box-shadow: 0 1px 4px rgba(0, 0, 0, .30); }}
 scrollbar slider {{ background-color: {rgba(r['on_surface'], .26)}; border-radius: {MD3_SHAPE['badge']}px; }}
 """
     return swaync
@@ -941,7 +1006,7 @@ layer-rule {{
     background-effect {{ noise {0 if opacity < .40 else .02}; }}
 }}
 layer-rule {{
-    match namespace="^(launcher|selandia-.*)$"
+    match namespace="^(launcher|anyrun|selandia-.*)$"
     shadow {{ on; softness 42; spread 3; offset x=0 y=12; color "{bg}77"; }}
 }}
 layer-rule {{
@@ -980,8 +1045,8 @@ def _render_fuzzel(*, accent, base, bg, font, opacity, r, size) -> str:
 def _render_lock(*, accent, base, bg, border, danger, dark_mode, font, ink, opacity, secondary, size, surface) -> str:
     """Render ``swaylock.conf``."""
     lock = _replace_ini((base / "swaylock/config").read_text(), "", {"color": bg[1:],
-        "image": "~/.config/niri/assets/anime/lock-bg.png",
-        "scaling": "fill" if dark_mode else "solid_color",
+        "image": "~/.config/niri/assets/anime/lock-bg.png" if dark_mode else "~/.config/niri/assets/anime/lock-bg-light.png",
+        "scaling": "fill",
         "font": font,
         "font-size": font_scale.whole_points(font_scale.lock_pixels(size)), "inside-color": _alpha(bg, max(.90, opacity)), "ring-color": border[1:],
         "text-color": ink[1:], "key-hl-color": accent[1:], "bs-hl-color": secondary[1:],
@@ -996,26 +1061,15 @@ def _render_eww(*, bg, css_header, dark_mode, family, grad_accent, grad_bar, mon
     # Rust frontends consume the same generated roles as GTK; only their
     # selector vocabulary differs.  Bar geometry and timing stay owned by
     # bar_backend.py, so padding, heights and animation hooks stay synchronized.
+    # Zero infinite idle @keyframes: prevents 160 Hz CPU Cairo repaints on idle.
+    icon_px = max(11.0, round(size * .80, 2))
+    val_px = max(12.0, round(size * .90, 2))
+    date_px = max(11.0, round(size * .82, 2))
     eww = css_header + _role_definitions(r) + f"""@define-color bg {bg};
 @define-color surface {surface};
 @define-color accent {r['primary']};
 @define-color secondary {r['secondary']};
 @define-color on_accent {r['on_primary']};
-@keyframes nyx-sparkle {{
-    0% {{ opacity: 0.72; }}
-    50% {{ opacity: 1.00; }}
-    100% {{ opacity: 0.72; }}
-}}
-@keyframes nyx-ws-glow {{
-    0% {{ box-shadow: inset 0 1px {rgba('#ffffff', .32)}; }}
-    50% {{ box-shadow: inset 0 1px {rgba('#ffffff', .58)}, inset 0 0 8px {rgba(r['secondary'], .45)}; }}
-    100% {{ box-shadow: inset 0 1px {rgba('#ffffff', .32)}; }}
-}}
-@keyframes nyx-island-pulse {{
-    0% {{ border-color: {r['primary']}; }}
-    50% {{ border-color: {r['secondary']}; }}
-    100% {{ border-color: {r['primary']}; }}
-}}
 * {{ font-family: {family}; font-size: {size:g}px; color: {r['on_surface']}; }}
 window.background, window, .background {{ background-color: rgba(0, 0, 0, 0); background-image: none; border: none; box-shadow: none; }}
 .bar-host {{ background-color: rgba(0, 0, 0, 0); background-image: none; border: none; box-shadow: none; }}
@@ -1024,7 +1078,7 @@ window.background, window, .background {{ background-color: rgba(0, 0, 0, 0); ba
     border: 1px solid {rgba(r['primary'], rim_alpha)}; border-radius: 22px; padding: 2px 10px;
     box-shadow: inset 0 1px {top_edge}; }}
 button {{ background: transparent; border: none; box-shadow: none; }}
-.pill {{ color: {r['on_surface']}; background: transparent; border: none; border-radius: {MD3_SHAPE['pill']}px; padding: 3px 8px; transition: background-color 140ms ease-out, color 140ms ease-out, box-shadow 140ms ease-out; }}
+.pill {{ color: {r['on_surface']}; background: transparent; border: none; border-radius: {MD3_SHAPE['pill']}px; padding: 3px 8px; transition: background-color 140ms ease-out, color 140ms ease-out; }}
 .segment .pill * {{ background-color: transparent; background-image: none; box-shadow: none; }}
 .segment .pill, .segment .workspace {{ background: transparent; border: none; }}
 .segment .pill.launcher-btn {{ color: {r['primary']}; background: {rgba(r['primary'], .16)}; border: 1px solid {rgba(r['primary'], .42)}; padding: 2px 8px; font-weight: 700; }}
@@ -1033,13 +1087,13 @@ button {{ background: transparent; border: none; box-shadow: none; }}
 .segment .pill.control-btn {{ color: {r['primary']}; }}
 .segment .pill.audio-btn.muted {{ color: {r['error']}; background: {rgba(r['error'], .16)}; }}
 .segment .pill.resources, .segment .pill.current-app {{
-    background-color: {rgba(r['surface_container_low'], .88)};
+    background-color: {rgba(r['surface_container_low'], .90)};
     background-image: none;
     border: 1px solid {rgba(r['on_surface'], .12)};
     border-radius: 999px; padding: 2px 12px; margin: 0 2px; }}
 .segment .pill.current-app {{ border-color: {rgba(r['primary'], .30)}; padding: 0; }}
 .segment .pill.current-app > box {{ padding: 2px 12px; }}
-.app-dot {{ color: {r['primary']}; font-size: {round(size * .72, 2):g}px; margin-right: 4px; }}
+.app-dot {{ color: {r['primary']}; font-size: {max(10.0, round(size * .76, 2)):g}px; margin-right: 4px; }}
 .app-label {{ font-weight: 700; color: {r['on_surface']}; }}
 .segment .pill.resources:hover, .segment .pill.current-app:hover {{
     color: {r['on_primary_container']}; background: {r['primary_container']}; border-color: {rgba(r['primary'], .55)}; }}
@@ -1050,7 +1104,7 @@ button {{ background: transparent; border: none; box-shadow: none; }}
 .workspace:hover, .pill:hover {{ color: {r['on_primary_container']}; background: {r['primary_container']}; border-radius: 999px; }}
 .workspace.active, .workspace:active {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent};
     border-radius: 999px; font-weight: 700; min-width: 34px; padding: 3px 12px;
-    box-shadow: inset 0 1px {rgba('#ffffff', .35)}; animation: nyx-ws-glow 2.8s ease-in-out infinite; }}
+    box-shadow: inset 0 1px {rgba('#ffffff', .35)}; }}
 .pill:active, .pill:checked {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent}; }}
 .workspace.active label, .workspace:active label, .pill:active label, .pill:checked label {{ color: {r['on_primary']}; }}
 .compact .pill, .compact .workspace {{ padding: 2px 5px; }}
@@ -1061,29 +1115,28 @@ button {{ background: transparent; border: none; box-shadow: none; }}
 .separator {{ background-color: {rgba(r['primary'], .28)}; min-width: 1px; margin: 7px 4px; }}
 .resource-row {{ background: transparent; }}
 .resource {{ padding: 0 3px; }}
-.resource-icon {{ color: {r['primary']}; font-size: {round(size * .76, 2):g}px; font-weight: 700; margin-right: 3px; }}
+.resource-icon {{ color: {r['primary']}; font-size: {icon_px:g}px; font-weight: 700; margin-right: 3px; }}
 .resource.cpu .resource-icon {{ color: {r['primary']}; }}
 .resource.ram .resource-icon {{ color: {r['secondary']}; }}
 .resource.temp .resource-icon {{ color: {p['warning']}; }}
 .pill.network-btn .resource-icon {{ color: {p['success']}; }}
-.resource-value {{ color: {r['on_surface']}; font-family: {mono_family}; font-size: {round(size * .88, 2):g}px; font-weight: 700; font-feature-settings: "tnum 1, cv01 1"; }}
-.clock-time {{ color: {r['on_surface']}; font-family: {mono_family}; font-size: {round(size * 1.06, 2):g}px; font-weight: 700; letter-spacing: -0.3px; font-feature-settings: "tnum 1, cv01 1"; }}
-.clock-date {{ color: {r['primary']}; font-size: {round(size * .78, 2):g}px; font-weight: 700; letter-spacing: .04em; margin-top: 0; }}
+.resource-value {{ color: {r['on_surface']}; font-family: {mono_family}; font-size: {val_px:g}px; font-weight: 700; font-feature-settings: "tnum 1, cv01 1"; }}
+.clock-time {{ color: {r['on_surface']}; font-family: {mono_family}; font-size: {round(size * 1.04, 2):g}px; font-weight: 700; letter-spacing: -0.3px; font-feature-settings: "tnum 1, cv01 1"; }}
+.clock-date {{ color: {r['primary']}; font-size: {date_px:g}px; font-weight: 700; letter-spacing: .04em; margin-top: 0; }}
 .island {{ background-color: {rgba(r['surface_container_highest'], opacity)};
     background-image: url("../assets/anime/sakura.svg");
     background-repeat: no-repeat; background-position: 95% center; background-size: 18px 18px;
     border: 1px solid {rgba(r['primary'], .44 if dark_mode else .36)}; border-radius: 22px; padding: 8px 12px;
-    box-shadow: inset 0 1px {top_edge}; }}
+    box-shadow: inset 0 1px {top_edge}; transition: border-color 160ms ease-out; }}
 .island.playing, .island.expanded {{ border-color: {r['primary']};
     box-shadow: inset 0 1px {top_edge}, inset 0 0 0 1px {rgba(r['primary'], .36)}; }}
-.island.playing {{ animation: nyx-island-pulse 2.6s ease-in-out infinite; }}
 .island-idle-row {{ background: transparent; padding-right: 16px; }}
-.island-idle-icon {{ color: {r['primary']}; font-size: {round(size * 1.05, 2):g}px; font-weight: 700; animation: nyx-sparkle 2.2s ease-in-out infinite; }}
+.island-idle-icon {{ color: {r['primary']}; font-size: {round(size * 1.05, 2):g}px; font-weight: 700; }}
 .island.playing .island-idle-icon {{ color: {r['secondary']}; }}
 .island-clock {{ padding: 2px 10px; border-radius: 999px; background-color: transparent; border: 1px solid transparent; }}
 .island-clock:hover {{ background-color: {r['primary_container']}; border-color: {r['primary']}; }}
 .island-title {{ color: {r['on_surface']}; font-weight: 700; }}
-.island-summary {{ color: {r['on_surface_variant']}; font-size: {round(size * .90, 2):g}px; }}
+.island-summary {{ color: {r['on_surface_variant']}; font-size: {val_px:g}px; }}
 .island-cover {{ border-radius: 12px; border: 1px solid {rgba(r['primary'], .36)}; padding: 2px; background: {rgba(r['surface_sunken'], .75)}; }}
 .island button {{ color: {r['on_surface']}; padding: 4px 8px; border-radius: 999px; font-weight: 600; }}
 .island button:hover {{ color: {r['on_primary_container']}; background: {r['primary_container']}; border-radius: 999px; }}
@@ -1099,7 +1152,7 @@ button {{ background: transparent; border: none; box-shadow: none; }}
 label {{ {outline} }}
 progressbar trough, scale trough {{ background: {rgba(r['on_surface'], .18)}; border-radius: 999px; min-height: 8px; margin: 4px 0; }}
 progressbar progress, scale highlight {{ background: {r['primary']}; background-image: {grad_bar}; border-radius: 999px; min-height: 8px; }}
-scale slider {{ background: #ffffff; border: 2px solid {r['primary']}; border-radius: 999px; min-width: 18px; min-height: 18px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45); margin: -5px 0; }}
+scale slider {{ background: {r['on_surface'] if dark_mode else r['surface']}; border: 2px solid {r['primary']}; border-radius: 999px; min-width: 18px; min-height: 18px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.38); margin: -5px 0; }}
 button:focus, .pill:focus, .workspace:focus {{ outline: none; box-shadow: inset 0 0 0 2px {r['primary']}; }}
 .reduce-motion, .reduce-motion * {{ transition: none; animation: none; }}
 """
@@ -1109,8 +1162,9 @@ button:focus, .pill:focus, .workspace:focus {{ outline: none; box-shadow: inset 
 def _render_anyrun(*, bg, css_header, ctrl_alpha, dark_mode, family, opacity, outline, r, rgba, rim_alpha,
                    size, top_edge) -> str:
     """Render ``anyrun.css``."""
+    launcher_px = font_scale.anyrun_pixels(size)
     anyrun = css_header + _role_definitions(r) + f"""@define-color bg {bg};
-* {{ font-family: {family}; font-size: {size:g}px; color: {r['on_surface']}; }}
+* {{ font-family: {family}; font-size: {launcher_px:g}px; color: {r['on_surface']}; }}
 window {{ background: transparent; }}
 box.main {{ background-color: {rgba(r['surface_container_high'], opacity)};
     background-image: url("../assets/anime/star-sparkle.svg");

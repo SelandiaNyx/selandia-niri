@@ -1,10 +1,14 @@
-"""Searchable categories for the Niri desktop settings window."""
+"""Searchable 6-group MD3 navigation drawer for Control Center 2.0."""
+from __future__ import annotations
+
 import gi
 gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "3.0")
 from gi.repository import Gdk, GLib, Gtk, Pango
+
 from control_widgets import icon, pack, style
 from i18n import tr
-from navigation_catalog import GROUP_LABELS, PAGES, PAGE_KEYS  # re-exported API
+from navigation_catalog import GROUP_LABELS, PAGES, PAGE_KEYS, SETTING_INDEX  # re-exported API
 
 
 class SettingsNavigation(Gtk.Box):
@@ -12,17 +16,21 @@ class SettingsNavigation(Gtk.Box):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self.panel = panel
         self.rows = {}
+        self.group_first_keys = []
         self.syncing = False
         self._reveal_source = None
         self._reveal_pending = False
         self._disposed = False
+        self._mascot_provider = Gtk.CssProvider()
         style(self, "settings-sidebar")
-        # MD3 Navigation Drawer width: generous room for English & Chinese labels.
-        self.set_size_request(224, -1)
+        self.set_size_request(232, -1)
+
+        search_row = pack(self, Gtk.Box(spacing=6))
         self.search = Gtk.SearchEntry()
-        self.search.set_placeholder_text(tr("Search settings", "搜索设置"))
-        self.search.set_tooltip_text(tr("Search names and functions · Ctrl+F", "按名称或功能搜索 · Ctrl+F"))
-        pack(self, self.search)
+        self.search.set_placeholder_text(tr("Search settings…", "搜索设置或功能…"))
+        self.search.set_tooltip_text(tr("Filter pages & settings · Ctrl+F / Ctrl+K", "过滤分类与设置项 · Ctrl+F / Ctrl+K"))
+        pack(search_row, self.search, True)
+
         self.list = Gtk.ListBox()
         self.list.set_selection_mode(Gtk.SelectionMode.SINGLE)
         style(self.list, "settings-navigation")
@@ -33,9 +41,16 @@ class SettingsNavigation(Gtk.Box):
         scroll.add(self.list)
         self.scroll = scroll
         pack(self, scroll, True)
+
+        # Enrich each page's search index with all setting-level keywords targeting it.
+        extra_keywords: dict[str, list[str]] = {}
+        for en, zh, page_key, subtab, kw in SETTING_INDEX:
+            extra_keywords.setdefault(page_key, []).append(" ".join((en, zh, str(subtab or ""), kw)))
+
         previous = None
         for key, english, chinese, glyph, group, keywords in PAGES:
             if group != previous:
+                self.group_first_keys.append(key)
                 heading = Gtk.ListBoxRow()
                 heading.is_header = True
                 style(heading, "nav-group-row")
@@ -49,7 +64,7 @@ class SettingsNavigation(Gtk.Box):
                 previous = group
             row = Gtk.ListBoxRow()
             row.key = key
-            row.search_text = " ".join((english, chinese, keywords)).casefold()
+            row.search_text = " ".join((key, english, chinese, keywords, *extra_keywords.get(key, ()))).casefold()
             row.group = group
             content = Gtk.Box(spacing=10)
             pack(content, icon(glyph, 18))
@@ -57,7 +72,6 @@ class SettingsNavigation(Gtk.Box):
             label.set_ellipsize(Pango.EllipsizeMode.NONE)
             label.set_line_wrap(True)
             label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-            # Keep requested width comfortably inside the 224 px navigation drawer.
             label.set_max_width_chars(18)
             pack(content, label, True)
             row.add(content)
@@ -65,22 +79,46 @@ class SettingsNavigation(Gtk.Box):
             self.rows[key] = row
             self.list.add(row)
             previous = group
+
         self.empty = Gtk.Label(label=tr("No matching settings", "没有匹配的设置"))
         self.empty.set_line_wrap(True)
         self.empty.set_no_show_all(True)
         pack(self, self.empty)
+
         self.mascot_box = Gtk.Box()
         style(self.mascot_box, "nav-mascot")
         self.mascot_box.set_can_focus(False)
+        self.mascot_box.get_style_context().add_provider(self._mascot_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
+        self.refresh_mascot()
         pack(self, self.mascot_box)
+
         self.list.set_filter_func(self.matches)
         self.search.connect("search-changed", self.filter)
         self.search.connect("activate", self.search_activate)
         self.search.connect("stop-search", lambda _: self.search.set_text(""))
         self.search.connect("key-press-event", self._on_search_key)
         self.list.connect("row-selected", self.selected)
+        self.list.connect("key-press-event", self._on_list_key)
         self.list.connect("size-allocate", self._on_list_allocate)
         self.connect("destroy", self.dispose)
+
+    def refresh_mascot(self, skin: str | None = None):
+        """Update sidebar Gemini mascot artwork to match the user's chosen skin."""
+        try:
+            from appearance import mascot_asset
+            path = mascot_asset(skin, "full")
+            if path.is_file():
+                uri = path.as_uri()
+                sparkle = (path.parent / "star-sparkle.svg").as_uri()
+                css = (
+                    f".nav-mascot {{ background-image: url('{uri}'), url('{sparkle}'); "
+                    f"background-repeat: no-repeat, no-repeat; "
+                    f"background-position: center bottom, 92% 10%; "
+                    f"background-size: contain, 20px 20px; }}"
+                )
+                self._mascot_provider.load_from_data(css.encode())
+        except Exception:
+            pass
 
     def _on_search_key(self, _entry, event):
         if event.keyval in (Gdk.KEY_Down, Gdk.KEY_KP_Down):
@@ -90,6 +128,15 @@ class SettingsNavigation(Gtk.Box):
             if target is not None:
                 self.panel.select_control_tab(target.key, focus=True)
             return True
+        return False
+
+    def _on_list_key(self, _list, event):
+        if event.keyval in (Gdk.KEY_Right, Gdk.KEY_Return, Gdk.KEY_KP_Enter):
+            stack = getattr(self.panel, "control_stack", None)
+            visible = stack.get_visible_child() if stack is not None else None
+            if visible is not None:
+                visible.child_focus(Gtk.DirectionType.TAB_FORWARD)
+                return True
         return False
 
     def matches(self, row):
@@ -125,6 +172,11 @@ class SettingsNavigation(Gtk.Box):
         self.schedule_reveal()
         if focus:
             row.grab_focus()
+        else:
+            toplevel = self.get_toplevel()
+            current_focus = toplevel.get_focus() if isinstance(toplevel, Gtk.Window) else None
+            if isinstance(current_focus, Gtk.ListBoxRow) and current_focus.get_parent() is self.list and current_focus is not row:
+                row.grab_focus()
 
     def _on_list_allocate(self, *_):
         if self._reveal_pending:

@@ -77,13 +77,13 @@ class LanguageSettings(Gtk.Box):
         button.connect("clicked", lambda _: callback())
         return button
 
-    def _work(self, task, complete):
+    def _work(self, task, complete, *, commit=True):
         if self.busy:
             return
         self.busy = True
         self.form.set_sensitive(False)
         self.refresh_button.set_sensitive(False)
-        self.notice.set_text(tr("Applying…", "正在应用…"))
+        self.notice.set_text(tr("Applying…", "正在应用…") if commit else tr("Loading…", "正在读取…"))
 
         def done(result):
             self.busy = False
@@ -97,7 +97,7 @@ class LanguageSettings(Gtk.Box):
             self.refresh_button.set_sensitive(True)
             self.notice.set_text(tr("Could not apply language settings: ", "无法应用语言设置：") + str(error))
 
-        self.panel.work(task, done, failed, commit=True)
+        self.panel.work(task, done, failed, commit=commit)
 
     def refresh(self):
         def done(state):
@@ -129,7 +129,7 @@ class LanguageSettings(Gtk.Box):
             self.locale_note.set_text((tr("Not generated: ", "尚未生成：") + ", ".join(missing)) if missing else
                                       tr("Chinese and English UTF-8 locales are available.", "中文和英文 UTF-8 语言区域均已就绪。"))
             self.notice.set_text(tr("Choose the scope, then apply your changes.", "选择更改范围后，点击对应的应用按钮。"))
-        self._work(backend.read_state, done)
+        self._work(backend.read_state, done, commit=False)
 
     def apply_ui(self):
         code = self.ui.get_active_id()

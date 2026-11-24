@@ -19,8 +19,9 @@ from page_host import PageEntry, PageHost, PageMap, PageSpec
 from background_tasks import READ_POOL
 from surface_registry import CONTROL_MODES, DRAWER_SIDES, SURFACE_COPY, SURFACE_KEYS
 from i18n import tr, tr_legacy
-from navigation_catalog import PAGE_KEYS, PAGES
+from navigation_catalog import PAGE_KEYS, PAGES, resolve_route
 from settings_navigation import SettingsNavigation
+from command_palette import CommandPalette
 from control_widgets import prepare_icon_theme
 from scroll_guard import protect as protect_scroll, handle as handle_scroll
 from panel_support import (
@@ -99,13 +100,19 @@ class Tasks:
 
 class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gtk.ApplicationWindow):
     def __init__(self, app, mode):
-        requested_tab = mode if mode in PAGE_KEYS else "quick"
+        requested_tab, requested_subtab = resolve_route(mode) if mode in CONTROL_MODES and mode != "control" else ("quick", None)
         mode = "control" if mode in CONTROL_MODES else mode
         super().__init__(application=app, title=f"Selandia · {mode}")
         self.mode = mode
         self.alive = True
         self.closing = False
         self._close_callback = None
+        self._nav_history = []
+        self._nav_index = -1
+        self._shortcut_timer = None
+        self._shortcut_category = "all"
+        self.command_palette = None
+        self.header_avatar_image = None
         self.drawer_side = DRAWER_SIDES.get(mode)
         app.tasks.resume()
         from appearance import load_settings
@@ -222,15 +229,17 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         header = pack(self.surface, box(False, 14, "panel-header"))
         if mode == "control":
             header.get_style_context().add_class("control-header")
-            avatar_path = BASE / "assets/anime/mascot-avatar.png"
+            from appearance import mascot_asset
+            avatar_path = mascot_asset(preferences.get("mascot", "gemini"), "avatar")
             if avatar_path.is_file():
                 try:
                     gi.require_version("GdkPixbuf", "2.0")
                     from gi.repository import GdkPixbuf
-                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(str(avatar_path), 54, 54, True)
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(str(avatar_path), 52, 52, True)
                     avatar_frame = box(spacing=0, css="mascot-avatar-frame")
                     avatar_frame.set_valign(Gtk.Align.CENTER)
-                    pack(avatar_frame, Gtk.Image.new_from_pixbuf(pixbuf))
+                    self.header_avatar_image = Gtk.Image.new_from_pixbuf(pixbuf)
+                    pack(avatar_frame, self.header_avatar_image)
                     pack(header, avatar_frame)
                 except (GLib.Error, OSError, ValueError):
                     pass
@@ -245,20 +254,30 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
                 greeting = tr("Good evening, Master", "晚上好，主人")
             else:
                 greeting = tr("Late night, Master", "夜深了，主人")
-            pack(titles, label(tr("Settings", "设置"), "control-heading"))
+            pack(titles, label(tr("Control Center", "控制中心"), "control-heading"))
             pack(titles, label(f"{greeting} · {platform.node()} · Niri", "control-caption", localize=False))
         else:
-            pack(titles, label("S E L A N D I A  ✦  N Y X", "eyebrow", localize=False))
+            pack(titles, label("G E M I N I  ✦  N I R I", "eyebrow", localize=False))
             pack(titles, label(title, "panel-title"))
             pack(titles, label(subtitle, "subtitle"))
         if mode == "control":
-            badge = pack(header, label(tr("●  LIVE", "●  实时"), "live-badge"))
-            badge.set_valign(Gtk.Align.START)
+            nav_back = pack(header, button("‹", self.nav_back, "close-button", tr("Back (Alt+Left)", "后退（Alt+左）")))
+            nav_back.set_valign(Gtk.Align.START)
+            self.nav_back_btn = nav_back
+            nav_fwd = pack(header, button("›", self.nav_forward, "close-button", tr("Forward (Alt+Right)", "前进（Alt+右）")))
+            nav_fwd.set_valign(Gtk.Align.START)
+            self.nav_fwd_btn = nav_fwd
+            palette_btn = pack(header, button("⌘ Ctrl+K", self.open_command_palette, "small-button",
+                                              tr("Quick search any setting (Ctrl+K)", "全局快搜任意设置或动作（Ctrl+K）")))
+            palette_btn.set_valign(Gtk.Align.START)
+            self.live_badge = pack(header, label(tr("●  LIVE", "●  实时"), "live-badge"))
+            self.live_badge.set_valign(Gtk.Align.START)
+            self.live_badge.set_no_show_all(True)
             help_button = pack(header, button("?", lambda: self.show_keyboard_help(help_button),
-                                              "close-button", "Keyboard help · 键盘操作  F1"))
+                                              "close-button", tr("Keyboard help (F1)", "键盘操作帮助（F1）")))
             self.help_button = help_button
             help_button.set_valign(Gtk.Align.START)
-        close = pack(header, button("×", self.request_close, "close-button", "Close · 关闭  Esc"))
+        close = pack(header, button("×", self.request_close, "close-button", tr("Close (Esc)", "关闭（Esc）")))
         close.set_valign(Gtk.Align.START)
         self.content = pack(self.surface, box(spacing=12, css="panel-content"), True)
         self.status = label("", "status", wrap=True)
@@ -269,9 +288,11 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         pack(self.surface, self.status)
         if mode == "control":
             self.build_control()
+            self.command_palette = CommandPalette(self)
+            self.shell.add_overlay(self.command_palette)
             self.protect_scroll_controls(self.content)
             self.control_stack.show_all()
-            self.select_control_tab(requested_tab)
+            self.select_control_tab(requested_tab, subtab=requested_subtab)
         elif mode == "shortcuts":
             self.build_shortcuts()
         elif mode == "calendar":
@@ -280,7 +301,8 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
             self.build_ai()
 
     def build_calendar(self):
-        from calendar_widget import LocalizedCalendar
+        from calendar_widget import LocalizedCalendar, date_caption
+        from i18n import get_language
         self.content.get_style_context().add_class("calendar-page")
         if self.panel_width < 360:
             self.content.get_style_context().add_class("calendar-narrow")
@@ -292,21 +314,26 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         self.calendar = LocalizedCalendar()
         self.calendar.set_hexpand(True)
         pack(calendar_card, self.calendar)
-        # Keep Today/Copy reachable while only the calendar grid scrolls in a
-        # short viewport or at a large font size.
-        footer = pack(self.content, box(spacing=12, css="card"))
-        footer.set_margin_top(12)
+        # Keep Today/Copy snugly beneath the calendar card inside the scroll body
+        # so on tall 4K screens they are never stranded 1,400 px away at the bottom.
+        footer = pack(body, box(spacing=10, css="card"))
         footer.get_style_context().add_class("calendar-footer")
-        self.calendar_date = pack(footer, label("", "calendar-date"))
+        date_row = pack(footer, box(False, 10))
+        self.calendar_date = pack(date_row, label("", "calendar-date"))
         self.calendar_date.set_ellipsize(Pango.EllipsizeMode.END)
-        self.calendar_date.set_max_width_chars(10)
+        self.calendar_date.set_max_width_chars(12)
+        self.calendar_lunar = pack(date_row, label("", "lunar-label", localize=False), True)
+        self.calendar_lunar.set_xalign(1.0)
+        self.calendar_lunar.set_ellipsize(Pango.EllipsizeMode.END)
 
         def get_formatted_date():
             year, month, day = self.calendar.get_date()
             return f"{year:04d}-{month+1:02d}-{day:02d}"
 
         def selected(*_):
-            self.calendar_date.set_text(get_formatted_date())
+            year, month, day = self.calendar.get_date()
+            self.calendar_date.set_text(f"{year:04d}-{month+1:02d}-{day:02d}")
+            self.calendar_lunar.set_text(date_caption(year, month + 1, day, get_language() == "zh_CN"))
 
         def today():
             date = datetime.date.today()
@@ -315,10 +342,20 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
 
         def copy_date():
             date_str = get_formatted_date()
-            clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-            clipboard.set_text(date_str, -1)
-            clipboard.store()
-            self.feedback(tr(f"Copied {date_str} to clipboard", f"已复制 {date_str} 到剪贴板"))
+            def write_clip():
+                try:
+                    subprocess.run(["wl-copy"], input=date_str, text=True,
+                                   capture_output=True, check=True, timeout=4)
+                    return True
+                except (OSError, subprocess.SubprocessError):
+                    return False
+            def copied(ok):
+                if not ok:
+                    clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+                    clipboard.set_text(date_str, -1)
+                    clipboard.store()
+                self.feedback(tr(f"Copied {date_str} to clipboard", f"已复制 {date_str} 到剪贴板"))
+            self.work(write_clip, copied, commit=True)
 
         self.calendar.connect("day-selected", selected)
         actions = pack(footer, box(self.panel_width < 360, 8, "calendar-actions"), True)
@@ -438,16 +475,70 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         popover.popup()
         content.child_focus(Gtk.DirectionType.TAB_FORWARD)
 
+    def refresh_header_avatar(self, skin: str | None = None):
+        if self.header_avatar_image is None:
+            return
+        try:
+            from appearance import mascot_asset
+            gi.require_version("GdkPixbuf", "2.0")
+            from gi.repository import GdkPixbuf
+            path = mascot_asset(skin, "avatar")
+            if path.is_file():
+                pix = GdkPixbuf.Pixbuf.new_from_file_at_scale(str(path), 52, 52, True)
+                self.header_avatar_image.set_from_pixbuf(pix)
+        except Exception:
+            pass
+
+    def open_command_palette(self):
+        if self.command_palette is not None:
+            self.command_palette.open()
+
+    def nav_back(self):
+        if self._nav_index > 0:
+            self._nav_index -= 1
+            tab, subtab = self._nav_history[self._nav_index]
+            self.select_control_tab(tab, subtab=subtab, _record=False)
+
+    def nav_forward(self):
+        if 0 <= self._nav_index < len(self._nav_history) - 1:
+            self._nav_index += 1
+            tab, subtab = self._nav_history[self._nav_index]
+            self.select_control_tab(tab, subtab=subtab, _record=False)
+
+    def _update_nav_buttons(self):
+        if hasattr(self, "nav_back_btn"):
+            self.nav_back_btn.set_sensitive(self._nav_index > 0)
+        if hasattr(self, "nav_fwd_btn"):
+            self.nav_fwd_btn.set_sensitive(0 <= self._nav_index < len(self._nav_history) - 1)
+
+    def open_unit_logs(self, scope: str, unit: str):
+        self.select_control_tab("logs")
+        entry = self.page_host.entries.get("logs") if self.page_host else None
+        if entry is not None and hasattr(entry.content, "inspect_unit"):
+            entry.content.inspect_unit(scope, unit)
+
+    def desktop_script(self) -> str:
+        return DESKTOP
+
+    def launch_external(self, command):
+        """Launch an auxiliary app or terminal WITHOUT destroying Control Center."""
+        def start():
+            subprocess.Popen(command, start_new_session=True,
+                             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL)
+        self.work(start, None, lambda err: self.feedback(str(err), True), commit=True)
+
     def show_keyboard_help(self, anchor):
         content = box(spacing=8)
-        pack(content, label("键盘操作 · Keyboard", "section-title"))
-        for instruction in (tr("Ctrl + F  Search settings", "Ctrl + F  搜索设置"),
-                            tr("Ctrl + 1…9  Select page", "Ctrl + 1…9  切换页面"),
-                            tr("Ctrl + Tab  Next page", "Ctrl + Tab  下一页"),
-                            tr("Tab / Shift + Tab  Move focus", "Tab / Shift + Tab  移动焦点"),
-                            tr("Space / Enter  Activate", "Space / Enter  激活"),
-                            tr("← →  Adjust slider", "← →  调节滑块"),
-                            tr("Esc  Back, then close", "Esc  返回总览，再关闭")):
+        pack(content, label(tr("Keyboard shortcuts", "键盘操作快捷键"), "section-title"))
+        for instruction in (tr("Ctrl + K  Global setting & command search", "Ctrl + K  全局命令与设置快搜"),
+                            tr("Ctrl + F  Search sidebar / page", "Ctrl + F  搜索侧栏或当前页"),
+                            tr("Alt + 1…6  Jump to category group", "Alt + 1…6  快速切换 6 大分组"),
+                            tr("Ctrl + 1…9  Select page", "Ctrl + 1…9  切换前 9 页"),
+                            tr("Alt + ← / →  Navigation history", "Alt + ← / →  页面浏览后退 / 前进"),
+                            tr("Ctrl + S  Apply current page", "Ctrl + S  应用当前页更改"),
+                            tr("F5 / Ctrl + R  Refresh current page", "F5 / Ctrl + R  刷新当前页"),
+                            tr("Esc  Back / cancel / close", "Esc  逐层取消、返回总览或关闭")):
             pack(content, label(instruction, "hint"))
         self.show_popover(anchor, content)
 
@@ -459,14 +550,41 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         return handle_scroll(widget, event)
 
     def show_connection_details(self, key, anchor):
-        self.select_control_tab("network", focus=True)
+        self.select_control_tab("bluetooth" if key == "bluetooth" else "network", focus=True)
 
     def on_key(self, _widget, event):
+        ctrl = bool(event.state & Gdk.ModifierType.CONTROL_MASK)
+        alt = bool(event.state & Gdk.ModifierType.MOD1_MASK)
         if self.mode == "control":
             if event.keyval == Gdk.KEY_F1:
                 self.show_keyboard_help(self.help_button)
                 return True
-            if event.state & Gdk.ModifierType.CONTROL_MASK:
+            if event.keyval == Gdk.KEY_F5 or (ctrl and event.keyval in (Gdk.KEY_r, Gdk.KEY_R)):
+                self.refresh_visible_page()
+                return True
+            if ctrl and event.keyval in (Gdk.KEY_k, Gdk.KEY_K):
+                if self.command_palette is not None:
+                    self.command_palette.close() if self.command_palette.is_open() else self.command_palette.open()
+                return True
+            if ctrl and event.keyval in (Gdk.KEY_w, Gdk.KEY_W):
+                self.request_close()
+                return True
+            if ctrl and event.keyval in (Gdk.KEY_s, Gdk.KEY_S):
+                self._apply_current_page()
+                return True
+            if alt and event.keyval == Gdk.KEY_Left:
+                self.nav_back()
+                return True
+            if alt and event.keyval == Gdk.KEY_Right:
+                self.nav_forward()
+                return True
+            if alt and Gdk.KEY_1 <= event.keyval <= Gdk.KEY_6:
+                idx = event.keyval - Gdk.KEY_1
+                groups = getattr(self.navigation, "group_first_keys", ())
+                if idx < len(groups):
+                    self.select_control_tab(groups[idx], focus=True)
+                return True
+            if ctrl:
                 if event.keyval in (Gdk.KEY_f, Gdk.KEY_F):
                     self.navigation.search.grab_focus()
                     return True
@@ -478,14 +596,32 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
                     index = self.control_pages.index(self.control_stack.get_visible_child_name())
                     self.select_control_tab(self.control_pages[(index + direction) % len(self.control_pages)], focus=True)
                     return True
-        if self.mode == "ai" and (event.state & Gdk.ModifierType.CONTROL_MASK):
+        if self.mode == "ai" and ctrl:
             if event.keyval in (Gdk.KEY_period, Gdk.KEY_KP_Decimal):
                 self.stop_chat()
                 return True
         if event.keyval == Gdk.KEY_Escape:
+            if self.mode == "control" and self.command_palette is not None and self.command_palette.is_open():
+                self.command_palette.close()
+                return True
             if self.active_popover:
                 self.active_popover.popdown()
-            elif self.mode == "control" and self.navigation.search.get_text():
+                return True
+            if self.mode == "shortcuts" and getattr(self, "shortcut_search", None) is not None and self.shortcut_search.get_text():
+                self.shortcut_search.set_text("")
+                return True
+            # If user is typing inside an in-page SearchEntry, clear it before leaving the page.
+            focused = self.get_focus()
+            if isinstance(focused, Gtk.SearchEntry) and focused is not getattr(getattr(self, "navigation", None), "search", None) and focused.get_text():
+                focused.set_text("")
+                return True
+            if self.mode == "control" and self.page_host is not None:
+                cur = self.control_stack.get_visible_child_name()
+                entry = self.page_host.entries.get(cur)
+                if cur == "displays" and entry is not None and getattr(entry.content, "token", None):
+                    entry.content.revert()
+                    return True
+            if self.mode == "control" and self.navigation.search.get_text():
                 self.navigation.search.set_text("")
                 self.focus_control_tab()
             elif self.mode == "control" and self.control_stack.get_visible_child_name() != "quick":
@@ -497,6 +633,15 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
                 self.request_close()
             return True
         return False
+
+    def _apply_current_page(self):
+        name = self.control_stack.get_visible_child_name()
+        if name == "appearance":
+            self.apply_appearance()
+            return
+        entry = self.page_host.entries.get(name) if self.page_host else None
+        if entry is not None and hasattr(entry.content, "apply"):
+            entry.content.apply()
 
     def feedback(self, text="", error=False):
         if not self.alive:
@@ -624,7 +769,7 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         self.page_host = PageHost(self, self.control_stack, specs)
         settings_keys = tuple(key for key in PAGE_KEYS
                               if key not in ("quick", "sound", "displays", "appearance",
-                                             "wallpapers", "system"))
+                                             "wallpapers", "monitor"))
         self.settings_pages = PageMap(self.page_host, settings_keys)
 
     def _page_factory(self, key):
@@ -632,7 +777,7 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
             return self._build_quick()
         if key == "sound":
             return self._build_sound()
-        if key == "system":
+        if key in ("monitor", "system"):
             return self._build_system()
         if key == "displays":
             return self._build_displays()
@@ -646,12 +791,12 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         from metrics import MetricsSampler
         from quick_controls import build_overview
         self.quick_sampler = MetricsSampler(detailed=False, enable_nvidia=False)
-        self.quick_sampler.prime()
+        self.work(self.quick_sampler.prime)
         body = build_overview(self)
         revealer = getattr(self, "quick_details_revealer", None)
         if revealer is not None:
             revealer.set_transition_duration(
-                180 if animations_enabled(self.surface, not self.reduced_motion) else 0)
+                160 if animations_enabled(self.surface, not self.reduced_motion) else 0)
         return PageEntry(body, scroller(body))
 
     def build_sound(self):
@@ -663,7 +808,7 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
     def build_system(self):
         """Compatibility adapter for the former eager page builder."""
         if self.page_host is not None:
-            return self.page_host.ensure("system").content
+            return self.page_host.ensure("monitor").content
         return self._build_system().content
 
     def build_appearance(self):
@@ -683,23 +828,31 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         return PageEntry(page, page)
 
     def _build_settings_page(self, key):
-        from desktop_controls import InputSettings, DesktopSettings
-        from language_controls import LanguageSettings
-        from system_controls import (ApplicationsSettings, PowerSettings, TimeSettings,
-                                     StartupSettings, ServicesSettings, ToolsSettings,
-                                     ConnectionsSettings, NotificationSettings)
+        from desktop_controls import DesktopSettings, InputSettings
+        from panel_bluetooth import BluetoothPage
+        from panel_logs import LogsPage
+        from panel_network import NetworkPage
+        from panel_packages import PackagesPage
+        from panel_preferences import PreferencesPage
+        from panel_security import SecurityPage
+        from panel_services import ServicesPage
+        from panel_storage import StoragePage
+        from system_controls import NotificationSettings, PowerSettings
         factories = {
-            "input": InputSettings, "desktop": DesktopSettings,
-            "language": LanguageSettings, "applications": ApplicationsSettings,
-            "power": PowerSettings, "time": TimeSettings,
-            "startup": StartupSettings, "services": ServicesSettings,
-            "network": ConnectionsSettings,
+            "network": NetworkPage,
+            "bluetooth": BluetoothPage,
+            "input": InputSettings,
+            "storage": StoragePage,
+            "desktop": DesktopSettings,
+            "services": ServicesPage,
+            "logs": LogsPage,
+            "packages": PackagesPage,
+            "security": SecurityPage,
+            "power": PowerSettings,
             "notifications": NotificationSettings,
+            "preferences": PreferencesPage,
         }
-        if key in ("hardware", "security"):
-            page = ToolsSettings(self, key)
-        else:
-            page = factories[key](self)
+        page = factories[key](self)
         return PageEntry(page, scroller(page))
 
     @property
@@ -715,19 +868,20 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
                 and self.control_stack.get_visible_child_name() == name)
 
     def _refresh_page(self, name):
-        if self.page_visible('quick'):
+        if self.page_visible("quick"):
             self.refresh_control()
             media = getattr(self, "media_controls", None)
             if media is not None and hasattr(media, "refresh"):
                 media.refresh()
-        elif self.page_visible('sound'):
+        elif self.page_visible("sound"):
             self.refresh_audio()
-        elif self.page_visible('system'):
+        elif self.page_visible("monitor") or self.page_visible("system"):
             self.refresh_system_info()
-            # Prime a fresh baseline in the worker and sample 50 ms later, so
-            # the first visible CPU/network values are real rates rather than a
-            # dash followed by a two-second wait.
             self.refresh_metrics(prime=True)
+        elif self.page_host is not None and name in self.page_host.entries:
+            content = self.page_host.entries[name].content
+            if hasattr(content, "refresh"):
+                content.refresh()
 
     def refresh_visible_page(self, *_):
         name = self.control_stack.get_visible_child_name()
@@ -737,75 +891,82 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         if refresh is not None:
             refresh(name)
             return
-        # Narrow compatibility for test/direct doubles that only provide the
-        # legacy page-visible methods.
-        if self.page_visible('quick'):
+        if self.page_visible("quick"):
             self.refresh_control()
             self.media_controls.refresh()
-        elif self.page_visible('sound'):
+        elif self.page_visible("sound"):
             self.refresh_audio()
-        elif self.page_visible('system'):
+        elif self.page_visible("monitor") or self.page_visible("system"):
             self.refresh_system_info()
             self.refresh_metrics(prime=True)
 
     def _page_shown(self, name):
         if not self.page_visible(name):
             return
-        if name == 'quick':
+        if getattr(self, "live_badge", None) is not None:
+            self.live_badge.set_visible(name in ("quick", "monitor"))
+        if name == "quick":
             self.refresh_control()
             media = getattr(self, "media_controls", None)
             if media is not None and hasattr(media, "resume"):
                 media.resume()
             self.start_quick_tick()
-        elif name == 'sound':
+        elif name == "sound":
             self.refresh_audio()
             self.start_audio_tick()
-        elif name == 'system':
+        elif name == "monitor":
             self.refresh_system_info()
             self.refresh_metrics(prime=True)
             self.start_metrics_tick()
-        elif name == 'wallpapers' and self.page_host is not None:
-            entry = self.page_host.entries.get('wallpapers')
+        elif name == "wallpapers" and self.page_host is not None:
+            entry = self.page_host.entries.get("wallpapers")
             if entry is not None:
                 entry.content.resume()
+        elif self.page_host is not None and name in self.page_host.entries:
+            content = self.page_host.entries[name].content
+            if hasattr(content, "resume"):
+                content.resume()
+            if hasattr(content, "refresh"):
+                content.refresh()
 
     def _page_hidden(self, name):
-        if name == 'quick':
+        if name == "quick":
             self.stop_quick_tick()
             media = getattr(self, "media_controls", None)
             if media is not None and hasattr(media, "suspend"):
                 media.suspend()
-        elif name == 'sound':
+        elif name == "sound":
             self.stop_audio_tick()
-            changes = getattr(self, 'audio_changes', None)
+            changes = getattr(self, "audio_changes", None)
             if changes is not None:
                 self.audio_changes = None
                 changes.close()
                 thread = changes.thread
                 if thread.ident is not None:
                     self.work(lambda: thread.join(3), commit=True)
-        elif name == 'system':
-            self.metrics_generation = getattr(self, 'metrics_generation', 0) + 1
+        elif name == "monitor":
+            self.metrics_generation = getattr(self, "metrics_generation", 0) + 1
             self.stop_metrics_tick()
-        elif name == 'wallpapers' and self.page_host is not None:
-            entry = self.page_host.entries.get('wallpapers')
-            if entry is not None:
-                entry.content.suspend()
+        elif self.page_host is not None and name in self.page_host.entries:
+            content = self.page_host.entries[name].content
+            if hasattr(content, "suspend"):
+                content.suspend()
 
     def _page_dispose(self, name):
         self._page_hidden(name)
-        if name == 'quick':
+        if name == "quick":
             media = getattr(self, "media_controls", None)
             if media is not None and hasattr(media, "dispose"):
                 media.dispose()
-        elif name == 'wallpapers' and self.page_host is not None:
-            entry = self.page_host.entries.get('wallpapers')
+        elif name == "wallpapers" and self.page_host is not None:
+            entry = self.page_host.entries.get("wallpapers")
             if entry is not None:
                 entry.content.cleanup()
 
     def start_quick_tick(self):
         if self.quick_tick_source is None and self.alive:
-            self.quick_tick_source = GLib.timeout_add_seconds(5, self.refresh_control)
+            # 10s cadence (down from 5s) cuts idle Overview subprocess churn in half.
+            self.quick_tick_source = GLib.timeout_add_seconds(10, self.refresh_control)
             self.pending.add(self.quick_tick_source)
 
     def stop_quick_tick(self):
@@ -815,16 +976,28 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
             self.pending.discard(source)
             GLib.source_remove(source)
 
-    def select_control_tab(self, tab, focus=False):
+    def select_control_tab(self, tab, focus=False, subtab=None, _record=True):
+        tab, alias_subtab = resolve_route(tab)
+        subtab = subtab or alias_subtab
         if self.mode == "control" and tab in self.control_pages:
             configure_stack(self.control_stack, enabled=lambda: not self.reduced_motion)
             if self.page_host is not None:
-                self.page_host.ensure(tab)
+                entry = self.page_host.ensure(tab)
+                if subtab and hasattr(entry.content, "select_subtab"):
+                    entry.content.select_subtab(subtab)
             self.control_stack.set_visible_child_name(tab)
             self.navigation.select(tab, focus=focus)
             spec = next(item for item in PAGES if item[0] == tab)
             self.page_heading.set_text(tr(spec[1], spec[2]))
             self.page_heading.set_visible(self.panel_width >= 650 or tab != "wallpapers")
+            if getattr(self, "live_badge", None) is not None:
+                self.live_badge.set_visible(tab in ("quick", "monitor"))
+            if _record:
+                rec = (tab, subtab)
+                if self._nav_index < 0 or self._nav_history[self._nav_index] != rec:
+                    self._nav_history = self._nav_history[:self._nav_index + 1] + [rec]
+                    self._nav_index = len(self._nav_history) - 1
+            self._update_nav_buttons()
             if focus:
                 self.focus_control_tab()
 
@@ -856,27 +1029,86 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
     def build_shortcuts(self):
         from shortcuts import load_shortcuts
         self.shortcuts = load_shortcuts()
+        self._shortcut_category = "all"
         search = Gtk.SearchEntry()
-        search.set_placeholder_text(tr_legacy("Search keys or actions…  搜索按键或功能…"))
+        search.set_placeholder_text(tr("Search keys or actions…", "搜索按键或功能…"))
         search.connect("search-changed", self.filter_shortcuts)
+        self.shortcut_search = search
         pack(self.content, search)
+        # Category filter strip for instant one-click narrowing.
+        cat_flow = Gtk.FlowBox()
+        cat_flow.set_selection_mode(Gtk.SelectionMode.NONE)
+        cat_flow.set_column_spacing(6)
+        cat_flow.set_row_spacing(6)
+        cat_flow.set_max_children_per_line(10)
+        self._shortcut_cat_buttons = {}
+        categories = [("all", (tr("All", "全部"), tr("All", "全部")))]
+        seen_cats = set()
+        for item in self.shortcuts:
+            cat = item["category"]
+            if cat not in seen_cats:
+                seen_cats.add(cat)
+                categories.append((cat, cat))
+        for cat_key, cat_pair in categories:
+            lbl = tr("All", "全部") if cat_key == "all" else tr(*cat_pair)
+            btn = Gtk.ToggleButton(label=lbl)
+            btn.get_style_context().add_class("small-button")
+            btn.set_active(cat_key == "all")
+            btn.connect("toggled", self._select_shortcut_category, cat_key)
+            self._shortcut_cat_buttons[cat_key] = btn
+            cat_flow.add(btn)
+        pack(self.content, cat_flow)
         self.shortcut_summary = pack(self.content, label("", "subtitle"))
         self.shortcut_body = box(spacing=14)
         pack(self.content, scroller(self.shortcut_body), True)
         footer = pack(self.content, box(False, 8))
-        pack(footer, label(tr_legacy("Mod = Super / Windows  ·  Esc = Close / 关闭"), "hint"), True)
+        pack(footer, label(tr("Mod = Super / Windows  ·  Esc = Clear search / Close", "Mod = Super / Windows  ·  Esc = 清空搜索或关闭"), "hint"), True)
         self.render_shortcuts("")
         GLib.idle_add(search.grab_focus)
 
+    def _select_shortcut_category(self, toggle, category_key):
+        if getattr(self, "_updating_shortcut_cats", False):
+            return
+        if not toggle.get_active():
+            if self._shortcut_category == category_key:
+                self._updating_shortcut_cats = True
+                toggle.set_active(True)
+                self._updating_shortcut_cats = False
+            return
+        self._updating_shortcut_cats = True
+        try:
+            self._shortcut_category = category_key
+            for key, btn in self._shortcut_cat_buttons.items():
+                btn.set_active(key == category_key)
+        finally:
+            self._updating_shortcut_cats = False
+        self.render_shortcuts(self.shortcut_search.get_text().strip().casefold())
+
     def filter_shortcuts(self, search):
-        self.render_shortcuts(search.get_text().strip().casefold())
+        if self._shortcut_timer is not None:
+            self.pending.discard(self._shortcut_timer)
+            GLib.source_remove(self._shortcut_timer)
+            self._shortcut_timer = None
+        query = search.get_text().strip().casefold()
+        def run():
+            if self._shortcut_timer is not None:
+                self.pending.discard(self._shortcut_timer)
+                self._shortcut_timer = None
+            if self.alive:
+                self.render_shortcuts(query)
+            return GLib.SOURCE_REMOVE
+        self._shortcut_timer = GLib.timeout_add(120, run)
+        self.pending.add(self._shortcut_timer)
 
     def render_shortcuts(self, query):
         for child in self.shortcut_body.get_children():
             child.destroy()
         groups = {}
         count = 0
+        active_cat = getattr(self, "_shortcut_category", "all")
         for item in self.shortcuts:
+            if active_cat != "all" and item["category"] != active_cat:
+                continue
             # Search indexes both languages; the row itself renders only one.
             if query and query not in item["search"]:
                 continue
@@ -893,7 +1125,7 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
                 keys.set_line_wrap(True)
                 pack(row, label(tr(*item["description"]), "shortcut-description", wrap=True, localize=False), True)
         if not count:
-            pack(self.shortcut_body, label(tr_legacy("No matching shortcuts · 未找到匹配的快捷键"), "empty-state"))
+            pack(self.shortcut_body, label(tr("No matching shortcuts", "未找到匹配的快捷键"), "empty-state"))
         self.shortcut_summary.set_text(tr(f"{count} shortcuts · From your configuration", f"{count} 个快捷键 · 根据配置生成"))
         self.shortcut_body.show_all()
 
@@ -949,14 +1181,15 @@ class Shell(Gtk.Application):
         if requested not in SURFACE_KEYS:
             return 2
         window = self._live_window()
-        if window is not None and window.mode == "control" and requested in PAGE_KEYS:
+        if window is not None and window.mode == "control" and requested in CONTROL_MODES and requested != "control":
+            target_tab, target_sub = resolve_route(requested)
             was_closing = window.closing
             if was_closing:
                 window.reopen()
-            if window.control_stack.get_visible_child_name() == requested and not was_closing:
+            if window.control_stack.get_visible_child_name() == target_tab and not target_sub and not was_closing:
                 window.request_close()
             else:
-                window.select_control_tab(requested)
+                window.select_control_tab(target_tab, subtab=target_sub)
                 if not window.is_active():
                     window.hide()
                     window.show_all()

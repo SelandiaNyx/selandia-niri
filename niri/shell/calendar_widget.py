@@ -5,6 +5,7 @@ import datetime
 import gi
 
 gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "3.0")
 from gi.repository import Gdk, GObject, Gtk
 from i18n import get_language
 
@@ -19,6 +20,60 @@ MONTH_NAMES_ZH = [
 ]
 WEEKDAY_NAMES_EN = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
 WEEKDAY_NAMES_ZH = ["一", "二", "三", "四", "五", "六", "日"]
+WEEKDAY_FULL_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+WEEKDAY_FULL_ZH = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
+
+# Compact lunisolar table (2020–2030): (spring_festival_date, month_bits, leap_month, leap_days)
+_LUNAR_TABLE = (
+    (datetime.date(2020, 1, 25), 0x795, 4, 29),
+    (datetime.date(2021, 2, 12), 0x6aa, 0, 0),
+    (datetime.date(2022, 2, 1), 0xad5, 0, 0),
+    (datetime.date(2023, 1, 22), 0x5b5, 2, 29),
+    (datetime.date(2024, 2, 10), 0x4ae, 0, 0),
+    (datetime.date(2025, 1, 29), 0xa57, 6, 29),
+    (datetime.date(2026, 2, 17), 0x52b, 0, 0),
+    (datetime.date(2027, 2, 6), 0xd26, 0, 0),
+    (datetime.date(2028, 1, 26), 0xd95, 5, 29),
+    (datetime.date(2029, 2, 13), 0x5ab, 0, 0),
+    (datetime.date(2030, 2, 3), 0x56a, 0, 0),
+)
+_LUNAR_MONTHS = ("正", "二", "三", "四", "五", "六", "七", "八", "九", "十", "冬", "腊")
+_LUNAR_DAYS = (
+    "初一", "初二", "初三", "初四", "初五", "初六", "初七", "初八", "初九", "初十",
+    "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十",
+    "廿一", "廿二", "廿三", "廿四", "廿五", "廿六", "廿七", "廿八", "廿九", "三十",
+)
+
+
+def lunar_date_zh(target: datetime.date) -> str:
+    """Return a concise Chinese lunar label (e.g. '农历十月十七') when in table range."""
+    for start, bits, leap_month, leap_days in reversed(_LUNAR_TABLE):
+        if target >= start:
+            offset = (target - start).days
+            for month_idx in range(1, 13):
+                days = 30 if (bits & (1 << (12 - month_idx))) else 29
+                if offset < days:
+                    return f"农历{_LUNAR_MONTHS[month_idx - 1]}月{_LUNAR_DAYS[offset]}"
+                offset -= days
+                if month_idx == leap_month:
+                    if offset < leap_days:
+                        return f"农历闰{_LUNAR_MONTHS[month_idx - 1]}月{_LUNAR_DAYS[offset]}"
+                    offset -= leap_days
+            return ""
+    return ""
+
+
+def date_caption(year: int, month_1based: int, day: int, zh: bool) -> str:
+    """Weekday, ISO week number, and lunar date caption for the Calendar footer."""
+    d = datetime.date(year, month_1based, day)
+    iso_week = d.isocalendar()[1]
+    if zh:
+        lunar = lunar_date_zh(d)
+        parts = [WEEKDAY_FULL_ZH[d.weekday()], f"第 {iso_week:02d} 周"]
+        if lunar:
+            parts.append(lunar)
+        return " · ".join(parts)
+    return f"{WEEKDAY_FULL_EN[d.weekday()]} · Week {iso_week:02d}"
 
 
 def _days_in_month(year: int, month: int) -> int:

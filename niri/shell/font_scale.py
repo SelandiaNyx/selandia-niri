@@ -66,6 +66,11 @@ def launcher_pixels(logical_px):
     return float(logical_px) + LAUNCHER_EXTRA_PX
 
 
+def anyrun_pixels(logical_px):
+    """Anyrun matches Fuzzel's launcher text step in logical pixels."""
+    return launcher_pixels(logical_px)
+
+
 def lock_pixels(logical_px):
     """The lock screen's larger design step, in logical pixels."""
     return float(logical_px) * LOCK_SCREEN_MULTIPLIER
