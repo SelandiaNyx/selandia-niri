@@ -69,7 +69,7 @@ unsafe fn walk(widget:*mut c_void,window:*mut c_void,rectangles:&mut Vec<(Rect,i
         if gtk_widget_get_visible(widget)==0 || gtk_widget_get_child_visible(widget)==0 {return;}
         let island=class(widget,b"island\0");let pill=class(widget,b"pill\0") || class(widget,b"workspace\0");
         if island || pill {
-            if island {*kind="island";} else if class(widget,b"clock\0") {*kind="right";}
+            if island {*kind="island";} else if class(widget,b"clock\0") || class(widget,b"bar-right\0") {*kind="right";}
             let(mut x,mut y)=(0,0);
             if gtk_widget_translate_coordinates(widget,window,0,0,&mut x,&mut y)!=0 {
                 rectangles.push((Rect{x,y,width:gtk_widget_get_allocated_width(widget),height:gtk_widget_get_allocated_height(widget)},if island {22} else {gtk_widget_get_allocated_height(widget)/2}));

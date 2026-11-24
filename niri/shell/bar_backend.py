@@ -47,13 +47,15 @@ def geometry(width, size=12):
     width=max(320,int(width));factor=max(1,size/12)
     compact=width<1500 or (size>=15 and width<2400)
     left=min(round(250*factor),round(width*.27))
-    right=min(round(760*factor),round(width*(.40 if compact else .45)))
-    maximum=max(96,min(round(460*factor),int(2*min(width/2-left-12,width/2-right-12)-24)))
+    right=min(round(620*factor),round(width*(.35 if compact else .38)))
+    maximum=max(160,min(round(460*factor),int(2*min(width/2-left-12,width/2-right-12)-24)))
     # Keep a real gap on both sides even when the output is very narrow.
     right=min(right,max(96,int(width/2-12-maximum/2)))
     # Added software gets its own bounded space; existing capsule widths and island limit stay unchanged.
     left=min(left+round(160*factor),max(left,int(width/2-maximum/2-24)))
-    return {'left':left,'right':right,'island':maximum,'collapsed':min(96,maximum),
+    target_collapsed=round((144 if compact else 214)*factor)
+    collapsed=min(target_collapsed,max(96,maximum-36)) if maximum>132 else min(target_collapsed,maximum)
+    return {'left':left,'right':right,'island':maximum,'collapsed':collapsed,
             'height':capsule_height(size),'compact':compact}
 
 
@@ -115,10 +117,14 @@ def render(monitors, *, size=12):
                          box(label(q('●'),**{'class':q('app-dot')}),
                              label('{state.app_name}',**{'class':q('app-label'),'truncate':'true','limit-width':q(app_limit),'xalign':'0'}),
                              spacing='2'))
-        left=box(button('󰣇',desktop+' launcher',tr('Applications','应用'),css='pill launcher-btn'),node('box',{'class':q('separator')}),
+        avatar_size=str(max(22,min(32,g['height']-16)))
+        launcher=node('button',{'class':q('pill launcher-btn'),'onclick':q(desktop+' launcher'),'timeout':q('5s'),'tooltip':q(tr('Applications','应用'))},
+                      node('image',{'class':q('launcher-avatar'),'path':q(str(BASE/'assets/anime/mascot-avatar-64.png')),'image-width':avatar_size,'image-height':avatar_size}))
+        left=box(launcher,node('box',{'class':q('separator')}),
                  box(workspace,spacing='3' if narrow else '6'),node('box',{'class':q('separator')}),
                  application,**{'class':segment,'spacing':'4' if narrow else '6','halign':q('start'),'hexpand':'false'})
-        left_outer=box(left,halign=q('start'),hexpand='true',**{'class':q('bar-host')})
+        host_class='{state.reduced ? "bar-host reduce-motion" : "bar-host"}'
+        left_outer=box(left,halign=q('start'),hexpand='true',**{'class':host_class})
         lines.append(window('selandia-left-'+str(index),left_outer,'top left',g['left'],'selandia-bar-left'))
         def resource(icon,value,label_text,kind):
             return node('box',{'class':q('resource '+kind),'tooltip':q(label_text)},
@@ -129,12 +135,8 @@ def render(monitors, *, size=12):
             telemetry_items.append(resource('󰍛 RAM','{state.memory_text}',tr('Memory','内存'),'ram'))
         if not narrow:
             telemetry_items.append(resource('󰔏 TEMP','{state.temperature_text}',tr('Temperature','温度'),'temp'))
-        telemetry=node('button',{'class':q('pill resources'),'onclick':q(desktop+' system'),'timeout':q('5s'),'tooltip':q('{state.metrics_detail}')},
+        telemetry=node('button',{'class':q('pill resources bar-right'),'onclick':q(desktop+' system'),'timeout':q('5s'),'tooltip':q('{state.metrics_detail}')},
             box(*telemetry_items,**{'class':q('resource-row'),'spacing':'6' if narrow else '8'}))
-        clock=node('button',{'class':q('pill clock'),'onclick':q(desktop+' calendar'),'tooltip':q(tr('Open calendar','打开日历'))},
-            box(label('{state.clock_time}',**{'class':q('clock-time')}),
-                *( [] if narrow else [label('{state.clock_date}',**{'class':q('clock-date')})] ),
-                orientation=q('v'),spacing='0'))
         tray=(button('⋯',bridge+' tray',tr('System tray','系统托盘')) if narrow else box(node('systray',{'icon-size':'16','spacing':'4'}),**{'class':q('pill'),'tooltip':q(tr('System tray','系统托盘'))}))
         if very_narrow:tray=node('box',{'visible':'false'})
         battery=label('{state.battery}',**{'class':q('pill battery'),'tooltip':q(tr('Battery','电池')),'visible':'false' if narrow else '{state.battery != ""}'})
@@ -149,13 +151,19 @@ def render(monitors, *, size=12):
                                 spacing='3'))
         hardware=box(*([] if narrow else [network_button]),audio,battery,tray,spacing='2' if narrow else '4')
         actions=box(*([] if very_narrow else [button('󰂚',desktop+' notification-toggle',tr('Notifications','通知'))]),
-                    button('󰒓',desktop+' control',tr('Control Center','控制中心'),css='pill control-btn'),
+                    button('󰒓',desktop+' control',tr('Control Center','控制中心'),css='pill control-btn bar-right'),
                     spacing='2' if narrow else '4')
         sep=node('box',{'class':q('separator')})
-        right=box(telemetry,sep,hardware,sep,clock,sep,actions,**{'class':segment,'halign':q('end'),'hexpand':'false','spacing':'2' if narrow else '4'})
-        right_outer=box(right,halign=q('end'),hexpand='true',**{'class':q('bar-host')})
+        right=box(telemetry,sep,hardware,sep,actions,**{'class':segment,'halign':q('end'),'hexpand':'false','spacing':'2' if narrow else '4'})
+        right_outer=box(right,halign=q('end'),hexpand='true',**{'class':host_class})
         lines.append(window('selandia-right-'+str(index),right_outer,'top right',g['right'],'selandia-bar-right'))
-        idle=node('button',{'onclick':q(bridge+' show media')},label('{state.playing ? "󰎈" : "✦"}',**{'class':q('island-idle-icon')}))
+        idle_media=node('button',{'class':q('island-media-btn'),'onclick':q(bridge+' show media'),'timeout':q('5s'),'tooltip':q(tr('Media','媒体'))},
+                        label('{state.playing ? "󰎈" : "✦"}',**{'class':q('island-idle-icon')}))
+        idle_clock=node('button',{'class':q('island-clock'),'onclick':q(desktop+' calendar'),'timeout':q('5s'),'tooltip':q(tr('Open calendar','打开日历'))},
+                        box(label('{state.clock_time}',**{'class':q('clock-time')}),
+                            *( [] if narrow else [label('{state.clock_date}',**{'class':q('clock-date')})] ),
+                            spacing='6',valign=q('center')))
+        idle=box(idle_media,idle_clock,**{'class':q('island-idle-row'),'halign':q('center'),'valign':q('center'),'spacing':'6'})
         cover=box(node('stack',{'same-size':'false','selected':'{state.cover != "" ? 0 : 1}'},
             node('image',{'path':'{state.cover != "" ? state.cover : '+q(str(BASE/'assets/icons/empty.svg'))+'}','image-width':'36','image-height':'36'}),
             node('image',{'icon':q('audio-x-generic-symbolic'),'icon-size':q('dialog')})),**{'class':q('island-cover')})
@@ -176,7 +184,8 @@ def render(monitors, *, size=12):
         # Eww's width/height property setter preserves allocated_height when
         # height is omitted: dynamic width would freeze an expanded page's
         # height. -1 keeps GTK's natural content height for every animation frame.
-        content=box(stack,**{'class':'{state.open ? (state.playing ? "island expanded playing" : "island expanded") : (state.playing ? "island playing" : "island")}','orientation':q('v'),'valign':q('start'),'width':animated,'height':'-1'})
+        island_class='{state.reduced ? (state.open ? (state.playing ? "island expanded playing reduce-motion" : "island expanded reduce-motion") : (state.playing ? "island playing reduce-motion" : "island reduce-motion")) : (state.open ? (state.playing ? "island expanded playing" : "island expanded") : (state.playing ? "island playing" : "island"))}'
+        content=box(stack,**{'class':island_class,'orientation':q('v'),'valign':q('start'),'width':animated,'height':'-1'})
         lines.append(window('selandia-island-'+str(index),content,'top center',g['collapsed'],'selandia-island'))
     return '\n'.join(lines)+'\n',names
 

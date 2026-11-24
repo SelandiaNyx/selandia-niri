@@ -1,98 +1,160 @@
-/* Material Design 3 treatment for the floating settings, quick controls,
- * native settings navigation and the power submenu.
+/* Sakura Nyan · Material Design 3 + Heavy Anime Frontend Stylesheet (GTK 3).
  *
- * This file owns layout and component composition only.  Colour roles, type
- * scale and the generated palette live in appearance.py (theme/panel.css); the
- * fallbacks in shell/style.css keep this file readable when that asset is
- * temporarily missing.  All rules are scoped so native dialogs stay opaque. */
+ * Loaded after style.css and generated theme/panel.css. Owns layout polish,
+ * MD3 tonal layering, mascot artwork composition, sticker accents and GTK3
+ * @keyframes motion (completely disabled under .reduce-motion).
+ * All selectors stay scoped so native GTK dialogs remain opaque. */
+
+@keyframes nyx-live-breathe {
+    0% { box-shadow: 0 0 8px alpha(@success, .20); opacity: .88; }
+    50% { box-shadow: 0 0 18px alpha(@success, .52); opacity: 1.0; }
+    100% { box-shadow: 0 0 8px alpha(@success, .20); opacity: .88; }
+}
+@keyframes nyx-avatar-halo {
+    0% { box-shadow: 0 0 0 2px alpha(@md3_primary, .36), 0 4px 14px alpha(@md3_primary, .20); }
+    50% { box-shadow: 0 0 0 3px alpha(@md3_secondary, .52), 0 4px 20px alpha(@md3_primary, .36); }
+    100% { box-shadow: 0 0 0 2px alpha(@md3_primary, .36), 0 4px 14px alpha(@md3_primary, .20); }
+}
+@keyframes nyx-sparkle-float {
+    0% { opacity: .72; }
+    50% { opacity: 1.0; }
+    100% { opacity: .72; }
+}
 
 /* ---- Window shell ------------------------------------------------------- */
-window.glass-window.control-center-window { border-radius: 26px; }
+window.glass-window.control-center-window { border-radius: 28px; }
 window.glass-window.control-center-window .glass-surface {
     padding: 1px;
-    border: 1px solid alpha(@md3_primary, .30);
-    border-radius: 26px;
-    background-image: linear-gradient(148deg, alpha(@md3_primary, .13), alpha(@md3_secondary, .06) 36%, transparent 72%);
-    box-shadow: inset 0 1px alpha(white, .18),
-                inset 0 -1px alpha(@md3_secondary, .14),
-                0 28px 72px alpha(black, .42);
+    border: 1px solid alpha(@md3_primary, .38);
+    border-radius: 28px;
+    background-image: none;
+    box-shadow: inset 0 1px alpha(@md3_primary, .22), 0 28px 72px alpha(black, .42);
 }
 window.glass-window.control-center-window .panel-frame {
-    border: 1px solid alpha(@md3_primary, .22);
-    border-radius: 26px;
+    border: 1px solid alpha(@md3_primary, .24);
+    border-radius: 28px;
     background: transparent;
-    box-shadow: inset 0 0 0 1px alpha(@md3_secondary, .08);
+    box-shadow: none;
 }
 window.glass-window.control-center-window .panel-header,
 window.glass-window.control-center-window .control-header {
-    padding: 16px 20px 14px;
-    background-image: linear-gradient(90deg, alpha(@md3_primary, .10), alpha(@md3_secondary, .06) 55%, transparent);
-    border-bottom: 1px solid alpha(@md3_primary, .18);
+    min-height: 76px;
+    padding: 16px 22px 14px;
+    background-color: @md3_surface_container_low;
+    background-image: url("../assets/anime/mascot-peek.png"), url("../assets/anime/sakura.svg");
+    background-repeat: no-repeat, no-repeat;
+    background-position: 74% bottom, 62% 24%;
+    background-size: auto 92%, 40px 40px;
+    border-bottom: 1px solid alpha(@md3_primary, .28);
+    border-radius: 27px 27px 0 0;
 }
-window.glass-window.control-center-window .panel-content { padding: 16px 18px 18px; }
+window.glass-window.control-center-window .mascot-avatar-frame {
+    padding: 3px;
+    border-radius: 999px;
+    border: 2px solid @md3_primary;
+    background-color: @md3_surface_container_high;
+    animation: nyx-avatar-halo 3.4s ease-in-out infinite;
+}
+window.glass-window.control-center-window .panel-content { padding: 18px 20px 20px; }
 window.glass-window.control-center-window .control-heading {
     color: @md3_on_surface;
-    font-size: 1.55em;
-    font-weight: 700;
+    font-size: 1.62em;
+    font-weight: 800;
     letter-spacing: -.4px;
 }
 window.glass-window.control-center-window .control-caption {
     color: @md3_on_surface_variant;
-    font-size: .84em;
-    font-weight: 500;
-    letter-spacing: .02em;
+    font-size: .88em;
+    font-weight: 600;
+    letter-spacing: .01em;
 }
 window.glass-window.control-center-window .control-clock {
     color: @md3_on_surface;
     font-size: 1.2em;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: -.2px;
 }
 window.glass-window.control-center-window button.close-button {
-    min-width: 32px;
-    min-height: 32px;
+    min-width: 34px;
+    min-height: 34px;
     padding: 0;
-    border: 1px solid alpha(@md3_on_surface, .10);
+    border: 1px solid alpha(@md3_on_surface, .16);
     border-radius: 999px;
-    background: alpha(@md3_on_surface, .06);
+    background: alpha(@md3_surface_container_high, .92);
     background-image: none;
     box-shadow: none;
     color: @md3_on_surface_variant;
-    font-size: 1.1em;
+    font-size: 1.12em;
+    font-weight: 700;
 }
 window.glass-window.control-center-window button.close-button:hover {
-    color: @md3_on_surface;
-    background: alpha(@md3_primary, .18);
-    border-color: alpha(@md3_primary, .42);
+    color: @md3_on_primary_container;
+    background: @md3_primary_container;
+    border-color: @md3_primary;
     border-radius: 999px;
 }
 window.glass-window.control-center-window button.close-button:active,
 window.glass-window.control-center-window button.close-button:checked {
     border-radius: 999px;
-    background: alpha(@md3_primary, .20);
+    background: @md3_primary;
+    color: @md3_on_primary;
+}
+
+/* ---- Mode-specific anime banners (AI / Calendar / Shortcuts) ------------ */
+window.glass-window.ai-window .panel-header {
+    min-height: 92px;
+    padding: 16px 20px 14px;
+    background-color: @md3_surface_container_low;
+    background-image: url("../assets/anime/mascot-thinking.png"), url("../assets/anime/star-sparkle.svg");
+    background-repeat: no-repeat, no-repeat;
+    background-position: 76% bottom, 58% 22%;
+    background-size: auto 94%, 22px 22px;
+    border-radius: 27px 27px 0 0;
+}
+window.glass-window.ai-window .welcome-icon {
     color: @md3_primary;
+    animation: nyx-sparkle-float 2.4s ease-in-out infinite;
+}
+window.glass-window.calendar-window .panel-header {
+    min-height: 84px;
+    padding: 16px 20px 14px;
+    background-color: @md3_surface_container_low;
+    background-image: url("../assets/anime/mascot-avatar.png"), url("../assets/anime/star-sparkle.svg");
+    background-repeat: no-repeat, no-repeat;
+    background-position: 78% center, 60% 24%;
+    background-size: 62px 62px, 20px 20px;
+    border-radius: 27px 27px 0 0;
+}
+window.glass-window.shortcuts-window .panel-header {
+    background-color: @md3_surface_container_low;
+    background-image: url("../assets/anime/sakura.svg"), url("../assets/anime/ribbon.svg");
+    background-repeat: no-repeat, no-repeat;
+    background-position: 84% center, 74% bottom;
+    background-size: 44px 44px, 44px 22px;
+    border-radius: 27px 27px 0 0;
 }
 
 /* ---- Segmented navigation ---------------------------------------------- */
 window.glass-window.control-center-window .control-tabs {
     padding: 4px;
-    border: 1px solid @md3_outline_variant;
-    border-radius: 14px;
-    background: alpha(@md3_surface_container_low, .65);
+    border: 1px solid alpha(@md3_primary, .26);
+    border-radius: 16px;
+    background: @md3_surface_container_low;
 }
 window.glass-window.control-center-window .control-tabs button {
-    min-height: 28px;
-    padding: 5px 6px;
+    min-height: 30px;
+    padding: 5px 8px;
     border: 1px solid transparent;
     border-radius: 999px;
     color: @md3_on_surface_variant;
     background: transparent;
     box-shadow: none;
     font-size: .9em;
+    font-weight: 600;
 }
 window.glass-window.control-center-window .control-tabs button:hover {
     color: @md3_on_surface;
-    background: alpha(@md3_primary, .08);
+    background: alpha(@md3_primary, .14);
 }
 window.glass-window.control-center-window .control-tabs button:checked,
 window.glass-window.control-center-window .control-tabs button:active,
@@ -100,42 +162,43 @@ window.glass-window.control-center-window .control-tabs button:selected {
     border-radius: 999px;
     color: @md3_on_primary_container;
     background: @md3_primary_container;
-    border-color: alpha(@md3_primary, .34);
+    border-color: @md3_primary;
     box-shadow: none;
+    font-weight: 700;
 }
 
 /* ---- Quick overview ----------------------------------------------------- */
 window.glass-window.control-center-window .quick-overview { padding: 0; }
 /* A pill has two targets: the left toggles, the chevron opens detail. */
 window.glass-window.control-center-window .quick-tile {
-    min-height: 66px;
-    border: 1px solid alpha(@md3_on_surface, .11);
-    border-radius: 18px;
-    background-color: alpha(@md3_surface_container, .66);
-    background-image: linear-gradient(165deg, alpha(white, .06), transparent 45%);
-    box-shadow: inset 0 1px alpha(white, .10), 0 6px 18px alpha(black, .14);
-    transition: background-color 160ms ease-out, border-color 160ms ease-out, box-shadow 160ms ease-out;
+    min-height: 70px;
+    border: 1px solid alpha(@md3_on_surface, .14);
+    border-radius: 20px;
+    background-color: @md3_surface_container;
+    background-image: none;
+    box-shadow: 0 4px 14px alpha(black, .14);
+    transition: background-color 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out;
 }
 window.glass-window.control-center-window .quick-tile:hover {
-    background-color: alpha(@md3_surface_container_high, .76);
-    border-color: alpha(@md3_primary, .40);
-    box-shadow: inset 0 1px alpha(white, .14), 0 8px 22px alpha(@md3_primary, .14);
+    background-color: @md3_surface_container_high;
+    border-color: alpha(@md3_primary, .48);
+    box-shadow: 0 6px 18px alpha(@md3_primary, .16);
 }
 window.glass-window.control-center-window .quick-tile.active,
 window.glass-window.control-center-window .quick-tile:checked,
 window.glass-window.control-center-window .quick-tile:active {
-    border-radius: 18px;
-    border-color: alpha(@md3_primary, .58);
+    border-radius: 20px;
+    border-color: @md3_primary;
     background-color: @md3_primary_container;
-    background-image: linear-gradient(135deg, alpha(@md3_primary, .28), alpha(@md3_secondary, .16) 72%, transparent);
-    box-shadow: inset 0 1px alpha(white, .18), 0 6px 20px alpha(@md3_primary, .22);
+    background-image: none;
+    box-shadow: 0 6px 20px alpha(@md3_primary, .24);
 }
 window.glass-window.control-center-window button.quick-toggle {
     min-width: 0;
-    min-height: 44px;
-    padding: 9px;
+    min-height: 46px;
+    padding: 10px 12px;
     border: none;
-    border-radius: 18px;
+    border-radius: 20px;
     background: transparent;
     background-image: none;
     box-shadow: none;
@@ -154,7 +217,7 @@ window.glass-window.control-center-window button.quick-toggle:active {
     border: none;
     box-shadow: none;
     color: @md3_on_primary_container;
-    border-radius: 18px;
+    border-radius: 20px;
 }
 window.glass-window.control-center-window button.quick-toggle:focus {
     outline: none;
@@ -166,33 +229,33 @@ window.glass-window.control-center-window .quick-icon {
     padding: 9px;
     border-radius: 999px;
     color: @md3_primary;
-    background-color: alpha(@md3_primary, .15);
-    background-image: linear-gradient(135deg, alpha(@md3_primary, .22), alpha(@md3_secondary, .12));
-    border: 1px solid alpha(@md3_primary, .24);
-    transition: background-color 160ms ease-out, color 160ms ease-out, box-shadow 160ms ease-out;
+    background-color: alpha(@md3_primary, .16);
+    background-image: none;
+    border: 1px solid alpha(@md3_primary, .30);
+    transition: background-color 150ms ease-out, color 150ms ease-out, box-shadow 150ms ease-out;
 }
 window.glass-window.control-center-window .quick-tile.active .quick-icon {
     color: @md3_on_primary;
     background-color: @md3_primary;
     background-image: linear-gradient(135deg, @md3_primary, @md3_secondary);
     border-color: transparent;
-    box-shadow: 0 2px 10px alpha(@md3_primary, .45);
+    box-shadow: 0 2px 10px alpha(@md3_primary, .42);
 }
 window.glass-window.control-center-window .quick-title {
     color: @md3_on_surface;
-    font-size: 1em;
-    font-weight: 600;
+    font-size: 1.02em;
+    font-weight: 700;
 }
-window.glass-window.control-center-window .quick-state { color: @md3_on_surface_variant; font-size: .78em; }
-window.glass-window.control-center-window .quick-tile.active .quick-state { color: @md3_on_primary_container; font-weight: 600; }
+window.glass-window.control-center-window .quick-state { color: @md3_on_surface_variant; font-size: .82em; font-weight: 600; }
+window.glass-window.control-center-window .quick-tile.active .quick-state { color: @md3_on_primary_container; font-weight: 700; }
 window.glass-window.control-center-window button.quick-disclosure {
-    min-width: 25px;
-    min-height: 32px;
-    padding: 5px 3px;
-    margin: 8px 5px 8px 0;
+    min-width: 26px;
+    min-height: 34px;
+    padding: 5px 4px;
+    margin: 8px 6px 8px 0;
     border: none;
-    border-left: 1px solid alpha(@md3_on_surface, .12);
-    border-radius: 0 12px 12px 0;
+    border-left: 1px solid alpha(@md3_on_surface, .14);
+    border-radius: 0 14px 14px 0;
     color: @md3_on_surface_variant;
     background: transparent;
     background-image: none;
@@ -201,57 +264,61 @@ window.glass-window.control-center-window button.quick-disclosure {
 window.glass-window.control-center-window button.quick-disclosure:hover,
 window.glass-window.control-center-window button.quick-disclosure:focus {
     color: @md3_on_primary_container;
-    background: alpha(@md3_primary, .16);
+    background: alpha(@md3_primary, .20);
 }
 
 /* ---- Media -------------------------------------------------------------- */
 window.glass-window.control-center-window .media-card {
-    min-height: 146px;
-    padding: 14px;
-    border: 1px solid alpha(@md3_secondary, .24);
-    border-radius: 20px;
-    background-color: alpha(@md3_surface_container, .72);
-    background-image: linear-gradient(142deg, alpha(@md3_secondary, .16), alpha(@md3_primary, .08) 50%, transparent 82%);
-    box-shadow: inset 0 1px alpha(white, .14), 0 8px 24px alpha(black, .16);
+    min-height: 152px;
+    padding: 16px;
+    border: 1px solid alpha(@md3_primary, .30);
+    border-radius: 24px;
+    background-color: @md3_surface_container;
+    background-image: url("../assets/anime/star-sparkle.svg");
+    background-repeat: no-repeat;
+    background-position: 96% 88%;
+    background-size: 20px 20px;
+    box-shadow: 0 6px 20px alpha(black, .16);
 }
 window.glass-window.control-center-window .media-card.playing {
-    border-color: alpha(@md3_primary, .48);
-    box-shadow: inset 0 1px alpha(white, .18), 0 8px 26px alpha(@md3_primary, .18);
+    border-color: @md3_primary;
+    box-shadow: 0 8px 26px alpha(@md3_primary, .22);
 }
 window.glass-window.control-center-window .media-cover {
-    min-width: 48px;
-    min-height: 48px;
-    border-radius: 14px;
-    border: 1px solid alpha(@md3_primary, .28);
+    min-width: 50px;
+    min-height: 50px;
+    border-radius: 16px;
+    border: 1px solid alpha(@md3_primary, .36);
     color: @md3_on_secondary_container;
     background-color: @md3_secondary_container;
-    background-image: linear-gradient(135deg, alpha(@md3_secondary, .30), alpha(@md3_primary, .16));
+    background-image: none;
     box-shadow: 0 4px 12px alpha(black, .22);
 }
-window.glass-window.control-center-window .media-heading { color: @md3_on_surface; font-size: 1em; font-weight: 700; }
+window.glass-window.control-center-window .media-heading { color: @md3_on_surface; font-size: 1.04em; font-weight: 700; }
 window.glass-window.control-center-window .media-subtitle,
-window.glass-window.control-center-window .media-state { color: @md3_on_surface_variant; font-size: .78em; }
-window.glass-window.control-center-window .media-card.playing .media-state { color: @md3_primary; font-weight: 600; }
-window.glass-window.control-center-window .media-error { color: @md3_error; font-size: .8em; font-weight: 600; }
+window.glass-window.control-center-window .media-state { color: @md3_on_surface_variant; font-size: .82em; font-weight: 600; }
+window.glass-window.control-center-window .media-card.playing .media-state { color: @md3_primary; font-weight: 700; }
+window.glass-window.control-center-window .media-error { color: @md3_error; font-size: .82em; font-weight: 700; }
 window.glass-window.control-center-window .media-source button {
-    min-height: 20px;
-    padding: 3px 9px;
-    border: 1px solid alpha(@md3_on_surface, .12);
+    min-height: 22px;
+    padding: 3px 10px;
+    border: 1px solid alpha(@md3_on_surface, .16);
     border-radius: 999px;
     color: @md3_on_surface_variant;
-    background: alpha(@md3_surface_container_high, .60);
+    background: @md3_surface_container_high;
     background-image: none;
     box-shadow: none;
-    font-size: .78em;
+    font-size: .8em;
+    font-weight: 600;
 }
 window.glass-window.control-center-window .media-source button:hover {
-    color: @md3_on_surface;
-    border-color: alpha(@md3_primary, .45);
-    background: alpha(@md3_primary, .14);
+    color: @md3_on_primary_container;
+    border-color: @md3_primary;
+    background: @md3_primary_container;
 }
 window.glass-window.control-center-window button.media-transport {
-    min-width: 32px;
-    min-height: 32px;
+    min-width: 34px;
+    min-height: 34px;
     padding: 4px;
     border: none;
     border-radius: 999px;
@@ -261,53 +328,53 @@ window.glass-window.control-center-window button.media-transport {
     box-shadow: none;
 }
 window.glass-window.control-center-window button.media-transport:hover {
-    color: @md3_on_surface;
-    background: alpha(@md3_primary, .16);
+    color: @md3_on_primary_container;
+    background: @md3_primary_container;
 }
 window.glass-window.control-center-window button.media-play {
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 42px;
+    min-height: 42px;
     padding: 4px;
-    border: 1px solid alpha(@md3_primary, .85);
+    border: 1px solid @md3_primary;
     border-radius: 999px;
     color: @md3_on_primary;
     background-color: @md3_primary;
     background-image: linear-gradient(135deg, @md3_primary, @md3_secondary);
-    box-shadow: inset 0 1px alpha(white, .35), 0 4px 16px alpha(@md3_primary, .42);
+    box-shadow: 0 4px 16px alpha(@md3_primary, .42);
 }
 window.glass-window.control-center-window button.media-play:hover {
-    box-shadow: inset 0 1px alpha(white, .45), 0 6px 20px alpha(@md3_primary, .55);
+    box-shadow: 0 6px 22px alpha(@md3_primary, .56);
 }
 window.glass-window.control-center-window button.media-play:disabled { opacity: .48; box-shadow: none; }
 
 /* ---- Sliders ------------------------------------------------------------ */
 window.glass-window.control-center-window .quick-slider-card {
-    padding: 12px 16px;
-    border: 1px solid alpha(@md3_on_surface, .11);
-    border-radius: 20px;
-    background-color: alpha(@md3_surface_container, .66);
-    background-image: linear-gradient(160deg, alpha(@md3_primary, .06), transparent 55%);
-    box-shadow: inset 0 1px alpha(white, .10), 0 6px 18px alpha(black, .14);
+    padding: 16px 18px;
+    border: 1px solid alpha(@md3_on_surface, .14);
+    border-radius: 24px;
+    background-color: @md3_surface_container;
+    background-image: none;
+    box-shadow: 0 6px 18px alpha(black, .14);
 }
-window.glass-window.control-center-window .quick-slider-label { color: @md3_on_surface; font-size: .94em; font-weight: 600; }
+window.glass-window.control-center-window .quick-slider-label { color: @md3_on_surface; font-size: .96em; font-weight: 700; }
 window.glass-window.control-center-window .quick-slider-value {
     color: @md3_primary;
-    font-size: .86em;
+    font-size: .9em;
     font-weight: 700;
 }
-window.glass-window.control-center-window .quick-slider-caption { color: @md3_on_surface_variant; font-size: .78em; }
+window.glass-window.control-center-window .quick-slider-caption { color: @md3_on_surface_variant; font-size: .82em; }
 window.glass-window.control-center-window button.quick-slider-icon {
     padding: 6px;
-    min-width: 24px;
-    min-height: 24px;
-    border: 1px solid alpha(@md3_on_surface, .08);
+    min-width: 26px;
+    min-height: 26px;
+    border: 1px solid alpha(@md3_on_surface, .14);
     border-radius: 999px;
-    background: alpha(@md3_surface_container_high, .55);
+    background: @md3_surface_container_high;
     background-image: none;
     box-shadow: none;
     color: @md3_primary;
 }
-window.glass-window.control-center-window button.quick-slider-icon:hover { background: alpha(@md3_primary, .18); border-color: alpha(@md3_primary, .38); }
+window.glass-window.control-center-window button.quick-slider-icon:hover { background: @md3_primary_container; border-color: @md3_primary; color: @md3_on_primary_container; }
 window.glass-window.control-center-window button.quick-slider-icon.muted {
     color: @md3_on_error;
     background: @md3_error;
@@ -315,14 +382,14 @@ window.glass-window.control-center-window button.quick-slider-icon.muted {
 }
 window.glass-window.control-center-window .quick-slider-card scale { padding: 6px 0; min-height: 16px; }
 window.glass-window.control-center-window .quick-slider-card scale trough {
-    min-height: 7px;
-    border: 1px solid alpha(@md3_on_surface, .12);
+    min-height: 8px;
+    border: 1px solid alpha(@md3_on_surface, .14);
     border-radius: 999px;
-    background-color: alpha(@md3_surface_sunken, .85);
+    background-color: @md3_surface_sunken;
     background-image: none;
 }
 window.glass-window.control-center-window .quick-slider-card scale highlight {
-    min-height: 7px;
+    min-height: 8px;
     border: none;
     border-radius: 999px;
     background-color: @md3_primary;
@@ -331,11 +398,11 @@ window.glass-window.control-center-window .quick-slider-card scale highlight {
 window.glass-window.control-center-window .quick-slider-card scale slider {
     min-width: 18px;
     min-height: 18px;
-    margin: -6px;
+    margin: -5px;
     border: 2px solid @md3_primary;
     border-radius: 999px;
     background-color: #ffffff;
-    box-shadow: 0 2px 8px alpha(black, .40), 0 0 0 2px alpha(@md3_primary, .25);
+    box-shadow: 0 2px 8px alpha(black, .40), 0 0 0 2px alpha(@md3_primary, .26);
 }
 window.glass-window.control-center-window .quick-slider-card button.quick-disclosure {
     min-height: 24px;
@@ -343,8 +410,8 @@ window.glass-window.control-center-window .quick-slider-card button.quick-disclo
     padding: 2px 3px;
 }
 window.glass-window.control-center-window button.quick-slider-action {
-    min-width: 20px;
-    min-height: 20px;
+    min-width: 22px;
+    min-height: 22px;
     padding: 2px;
     margin: 0 0 0 4px;
     border: 1px solid transparent;
@@ -354,92 +421,95 @@ window.glass-window.control-center-window button.quick-slider-action {
     box-shadow: none;
 }
 window.glass-window.control-center-window button.quick-slider-action:hover {
-    color: @md3_primary;
-    background: alpha(@md3_primary, .12);
-    border-color: alpha(@md3_primary, .24);
+    color: @md3_on_primary_container;
+    background: @md3_primary_container;
+    border-color: alpha(@md3_primary, .36);
 }
-window.glass-window.control-center-window .quick-details { padding: 3px 4px; color: @md3_on_surface_variant; font-size: .85em; }
+window.glass-window.control-center-window .quick-details { padding: 3px 4px; color: @md3_on_surface_variant; font-size: .88em; }
 window.glass-window.control-center-window .quick-details > title { min-height: 26px; padding: 1px 3px; }
 window.glass-window.control-center-window .quick-details > title:hover { color: @md3_on_surface; }
-window.glass-window.control-center-window .quick-details .card { padding: 10px; border-radius: 20px; }
+window.glass-window.control-center-window .quick-details .card { padding: 12px; border-radius: 24px; }
 window.glass-window.control-center-window button.quick-details {
-    min-height: 30px;
-    padding: 4px 10px;
-    border: 1px solid alpha(@md3_on_surface, .09);
-    border-radius: 14px;
-    background: alpha(@md3_surface_container, .42);
+    min-height: 34px;
+    padding: 5px 14px;
+    border: 1px solid alpha(@md3_on_surface, .14);
+    border-radius: 16px;
+    background: @md3_surface_container;
     background-image: none;
     color: @md3_on_surface_variant;
     box-shadow: none;
+    font-weight: 600;
 }
 window.glass-window.control-center-window button.quick-details:hover,
 window.glass-window.control-center-window button.quick-details:checked,
 window.glass-window.control-center-window button.quick-details:active {
     color: @md3_on_primary_container;
     background-color: @md3_primary_container;
-    border-color: alpha(@md3_primary, .30);
+    border-color: @md3_primary;
 }
 
 /* ---- Footer utilities --------------------------------------------------- */
-window.glass-window.control-center-window .quick-footer { padding-top: 10px; border-top: 1px solid @md3_outline; }
+window.glass-window.control-center-window .quick-footer { padding-top: 12px; border-top: 1px solid alpha(@md3_primary, .20); }
 window.glass-window.control-center-window button.quick-utility {
-    min-width: 32px;
-    min-height: 34px;
-    padding: 6px 8px;
-    border: 1px solid @md3_outline;
-    border-radius: 12px;
-    color: @md3_on_surface_variant;
-    background: alpha(@md3_surface_container, .62);
+    min-width: 34px;
+    min-height: 38px;
+    padding: 7px 10px;
+    border: 1px solid alpha(@md3_on_surface, .16);
+    border-radius: 14px;
+    color: @md3_on_surface;
+    background: @md3_surface_container_high;
+    background-image: none;
     box-shadow: none;
-    font-size: .84em;
-    font-weight: 500;
+    font-size: .86em;
+    font-weight: 600;
 }
 window.glass-window.control-center-window button.quick-utility:hover {
     color: @md3_on_primary_container;
-    border-color: alpha(@md3_primary, .45);
+    border-color: @md3_primary;
     background: @md3_primary_container;
 }
 window.glass-window.control-center-window button.quick-utility.power-button {
     color: @md3_error;
-    border-color: alpha(@md3_error, .24);
-    background: alpha(@md3_error, .06);
+    border-color: alpha(@md3_error, .36);
+    background: alpha(@md3_error, .10);
 }
 window.glass-window.control-center-window button.quick-utility.power-button:hover {
     color: @md3_on_error_container;
-    border-color: alpha(@md3_error, .55);
+    border-color: @md3_error;
     background: @md3_error_container;
 }
 
-/* ---- Settings navigation ------------------------------------------------ */
+/* ---- MD3 Navigation Drawer & Nyx Mascot --------------------------------- */
 window.glass-window.control-center-window .settings-sidebar {
-    padding-right: 16px;
-    border-right: 1px solid alpha(@md3_primary, .16);
-    background-image: linear-gradient(180deg, alpha(@md3_primary, .06), alpha(@md3_secondary, .02) 48%, transparent);
+    padding: 4px 16px 4px 0;
+    border-right: 1px solid alpha(@md3_primary, .22);
+    background-image: none;
 }
 window.glass-window.control-center-window .settings-navigation { background: transparent; }
 window.glass-window.control-center-window .settings-navigation row {
-    padding: 9px 12px;
+    padding: 10px 14px;
     margin: 2px 0;
     border: 1px solid transparent;
-    border-radius: 12px;
+    border-radius: 999px;
     color: @md3_on_surface_variant;
     background: transparent;
-    transition: background-color 140ms ease-out, border-color 140ms ease-out;
+    font-weight: 600;
+    transition: background-color 140ms ease-out, border-color 140ms ease-out, color 140ms ease-out;
 }
 window.glass-window.control-center-window .settings-navigation row:hover {
     color: @md3_on_surface;
-    background: alpha(@md3_primary, .12);
-    border-color: alpha(@md3_primary, .20);
-    border-radius: 12px;
+    background: alpha(@md3_primary, .14);
+    border-color: alpha(@md3_primary, .28);
+    border-radius: 999px;
 }
 window.glass-window.control-center-window .settings-navigation row:selected,
 window.glass-window.control-center-window .settings-navigation row:active {
-    border-radius: 12px;
+    border-radius: 999px;
     color: @md3_on_primary_container;
     background-color: @md3_primary_container;
-    background-image: linear-gradient(90deg, alpha(@md3_primary, .30), alpha(@md3_secondary, .12));
-    border-color: alpha(@md3_primary, .52);
-    box-shadow: inset 3px 0 0 @md3_primary, 0 4px 14px alpha(@md3_primary, .16);
+    background-image: none;
+    border-color: @md3_primary;
+    box-shadow: 0 3px 12px alpha(@md3_primary, .22);
     font-weight: 700;
 }
 window.glass-window.control-center-window .settings-navigation row.nav-group-row {
@@ -454,83 +524,99 @@ window.glass-window.control-center-window .settings-navigation row.nav-group-row
 }
 window.glass-window.control-center-window .settings-navigation .nav-group {
     color: @md3_primary;
-    font-size: .72em;
-    font-weight: 700;
-    letter-spacing: 2px;
-    padding: 12px 12px 4px;
+    font-size: .74em;
+    font-weight: 800;
+    letter-spacing: 1.8px;
+    padding: 14px 12px 5px;
 }
-window.glass-window.control-center-window .settings-navigation label { font-size: .92em; }
+window.glass-window.control-center-window .settings-navigation label { font-size: .94em; }
+window.glass-window.control-center-window .nav-mascot {
+    min-height: 168px;
+    margin-top: 8px;
+    border-radius: 20px;
+    border: 1px solid alpha(@md3_primary, .22);
+    background-color: @md3_surface_container_low;
+    background-image: url("../assets/anime/mascot-full.png"), url("../assets/anime/star-sparkle.svg");
+    background-repeat: no-repeat, no-repeat;
+    background-position: center bottom, 92% 10%;
+    background-size: contain, 20px 20px;
+}
 window.glass-window.control-center-window .settings-page-title {
     color: @md3_on_surface;
-    font-size: 1.45em;
-    font-weight: 700;
+    font-size: 1.50em;
+    font-weight: 800;
     letter-spacing: -.3px;
-    padding: 2px 0 10px;
+    padding: 2px 0 14px;
+    background-image: linear-gradient(90deg, @md3_primary, @md3_secondary);
+    background-size: 52px 4px;
+    background-position: left bottom;
+    background-repeat: no-repeat;
 }
 window.glass-window.control-center-window .palette-preview {
     padding: 4px 2px 2px;
 }
 window.glass-window.control-center-window .card {
-    padding: 16px;
-    border-radius: 20px;
-    border: 1px solid alpha(@md3_on_surface, .10);
-    background-color: alpha(@md3_surface_container, .62);
-    background-image: linear-gradient(165deg, alpha(white, .05), transparent 44%);
-    box-shadow: inset 0 1px alpha(white, .10), 0 8px 22px alpha(black, .12);
+    padding: 18px;
+    border-radius: 24px;
+    border: 1px solid alpha(@md3_on_surface, .12);
+    background-color: @md3_surface_container;
+    background-image: none;
+    box-shadow: 0 6px 20px alpha(black, .14);
 }
 
 /* ---- Metrics and system pages ------------------------------------------ */
 window.glass-window.control-center-window .metric-card {
-    padding: 14px 16px;
-    border: 1px solid alpha(@md3_on_surface, .11);
-    border-radius: 20px;
-    background-color: alpha(@md3_surface_container, .66);
-    background-image: linear-gradient(155deg, alpha(@md3_primary, .08), alpha(@md3_secondary, .04) 55%, transparent);
-    box-shadow: inset 0 1px alpha(white, .10), 0 8px 20px alpha(black, .14);
+    padding: 16px 18px;
+    border: 1px solid alpha(@md3_on_surface, .14);
+    border-radius: 24px;
+    background-color: @md3_surface_container;
+    background-image: none;
+    box-shadow: 0 6px 18px alpha(black, .14);
 }
 window.glass-window.control-center-window .metric-value,
 window.glass-window.control-center-window .network-rate {
     color: @md3_primary;
-    font-size: 1.55em;
-    font-weight: 700;
+    font-size: 1.58em;
+    font-weight: 800;
     letter-spacing: -.3px;
 }
 window.glass-window.control-center-window .metric-progress trough {
-    min-height: 6px;
-    border: 1px solid alpha(@md3_on_surface, .12);
+    min-height: 7px;
+    border: 1px solid alpha(@md3_on_surface, .14);
     border-radius: 999px;
-    background-color: alpha(@md3_surface_sunken, .85);
+    background-color: @md3_surface_sunken;
     background-image: none;
 }
 window.glass-window.control-center-window .metric-progress progress {
-    min-height: 6px;
+    min-height: 7px;
     border: none;
     border-radius: 999px;
     background-color: @md3_primary;
     background-image: linear-gradient(90deg, @md3_primary, @md3_secondary);
 }
-window.glass-window.control-center-window .spec-key { color: @md3_on_surface_variant; font-size: .84em; font-weight: 500; padding: 4px 0; }
+window.glass-window.control-center-window .spec-key { color: @md3_on_surface_variant; font-size: .86em; font-weight: 600; padding: 4px 0; }
 window.glass-window.control-center-window .spec-value {
     color: @md3_on_surface;
-    font-size: .88em;
+    font-size: .90em;
+    font-weight: 600;
     padding: 4px 0;
 }
 window.glass-window.control-center-window .application-audio {
     padding: 14px 16px;
-    border: 1px solid alpha(@md3_on_surface, .10);
-    border-radius: 20px;
-    background-color: alpha(@md3_surface_container, .66);
-    box-shadow: inset 0 1px alpha(white, .08);
+    border: 1px solid alpha(@md3_on_surface, .12);
+    border-radius: 24px;
+    background-color: @md3_surface_container;
+    box-shadow: none;
 }
 window.glass-window.control-center-window .application-audio scale trough {
-    min-height: 6px;
-    border: 1px solid alpha(@md3_on_surface, .12);
+    min-height: 7px;
+    border: 1px solid alpha(@md3_on_surface, .14);
     border-radius: 999px;
-    background-color: alpha(@md3_surface_sunken, .85);
+    background-color: @md3_surface_sunken;
     background-image: none;
 }
 window.glass-window.control-center-window .application-audio scale highlight {
-    min-height: 6px;
+    min-height: 7px;
     border-radius: 999px;
     background-color: @md3_primary;
     background-image: linear-gradient(90deg, @md3_primary, @md3_secondary);
@@ -539,34 +625,37 @@ window.glass-window.control-center-window .application-audio scale highlight {
 /* ---- Status chips ------------------------------------------------------- */
 window.glass-window.control-center-window .live-badge {
     color: @success;
-    background-color: alpha(@success, .14);
-    border: 1px solid alpha(@success, .42);
+    background-color: alpha(@success, .16);
+    border: 1px solid alpha(@success, .48);
     border-radius: 999px;
-    padding: 4px 11px;
-    font-size: .72em;
-    font-weight: 700;
+    padding: 5px 12px;
+    font-size: .74em;
+    font-weight: 800;
     letter-spacing: .09em;
-    box-shadow: 0 0 12px alpha(@success, .18);
+    animation: nyx-live-breathe 2.8s ease-in-out infinite;
 }
 window.glass-window.control-center-window .pulse-card {
-    padding: 12px 16px;
-    border: 1px solid alpha(@md3_primary, .20);
-    border-radius: 20px;
-    background-color: alpha(@md3_surface_container, .68);
-    background-image: linear-gradient(90deg, alpha(@md3_primary, .10), alpha(@md3_secondary, .06) 55%, transparent);
-    box-shadow: inset 0 1px alpha(white, .12), 0 6px 18px alpha(black, .14);
+    padding: 14px 18px;
+    border: 1px solid alpha(@md3_primary, .26);
+    border-radius: 24px;
+    background-color: @md3_surface_container;
+    background-image: url("../assets/anime/paw.svg");
+    background-repeat: no-repeat;
+    background-position: 98% 20%;
+    background-size: 20px 20px;
+    box-shadow: 0 6px 18px alpha(black, .14);
 }
-window.glass-window.control-center-window .pulse-item { padding: 0 10px; border-left: 1px solid alpha(@md3_on_surface, .10); }
+window.glass-window.control-center-window .pulse-item { padding: 0 12px; border-left: 1px solid alpha(@md3_on_surface, .12); }
 window.glass-window.control-center-window .pulse-item:first-child { padding-left: 0; border-left: none; }
 window.glass-window.control-center-window .pulse-label {
     color: @md3_on_surface_variant;
-    font-size: .70em;
-    font-weight: 700;
+    font-size: .72em;
+    font-weight: 800;
     letter-spacing: 1.8px;
 }
 window.glass-window.control-center-window .pulse-value {
     color: @md3_on_surface;
-    font-size: 1.06em;
+    font-size: 1.10em;
     font-weight: 700;
     letter-spacing: -.2px;
 }
@@ -579,97 +668,113 @@ window.glass-window.control-center-window .pulse-temp .pulse-value { color: @war
 popover.control-popover {
     color: @md3_on_surface;
     background-color: @md3_surface_container_high;
-    border: 1px solid @md3_outline;
-    border-radius: 20px;
-    box-shadow: 0 12px 32px alpha(black, .28);
+    border: 1px solid alpha(@md3_primary, .36);
+    border-radius: 24px;
+    box-shadow: 0 14px 36px alpha(black, .34);
 }
 popover.control-popover label { color: @md3_on_surface; }
 popover.control-popover button {
     color: @md3_on_primary_container;
-    border-color: alpha(@md3_primary, .30);
+    border-color: alpha(@md3_primary, .40);
     background: @md3_primary_container;
 }
 
 /* ---- Power menu --------------------------------------------------------- */
 window.glass-window.power-menu-window .glass-surface {
-    border: 1px solid alpha(@md3_primary, .30);
-    border-radius: 26px;
-    background-image: linear-gradient(155deg, alpha(@md3_primary, .13), alpha(@md3_secondary, .06) 42%, transparent 78%);
-    box-shadow: inset 0 1px alpha(white, .18), 0 22px 54px alpha(black, .42);
+    border: 1px solid alpha(@md3_primary, .38);
+    border-radius: 28px;
+    background-image: none;
+    box-shadow: inset 0 1px alpha(@md3_primary, .22), 0 22px 54px alpha(black, .44);
 }
 window.glass-window.power-menu-window .panel-header {
-    padding: 14px 16px 11px;
-    border-bottom: 1px solid alpha(@md3_primary, .18);
+    min-height: 68px;
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid alpha(@md3_primary, .26);
+    background-color: @md3_surface_container_low;
+    background-image: url("../assets/anime/mascot-sleepy.png"), url("../assets/anime/cloud.svg");
+    background-repeat: no-repeat, no-repeat;
+    background-position: 74% bottom, 48% 24%;
+    background-size: auto 90%, 30px 20px;
+    border-radius: 27px 27px 0 0;
 }
 window.glass-window.power-menu-window .power-header-icon {
     padding: 7px;
     border-radius: 999px;
     color: @md3_error;
-    background: alpha(@md3_error, .14);
-    border: 1px solid alpha(@md3_error, .30);
+    background: alpha(@md3_error, .16);
+    border: 1px solid alpha(@md3_error, .38);
 }
-window.glass-window.power-menu-window .panel-content { padding: 12px; }
+window.glass-window.power-menu-window .panel-content { padding: 14px; }
 window.glass-window.power-menu-window .control-heading {
     color: @md3_on_surface;
-    font-size: 1.2em;
-    font-weight: 700;
+    font-size: 1.24em;
+    font-weight: 800;
     letter-spacing: -.2px;
 }
 window.glass-window.power-menu-window button.close-button {
-    min-width: 28px;
-    min-height: 28px;
-    border: 1px solid alpha(@md3_on_surface, .08);
+    min-width: 30px;
+    min-height: 30px;
+    padding: 0;
+    border: 1px solid alpha(@md3_on_surface, .18);
     border-radius: 999px;
-    background: alpha(@md3_on_surface, .05);
+    background: @md3_surface_container_high;
+    background-image: none;
     color: @md3_on_surface_variant;
+    font-weight: 700;
+}
+window.glass-window.power-menu-window button.close-button:hover {
+    color: @md3_on_primary_container;
+    background: @md3_primary_container;
+    border-color: @md3_primary;
 }
 window.glass-window.power-menu-window .power-icon {
     padding: 7px;
     border-radius: 999px;
     color: @md3_primary;
-    background: alpha(@md3_primary, .14);
-    border: 1px solid alpha(@md3_primary, .24);
+    background: alpha(@md3_primary, .16);
+    border: 1px solid alpha(@md3_primary, .30);
 }
 window.glass-window.power-menu-window button.power-action.danger .power-icon {
     color: @md3_error;
-    background: alpha(@md3_error, .14);
-    border-color: alpha(@md3_error, .28);
+    background: alpha(@md3_error, .16);
+    border-color: alpha(@md3_error, .36);
 }
 window.glass-window.power-menu-window button.power-action {
-    padding: 10px 14px;
-    border: 1px solid alpha(@md3_on_surface, .10);
-    border-radius: 18px;
+    padding: 11px 14px;
+    border: 1px solid alpha(@md3_on_surface, .14);
+    border-radius: 20px;
     color: @md3_on_surface;
-    background-color: alpha(@md3_surface_container, .66);
-    background-image: linear-gradient(165deg, alpha(white, .05), transparent 50%);
-    box-shadow: inset 0 1px alpha(white, .08);
+    background-color: @md3_surface_container;
+    background-image: none;
+    box-shadow: none;
+    font-weight: 600;
 }
 window.glass-window.power-menu-window button.power-action:hover,
 window.glass-window.power-menu-window button.power-action:focus {
-    border-color: alpha(@md3_primary, .52);
+    border-color: @md3_primary;
     background-color: @md3_primary_container;
-    background-image: linear-gradient(135deg, alpha(@md3_primary, .26), alpha(@md3_secondary, .14));
+    background-image: none;
     color: @md3_on_primary_container;
-    box-shadow: inset 0 1px alpha(white, .16), 0 6px 18px alpha(@md3_primary, .20);
+    box-shadow: 0 4px 16px alpha(@md3_primary, .22);
 }
 window.glass-window.power-menu-window button.power-action.danger { color: @md3_error; }
 window.glass-window.power-menu-window button.power-action.danger:hover,
 window.glass-window.power-menu-window button.power-action.danger:focus {
-    border-color: alpha(@md3_error, .62);
+    border-color: @md3_error;
     background-color: @md3_error_container;
-    background-image: linear-gradient(135deg, alpha(@md3_error, .26), transparent 72%);
+    background-image: none;
     color: @md3_on_error_container;
-    box-shadow: inset 0 1px alpha(white, .12), 0 6px 18px alpha(@md3_error, .24);
+    box-shadow: 0 4px 16px alpha(@md3_error, .26);
 }
 window.glass-window.power-menu-window .power-note {
     color: @md3_on_surface_variant;
-    font-size: .8em;
+    font-size: .82em;
     padding: 0 4px 2px 6px;
 }
 window.glass-window.power-menu-window .power-question {
     color: @md3_on_surface;
-    font-size: 1.02em;
-    font-weight: 600;
+    font-size: 1.04em;
+    font-weight: 700;
 }
 window.glass-window.power-menu-window .power-actions { padding: 0; }
 window.glass-window.power-menu-window .power-action-row { padding: 0; }
@@ -682,7 +787,7 @@ window.glass-window.power-menu-window button.text-button {
 window.glass-window.power-menu-window button.text-button:hover,
 window.glass-window.power-menu-window button.text-button:focus {
     color: @md3_on_surface;
-    background: alpha(@md3_on_surface, .08);
+    background: alpha(@md3_on_surface, .10);
     border-color: @md3_outline;
     box-shadow: inset 0 0 0 2px @md3_primary;
 }
@@ -690,15 +795,16 @@ window.glass-window.power-menu-window .power-confirm { padding: 4px 2px 2px; }
 window.glass-window.power-menu-window button.accent-button {
     color: @md3_on_primary;
     background: @md3_primary;
+    background-image: linear-gradient(135deg, @md3_primary, @md3_secondary);
     border-color: @md3_primary;
     font-weight: 700;
 }
 
-/* ---- Interaction states ------------------------------------------------- */
+/* ---- Interaction states & Reduced motion -------------------------------- */
 window.glass-window.control-center-window button,
 window.glass-window.control-center-window scale slider {
-    transition: background-color 150ms ease-out, border-color 150ms ease-out,
-                color 150ms ease-out, box-shadow 150ms ease-out;
+    transition: background-color 140ms ease-out, border-color 140ms ease-out,
+                color 140ms ease-out, box-shadow 140ms ease-out;
 }
 window.glass-window.control-center-window button:focus,
 window.glass-window.control-center-window combobox:focus button,
@@ -709,14 +815,18 @@ window.glass-window.control-center-window spinbutton:focus {
     box-shadow: inset 0 0 0 2px @md3_primary;
     border-color: @md3_primary;
 }
-window.glass-window.control-center-window scale:focus trough { outline: none; box-shadow: 0 0 0 2px alpha(@md3_primary, .45); }
+window.glass-window.control-center-window scale:focus trough { outline: none; box-shadow: 0 0 0 2px alpha(@md3_primary, .55); }
 window.glass-window.control-center-window button:disabled { opacity: .38; }
 window.glass-window.control-center-window button.accent-button:focus { box-shadow: inset 0 0 0 2px @md3_on_primary; }
 window.glass-window.control-center-window .settings-navigation row:focus {
-    border-radius: 12px;
+    border-radius: 999px;
     outline: none;
-    box-shadow: inset 0 0 0 2px @md3_primary;
+    box-shadow: inset 0 0 0 1px alpha(@md3_primary, .65);
 }
 window.glass-window.control-center-window .quick-tile button.quick-toggle:checked,
-window.glass-window.control-center-window .quick-tile button.quick-toggle:active { border-radius: 18px; }
-window.glass-window.reduce-motion * { transition: none; }
+window.glass-window.control-center-window .quick-tile button.quick-toggle:active { border-radius: 20px; }
+window.glass-window.reduce-motion,
+window.glass-window.reduce-motion * {
+    transition: none;
+    animation: none;
+}

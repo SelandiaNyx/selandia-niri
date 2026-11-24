@@ -16,10 +16,8 @@ class SettingsNavigation(Gtk.Box):
         self._reveal_source = None
         self._disposed = False
         style(self, "settings-sidebar")
-        # English categories such as "Windows & workspace" need room at the
-        # default font; 190 px ellipsized them. The 25 px still leave the
-        # 960 px quick overview enough width for every primary control.
-        self.set_size_request(215, -1)
+        # MD3 Navigation Drawer width: generous room for English & Chinese labels.
+        self.set_size_request(224, -1)
         self.search = Gtk.SearchEntry()
         self.search.set_placeholder_text(tr("Search settings", "搜索设置"))
         self.search.set_tooltip_text(tr("Search names and functions · Ctrl+F", "按名称或功能搜索 · Ctrl+F"))
@@ -43,7 +41,7 @@ class SettingsNavigation(Gtk.Box):
                 heading.set_selectable(False)
                 heading.set_activatable(False)
                 english_group, chinese_group = GROUP_LABELS.get(group, (group, group))
-                group_label = Gtk.Label(label=tr(english_group, chinese_group), xalign=0)
+                group_label = Gtk.Label(label="✦  " + tr(english_group, chinese_group), xalign=0)
                 group_label.get_style_context().add_class("nav-group")
                 heading.add(group_label)
                 self.list.add(heading)
@@ -52,15 +50,13 @@ class SettingsNavigation(Gtk.Box):
             row.key = key
             row.search_text = " ".join((english, chinese, keywords)).casefold()
             row.group = group
-            content = Gtk.Box(spacing=9)
+            content = Gtk.Box(spacing=10)
             pack(content, icon(glyph, 18))
             label = Gtk.Label(label=tr(english, chinese), xalign=0)
             label.set_ellipsize(Pango.EllipsizeMode.NONE)
             label.set_line_wrap(True)
             label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-            # Keep the requested width comfortably inside the fixed 215 px
-            # sidebar. Long English categories then wrap onto a second line
-            # and their row grows vertically instead of widening the window.
+            # Keep requested width comfortably inside the 224 px navigation drawer.
             label.set_max_width_chars(18)
             pack(content, label, True)
             row.add(content)
@@ -72,6 +68,10 @@ class SettingsNavigation(Gtk.Box):
         self.empty.set_line_wrap(True)
         self.empty.set_no_show_all(True)
         pack(self, self.empty)
+        self.mascot_box = Gtk.Box()
+        style(self.mascot_box, "nav-mascot")
+        self.mascot_box.set_can_focus(False)
+        pack(self, self.mascot_box)
         self.list.set_filter_func(self.matches)
         self.search.connect("search-changed", self.filter)
         self.search.connect("activate", self.search_activate)

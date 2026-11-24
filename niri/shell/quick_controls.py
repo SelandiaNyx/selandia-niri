@@ -9,9 +9,9 @@ from i18n import tr
 
 
 def build_overview(panel):
-    body = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12), "quick-overview")
+    body = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16), "quick-overview")
     hero = Gtk.Box(orientation=(Gtk.Orientation.VERTICAL if panel.panel_width < 650
-                                else Gtk.Orientation.HORIZONTAL), spacing=12)
+                                else Gtk.Orientation.HORIZONTAL), spacing=16)
     pack(body, hero)
     panel.tiles = {}
     panel.tile_groups = {}
@@ -53,7 +53,7 @@ def build_overview(panel):
         panel.tile_groups[key] = group
         return group
 
-    tile_grid = Gtk.Grid(column_spacing=10, row_spacing=8, column_homogeneous=True)
+    tile_grid = Gtk.Grid(column_spacing=12, row_spacing=12, column_homogeneous=True)
     tile_grid.attach(tile("wifi", tr("Wi-Fi", "无线网络"), "network-wireless-symbolic", panel.toggle_wifi,
                           lambda: panel.desktop("launch", "network")), 0, 0, 1, 1)
     tile_grid.attach(tile("bluetooth", tr("Bluetooth", "蓝牙"), "bluetooth-active-symbolic", panel.toggle_bluetooth,

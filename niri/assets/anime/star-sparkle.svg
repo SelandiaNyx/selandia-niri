@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <defs>
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff8fbf"/>
+      <stop offset="100%" stop-color="#8fd3ff"/>
+    </linearGradient>
+  </defs>
+  <path d="M11.5 2.5 C12.1 7.6 14.4 9.9 19.5 10.5 C14.4 11.1 12.1 13.4 11.5 18.5 C10.9 13.4 8.6 11.1 3.5 10.5 C8.6 9.9 10.9 7.6 11.5 2.5 Z"
+        fill="url(#starGrad)" stroke="#3a0a20" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M18.6 15.2 C18.9 17.1 19.9 18.1 21.8 18.4 C19.9 18.7 18.9 19.7 18.6 21.6 C18.3 19.7 17.3 18.7 15.4 18.4 C17.3 18.1 18.3 17.1 18.6 15.2 Z"
+        fill="#ff8fbf"/>
+  <circle cx="5.2" cy="4.8" r="1.2" fill="#8fd3ff"/>
+</svg>

@@ -85,9 +85,10 @@ def secondary_surfaces(roles, opacity):
 
 
 class AppearanceTests(unittest.TestCase):
-    def test_nine_collections_have_complete_light_and_dark_palettes(self):
-        self.assertEqual(len(appearance.PRESETS), 9)
+    def test_thirteen_collections_have_complete_light_and_dark_palettes(self):
+        self.assertEqual(len(appearance.PRESETS), 13)
         self.assertEqual(set(appearance.PRESETS), set(appearance.LIGHT_PRESETS))
+        self.assertEqual(tuple(appearance.PRESETS)[:4], ("sakura", "sora", "lavender", "mint"))
         for preset in appearance.PRESETS:
             for mode in ("light", "dark"):
                 with self.subTest(preset=preset, mode=mode):

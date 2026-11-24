@@ -1,5 +1,21 @@
 # 批次交接说明（Handover for Codex）
 
+## 2026-11-25 · 「樱花喵 Sakura Nyan」重度二次元 MD3 前端全面重做批次
+
+- **设计令牌与高对比体系（M1 & M1b）**：
+  - 在 [`niri/shell/appearance.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/appearance.py) 新增 4 套深浅双模二次元预设 `sakura`（默认）、`sora`、`lavender`、`mint`（全库共 13 套深浅预设），升级 `DEFAULTS`（`preset: "sakura"`、`font_size: 13`、`opacity: 0.94`）与 `MD3_SHAPE`（`28/24/20/16/14/999` px），提供 `preset_label()` 显式单语/双语解析，保持 `test_i18n_ratchet.py` 零回退。
+  - 提升全量 26 组（预设 × 明暗）核心文字与容器对比度至 WCAG AAA（`TEXT_CONTRAST = 7.0`），并补齐 `secondary` 的 `4.5:1` 对比度保护。
+  - 全面重写 `_render_panel`、`_render_eww`、`_render_swaync`、`_render_anyrun`、`_render_fuzzel`、`_render_lock`，由旧版液态玻璃斜向反光切换为高对比 MD3 Tonal Surface、樱粉→天蓝强调渐变与贴纸装饰，并加入 GTK3 `@keyframes` 动效（`.reduce-motion` 下全面关闭）。
+- **看板娘「Nyx 酱」立绘与动漫 SVG 素材（N2）**：
+  - 在 `niri/assets/anime/` 新增 7 张透明抠图/锁屏 PNG（`mascot-{full,peek,avatar,avatar-64,sleepy,thinking}.png`、`lock-bg.png`）、7 套彩色与 `-symbolic.svg` 矢量贴纸图标（`paw`、`sakura`、`star-sparkle`、`heart`、`cat-ears`、`ribbon`、`cloud`）及 [`niri/assets/anime/README.md`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/assets/anime/README.md)，并全部登记至 [`tools/deploy.py`](file:///home/SelandiaNyx/Selandia's%20Niri/tools/deploy.py) `REQUIRED_SOURCES`。
+- **三段式顶栏与灵动岛时钟重排（M2）**：
+  - [`niri/shell/bar_backend.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/bar_backend.py) 左侧升级为看板娘头像启动器（`mascot-avatar-64.png`）+ 工作区 + 当前应用；中间灵动岛空闲态集成媒体闪星入口与居中时钟/日期（`.island-clock`，点击打开日历），同步调整 `geometry()` 的 `collapsed` 与右侧宽度并在三层均绑定 `reduce-motion` 开关；右侧移除时钟胶囊并增加 `bar-right` 标记。
+  - [`niri/eww/input_region.rs`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/eww/input_region.rs) 扩展为 `clock || bar-right` 识别右侧窗口并经 `rustc` 实测零警告编译通过；新 `eww.yuck` 与 `eww.css` 经真实 Eww 0.6 守护进程解析通过。
+- **控制中心、抽屉、电源菜单与外围模板换新（M3, M4, N3）**：
+  - [`niri/shell/panel.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/panel.py) 为每种模式附加 `{mode}-window` 类，控制中心头部加入 Nyx 酱圆角头像、动态时段问候与探头横幅；[`niri/shell/settings_navigation.py`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/settings_navigation.py) 升级为 224px MD3 Navigation Drawer 并内置 `.nav-mascot` 立绘区；全面重写 [`niri/shell/control_center.css`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/control_center.css)、[`niri/shell/style.css`](file:///home/SelandiaNyx/Selandia's%20Niri/niri/shell/style.css) 及外围回退模板（`swaync/style.css`、`swaylock/config`、`fuzzel/fuzzel.ini`、`anyrun/style.css`）。
+- **测试与实机验收（M5）**：
+  - 同步更新受影响断言并新增 [`tests/test_sakura_redesign.py`](file:///home/SelandiaNyx/Selandia's%20Niri/tests/test_sakura_redesign.py)；完整 `./check.sh` 与 1,047 项单元测试全绿；完成深/浅色控制中心、AI 抽屉、日历抽屉、电源菜单实机截图评审与细节修整。
+
 ## 2026-11-24 · Argon × Opus 联合架构解耦、i18n 棘轮与回归加固批次
 
 - **核心模块解耦（M1 & M2）**：

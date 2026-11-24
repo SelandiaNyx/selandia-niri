@@ -14,13 +14,13 @@ import component_preferences as components
 import live_update
 
 class PruneTests(unittest.TestCase):
-    def test_clock_click_dispatches_calendar_only_in_right_segment(self):
+    def test_clock_click_dispatches_calendar_only_in_center_island(self):
         import bar_backend
         text, _ = bar_backend.render([('test',1600)])
         windows = text.split('(defwindow ')
-        self.assertIn(' calendar',windows[2])
+        self.assertIn(' calendar',windows[3])
         self.assertNotIn(' calendar',windows[1])
-        self.assertNotIn(' calendar',windows[3])
+        self.assertNotIn(' calendar',windows[2])
         self.assertNotIn('scripts/desktop time',text)
 
     def test_old_choices_migrate_independently_without_recreating_old_files(self):

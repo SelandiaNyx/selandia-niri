@@ -1,24 +1,24 @@
 // Generated palette overrides. Keep layout preferences in conf/appearance.kdl.
 layout {
     struts { top 0; }
-    background-color "#090d16"
+    background-color "#1a1118"
     focus-ring {
-        active-gradient from="#5ee7ff" to="#a78bfa" angle=135
-        inactive-color "#6482a848"
-        urgent-color "#fb7185"
+        active-gradient from="#ff8fbf" to="#8fd3ff" angle=135
+        inactive-color "#c98aa848"
+        urgent-color "#ff8a9a"
         width 2
     }
     tab-indicator {
-        active-gradient from="#5ee7ff" to="#a78bfa" angle=90
-        inactive-color "#f1f6ff22"
+        active-gradient from="#ff8fbf" to="#8fd3ff" angle=90
+        inactive-color "#fff4f822"
     }
 }
-overview { backdrop-color "#090d16"; }
+overview { backdrop-color "#1a1118"; }
 // Low-opacity panel text uses a crisp outline and a noise-free blur surface.
 window-rule {
     match app-id=r#"^org\.selandia\.Glass$"# title="^Selandia · control$"
     background-effect { noise 0.02; }
-    shadow { on; softness 38; spread 2; offset x=0 y=10; color "#090d1677"; }
+    shadow { on; softness 38; spread 2; offset x=0 y=10; color "#1a111877"; }
 }
 layer-rule {
     match namespace="^selandia-.*$"
@@ -26,7 +26,7 @@ layer-rule {
 }
 layer-rule {
     match namespace="^(launcher|selandia-.*)$"
-    shadow { on; softness 42; spread 3; offset x=0 y=12; color "#090d1677"; }
+    shadow { on; softness 42; spread 3; offset x=0 y=12; color "#1a111877"; }
 }
 layer-rule {
     match namespace="^(selandia-bar-.*|selandia-island)$"

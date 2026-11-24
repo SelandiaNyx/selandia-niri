@@ -80,8 +80,12 @@ class BarCapsuleTests(unittest.TestCase):
         rendered,names=bar_backend.render([('probe',1600)],size=16)
         left,right,center=rendered.split('(defwindow ')[1:]
         self.assertIn('current-app',left)
+        self.assertIn('mascot-avatar-64.png',left)
         self.assertNotIn('current-app',right+center)
-        self.assertIn(' calendar',right)
+        self.assertIn(' calendar',center)
+        self.assertNotIn(' calendar',left+right)
+        self.assertIn('island-clock',center)
+        self.assertIn('bar-right',right)
         self.assertIn(':truncate true',left)
         self.assertEqual(len(names),3)
 
@@ -89,8 +93,11 @@ class BarCapsuleTests(unittest.TestCase):
         for size in (12,16,20):
             for width in (800,1600,3840):
                 shape=bar_backend.geometry(width,size)
+                compact = width < 1500 or (size >= 15 and width < 2400)
                 self.assertGreaterEqual(shape['left'],min(round(250*max(1,size/12)),round(width*.27)))
-                self.assertEqual(shape['right'],min(round(760*max(1,size/12)),round(width*(.40 if (width<1500 or size>=15) else .45))))
+                self.assertEqual(shape['right'],min(round(620*max(1,size/12)),round(width*(.35 if compact else .38))))
+                self.assertGreaterEqual(shape['collapsed'], 96)
+                self.assertLessEqual(shape['collapsed'], shape['island'])
                 self.assertGreaterEqual(shape['height'],44)
         self.assertLess(bar_backend.geometry(3840,16)['height'],max(44,round(16*2.8+10)))
 
@@ -166,8 +173,9 @@ class BarCapsuleTests(unittest.TestCase):
         self.assertIn('TEMP', right)
         self.assertIn('{state.temperature_text}', right)
         self.assertIn(' system', right)
-        self.assertIn('{state.clock_time}', right)
-        self.assertIn('{state.clock_date}', right)
+        self.assertIn('{state.clock_time}', center)
+        self.assertIn('{state.clock_date}', center)
+        self.assertNotIn('{state.clock_time}', right)
         self.assertIn(' notification-toggle', right)
         self.assertIn(' control', right)
 
@@ -177,8 +185,8 @@ class BarCapsuleTests(unittest.TestCase):
         self.assertIn('{state.cpu_text}', right)
         self.assertIn('{state.memory_text}', right)
         self.assertNotIn('{state.temperature_text}', right)
-        self.assertIn('{state.clock_time}', right)
-        self.assertNotIn('{state.clock_date}', right)
+        self.assertIn('{state.clock_time}', center)
+        self.assertNotIn('{state.clock_date}', center)
         self.assertIn('⋯', right)
         self.assertNotIn('(systray', right)
 

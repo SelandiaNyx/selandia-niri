@@ -21,7 +21,7 @@ import tempfile
 import unicodedata
 
 import font_scale
-from i18n import tr
+from i18n import tr, tr_legacy
 
 BASE = Path(__file__).resolve().parent.parent
 PRESETS = {
@@ -79,9 +79,73 @@ for name, label, dark_bg, dark_surface, dark_raised, dark_sunken, dark_border, l
     LIGHT_PRESETS[name] = {**LIGHT_PRESETS["glacier"], "background": light_bg,
                            "surface_raised": light_raised, "surface_sunken": light_raised,
                            "accent": light_accent, "secondary": light_secondary, "accent_hover": light_secondary}
-DEFAULTS = {"preset": "glacier", "color_mode": "dark", "reduced_motion": False, "font": "Adwaita Sans", "font_size": 12,
-            "mono_font": "JetBrainsMono Nerd Font", "mono_size": 11.5, "opacity": 0.78,
+# Sakura Nyan anime collections: near-opaque MD3 tonal surfaces, a candy
+# primary plus a complementary secondary, and ink that clears 7:1 everywhere.
+ANIME_PRESETS = {
+    "sakura": (("Sakura Nyan", "樱花喵"),
+               {"background": "#1a1118", "surface": "#251a23", "surface_raised": "#33232f", "surface_sunken": "#120b10",
+                "ink": "#fff4f8", "muted": "#ecd3df", "faint": "#5c4253", "accent": "#ff8fbf", "secondary": "#8fd3ff",
+                "accent_hover": "#ffb3d4", "on_accent": "#3a0a20", "border": "#c98aa8",
+                "border_subtle": "rgba(255, 244, 248, 0.10)", "success": "#7ee2b8", "warning": "#ffd479",
+                "error": "#ff8a9a", "danger": "#ff8a9a"},
+               {"background": "#fff5f8", "surface": "#ffffff", "surface_raised": "#ffe4ee", "surface_sunken": "#fbe9f0",
+                "ink": "#2a1020", "muted": "#553245", "faint": "#e8bfd0", "accent": "#c2185b", "secondary": "#0270b0",
+                "accent_hover": "#a3124c", "on_accent": "#ffffff", "border": "#d98fb0",
+                "border_subtle": "rgba(42, 16, 32, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
+                "error": "#c0123c", "danger": "#c0123c"}),
+    "sora": (("Sora Nyan", "晴空喵"),
+             {"background": "#0e1522", "surface": "#162133", "surface_raised": "#1f2e46", "surface_sunken": "#090e17",
+              "ink": "#f2f8ff", "muted": "#cddcf0", "faint": "#3e5272", "accent": "#7cc8ff", "secondary": "#ffa6c9",
+              "accent_hover": "#a6dbff", "on_accent": "#06213a", "border": "#7f9fc9",
+              "border_subtle": "rgba(242, 248, 255, 0.10)", "success": "#7ee2b8", "warning": "#ffd479",
+              "error": "#ff8a9a", "danger": "#ff8a9a"},
+             {"background": "#f3f8ff", "surface": "#ffffff", "surface_raised": "#e2eefc", "surface_sunken": "#e8f1fc",
+              "ink": "#0b1a2e", "muted": "#2f4561", "faint": "#bcd0ea", "accent": "#0a62b0", "secondary": "#c2185b",
+              "accent_hover": "#08508f", "on_accent": "#ffffff", "border": "#8fb0d8",
+              "border_subtle": "rgba(11, 26, 46, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
+              "error": "#c0123c", "danger": "#c0123c"}),
+    "lavender": (("Lavender Nyan", "薰衣草喵"),
+                 {"background": "#16121f", "surface": "#211a2e", "surface_raised": "#2d2440", "surface_sunken": "#0e0b15",
+                  "ink": "#f8f3ff", "muted": "#dccff0", "faint": "#54467a", "accent": "#c7a6ff", "secondary": "#ffb0d0",
+                  "accent_hover": "#dac4ff", "on_accent": "#25104a", "border": "#a48bcc",
+                  "border_subtle": "rgba(248, 243, 255, 0.10)", "success": "#7ee2b8", "warning": "#ffd479",
+                  "error": "#ff8a9a", "danger": "#ff8a9a"},
+                 {"background": "#f8f4ff", "surface": "#ffffff", "surface_raised": "#ece3fd", "surface_sunken": "#f0e9fd",
+                  "ink": "#1f1433", "muted": "#47386a", "faint": "#d2c4ef", "accent": "#6a3fc4", "secondary": "#b8135a",
+                  "accent_hover": "#5730a6", "on_accent": "#ffffff", "border": "#ab96d8",
+                  "border_subtle": "rgba(31, 20, 51, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
+                  "error": "#c0123c", "danger": "#c0123c"}),
+    "mint": (("Mint Nyan", "薄荷喵"),
+             {"background": "#0e1916", "surface": "#162520", "surface_raised": "#1f332c", "surface_sunken": "#09110e",
+              "ink": "#f0fff9", "muted": "#cbe9dd", "faint": "#3d6355", "accent": "#7fe8c4", "secondary": "#ffb38a",
+              "accent_hover": "#a6f0d6", "on_accent": "#06261b", "border": "#79b8a1",
+              "border_subtle": "rgba(240, 255, 249, 0.10)", "success": "#7ee2b8", "warning": "#ffd479",
+              "error": "#ff8a9a", "danger": "#ff8a9a"},
+             {"background": "#f2fbf7", "surface": "#ffffff", "surface_raised": "#dcf3ea", "surface_sunken": "#e6f6ef",
+              "ink": "#0b241b", "muted": "#2b4a3e", "faint": "#b9dfd0", "accent": "#0b7a57", "secondary": "#b2470e",
+              "accent_hover": "#086347", "on_accent": "#ffffff", "border": "#86c4ad",
+              "border_subtle": "rgba(11, 36, 27, 0.08)", "success": "#0b7a4b", "warning": "#9a5b00",
+              "error": "#c0123c", "danger": "#c0123c"}),
+}
+for name, ((label_en, label_zh), dark_values, light_values) in ANIME_PRESETS.items():
+    PRESETS[name] = {"label_en": label_en, "label_zh": label_zh, "label": label_en, **dark_values}
+    LIGHT_PRESETS[name] = dict(light_values)
+# The anime collections lead the picker; the earlier glass collections follow.
+PRESETS = {name: PRESETS[name] for name in (*ANIME_PRESETS, *(key for key in PRESETS if key not in ANIME_PRESETS))}
+LIGHT_PRESETS = {name: LIGHT_PRESETS[name] for name in PRESETS}
+
+
+def preset_label(name: str) -> str:
+    """Return the localized display label for a theme preset."""
+    preset = PRESETS[name]
+    if "label_en" in preset and "label_zh" in preset:
+        return tr(preset["label_en"], preset["label_zh"])
+    return tr_legacy(preset["label"])
+DEFAULTS = {"preset": "sakura", "color_mode": "dark", "reduced_motion": False, "font": "Adwaita Sans", "font_size": 13,
+            "mono_font": "JetBrainsMono Nerd Font", "mono_size": 11.5, "opacity": 0.94,
             "wallpaper_colors": False, "wallpaper_seed": None}
+# Text roles must clear this ratio on every generated surface (WCAG AAA).
+TEXT_CONTRAST = 7.0
 GENERATED_FILES = ("panel.css", "swaync.css", "theme.kdl", "fuzzel.ini", "swaylock.conf", "eww.css", "anyrun.css", "alacritty.toml")
 
 
@@ -196,8 +260,8 @@ def _alpha(color, opacity):
 # shape scale.  Presets (including wallpaper tinting), light/dark mode and font
 # size still flow through palette()/validate_settings(); nothing here reads the
 # live desktop or hardcodes one collection.
-MD3_SHAPE = {"window": 26, "card": 20, "tile": 18, "pill": 14,
-             "button": 12, "badge": 999}
+MD3_SHAPE = {"window": 28, "card": 24, "tile": 20, "pill": 16,
+             "button": 14, "badge": 999}
 MD3_TYPE = {"display": 2.25, "headline": 1.50, "title_large": 1.25,
             "title_medium": 1.0, "body": 0.875, "caption": 0.75,
             "overline": 0.6875}
@@ -321,12 +385,12 @@ def _readable_secondary(roles: dict, opacity: float) -> str:
             for rounded, continuous in backdrops
         )
 
-    if passes(color, 4.5):
+    if passes(color, TEXT_CONTRAST):
         return color
     low, high = 0.0, 1.0
     for _ in range(24):
         mid = (low + high) / 2
-        if passes(_mix(color, ink, mid), 4.55):
+        if passes(_mix(color, ink, mid), TEXT_CONTRAST + .05):
             high = mid
         else:
             low = mid
@@ -342,23 +406,28 @@ def semantic_roles(palette_values: dict, mode: str) -> dict:
     sunken = palette_values.get("surface_sunken", background)
     ink = palette_values["ink"]
     muted = palette_values["muted"]
-    primary = palette_values["accent"]
-    secondary = palette_values["secondary"]
     error = palette_values.get("error", palette_values.get("danger", "#f87171"))
     on_primary = palette_values.get("on_accent", background)
+    # Filled buttons carry text: nudge the accent toward ink (away from its own
+    # on-colour) only when the pair misses the text contrast target.
+    primary = _contrast_mix(palette_values["accent"], ink, on_primary, TEXT_CONTRAST)
     # Surface containers progress away from the window base in small steps so
     # cards, raised chips and popovers remain distinguishable without borders.
     container_low = _mix(background, raised, .28)
     container = _mix(background, raised, .52)
     container_high = raised
     container_highest = _mix(raised, ink, .05)
+    # Secondary doubles as icon/accent text; keep it legible on every surface.
+    secondary = _contrast_mix(palette_values["secondary"], ink, container_highest, 4.5)
     primary_container = _mix(raised, primary, .36 if dark else .22)
-    # Trusted contrast handoff: correct only roles that miss 4.5:1, moving the
-    # smallest distance toward an existing anchor.  Passing colours are untouched.
-    on_surface_variant = _contrast_mix(muted, ink, container_highest)
-    primary_container = _contrast_mix(primary_container, raised, ink)
+    # Trusted contrast handoff: correct only roles that miss the target, moving
+    # the smallest distance toward an existing anchor.  Passing colours stay intact.
+    on_surface_variant = _contrast_mix(muted, ink, container_highest, TEXT_CONTRAST)
+    primary_container = _contrast_mix(primary_container, raised, ink, TEXT_CONTRAST)
     secondary_container = _mix(raised, secondary, .28 if dark else .16)
+    secondary_container = _contrast_mix(secondary_container, raised, ink, TEXT_CONTRAST)
     error_container = _mix(raised, error, .30 if dark else .16)
+    error_container = _contrast_mix(error_container, raised, ink, TEXT_CONTRAST)
     return {
         "primary": primary,
         "on_primary": on_primary,
@@ -566,13 +635,14 @@ def _render_context(settings: dict, base: Path | None = None) -> dict:
 @define-color success {p['success']};
 @define-color warning {p['warning']};
 """
-    # Liquid Glass MD3 layer: frosted translucency, specular top rim, dual-tone luminous accents.
+    # Sakura Nyan MD3 Tonal Surface tokens: crisp layered opacity, clean rims,
+    # and anime candy dual-tone accent reserved for primary controls & active pills.
     dark_mode = values["color_mode"] == "dark"
-    sheen_a = .13 if dark_mode else .10
-    sheen_b = .06 if dark_mode else .05
-    rim_alpha = .28 if dark_mode else .24
-    top_edge = rgba("#ffffff", .18 if dark_mode else .75)
-    card_edge = rgba("#ffffff", .11 if dark_mode else .65)
+    rim_alpha = .36 if dark_mode else .30
+    card_alpha = min(.98, max(opacity, .94)) if opacity >= .40 else opacity
+    ctrl_alpha = min(.98, max(opacity, .92)) if opacity >= .40 else opacity
+    top_edge = rgba(r['primary'], .22 if dark_mode else .18)
+    card_edge = rgba(r['on_surface'], .08 if dark_mode else .06)
     grad_accent = f"linear-gradient(135deg, {r['primary']}, {r['secondary']})"
     grad_bar = f"linear-gradient(90deg, {r['primary']}, {r['secondary']})"
     outline = "text-shadow: -1px 0 " + bg + ", 1px 0 " + bg + ", 0 -1px " + bg + ", 0 1px " + bg + ";" if opacity < .40 else ""
@@ -581,191 +651,187 @@ def _render_context(settings: dict, base: Path | None = None) -> dict:
     return context
 
 
-def _render_panel(*, accent_hover, aliases, bg, card_edge, css_header, dark_mode, family, grad_accent,
-                  grad_bar, ink, mono_family, opacity, px, r, rgba, rim_alpha, sheen_a, sheen_b, size,
+def _render_panel(*, accent_hover, aliases, bg, card_alpha, card_edge, css_header, ctrl_alpha, dark_mode,
+                  family, grad_accent, grad_bar, ink, mono_family, opacity, px, r, rgba, rim_alpha, size,
                   top_edge, type_sizes) -> str:
     """Render ``panel.css``."""
     panel = css_header + _role_definitions(r) + aliases + f"""* {{ font-family: {family}; font-size: {size:g}px; }}
 .glass-surface {{ color: {r['on_surface']}; background-color: {rgba(r['surface'], opacity)};
-    background-image: linear-gradient(148deg, {rgba(r['primary'], sheen_a)}, {rgba(r['secondary'], sheen_b)} 38%, transparent 74%);
+    background-image: none;
     border: 1px solid {rgba(r['primary'], rim_alpha)}; border-radius: {MD3_SHAPE['window']}px;
-    box-shadow: inset 0 1px {top_edge}, inset 0 -1px {rgba(r['secondary'], .10)}, 0 22px 56px {r['shadow']}; }}
-.panel-header {{ padding: 18px 20px 14px; border-bottom: 1px solid {rgba(r['primary'], .16)};
-    background-image: linear-gradient(90deg, {rgba(r['primary'], .09)}, {rgba(r['secondary'], .06)} 55%, transparent); }}
-.panel-content {{ padding: 16px 20px 20px; }}
+    box-shadow: inset 0 1px {top_edge}, 0 24px 60px {r['shadow']}; }}
+.panel-header {{ padding: 18px 22px 16px; border-bottom: 1px solid {rgba(r['primary'], .24)};
+    background-color: {rgba(r['surface_container_low'], min(.98, opacity))};
+    background-image: url("../assets/anime/sakura.svg");
+    background-repeat: no-repeat; background-position: 98% 20%; background-size: 46px 46px; }}
+.panel-content {{ padding: 18px 22px 22px; }}
 .panel-title {{ color: {r['on_surface']}; font-size: {px('headline')}; font-weight: 700; letter-spacing: -.3px; }}
 .subtitle, .hint, .control-label {{ color: {r['on_surface_variant']}; font-size: {px('body')}; }}
 .eyebrow, .section-title, .message-role {{ color: {r['primary']}; font-size: {px('overline')}; font-weight: 700; letter-spacing: 1.8px; }}
-.clock {{ color: {r['on_surface']}; font-size: {px('display')}; font-weight: 600; letter-spacing: -.8px; }}
-.card, .message, .metric-card, .pulse-card, .application-audio {{ padding: 14px; border: 1px solid {rgba(r['on_surface'], .10)};
-    background-color: {rgba(r['surface_container'], .68)};
-    background-image: linear-gradient(165deg, {rgba('#ffffff', .05 if dark_mode else .45)}, transparent 42%);
+.clock {{ color: {r['on_surface']}; font-size: {px('display')}; font-weight: 700; letter-spacing: -.8px; }}
+.card, .message, .metric-card, .pulse-card, .application-audio {{ padding: 16px; border: 1px solid {rgba(r['on_surface'], .12)};
+    background-color: {rgba(r['surface_container'], card_alpha)};
+    background-image: none;
     border-radius: {MD3_SHAPE['card']}px;
-    box-shadow: inset 0 1px {card_edge}, 0 8px 24px {rgba('#000000', .14 if dark_mode else .07)}; }}
-button {{ color: {r['on_surface']}; background-color: {rgba(r['surface_container_high'], .62)};
-    background-image: linear-gradient(180deg, {rgba('#ffffff', .06 if dark_mode else .45)}, transparent);
-    border: 1px solid {rgba(r['on_surface'], .14)}; border-radius: {MD3_SHAPE['button']}px; padding: 8px 13px;
-    box-shadow: inset 0 1px {card_edge}; text-shadow: none;
-    transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out, box-shadow 150ms ease-out; }}
-button:hover {{ background-color: {rgba(r['primary'], .16)}; border-color: {rgba(r['primary'], .48)};
-    box-shadow: inset 0 1px {top_edge}, 0 4px 14px {rgba(r['primary'], .18)}; border-radius: {MD3_SHAPE['button']}px; }}
+    box-shadow: inset 0 1px {card_edge}, 0 6px 20px {rgba('#000000', .16 if dark_mode else .06)}; }}
+button {{ color: {r['on_surface']}; background-color: {rgba(r['surface_container_high'], ctrl_alpha)};
+    background-image: none;
+    border: 1px solid {rgba(r['on_surface'], .16)}; border-radius: {MD3_SHAPE['button']}px; padding: 8px 14px;
+    box-shadow: none; text-shadow: none;
+    transition: background-color 140ms ease-out, border-color 140ms ease-out, color 140ms ease-out, box-shadow 140ms ease-out; }}
+button:hover {{ color: {r['on_primary_container']}; background-color: {r['primary_container']}; border-color: {rgba(r['primary'], .58)};
+    box-shadow: 0 3px 12px {rgba(r['primary'], .20)}; border-radius: {MD3_SHAPE['button']}px; }}
 button:checked, button:active {{ color: {r['on_primary_container']}; background-color: {r['primary_container']};
-    background-image: linear-gradient(135deg, {rgba(r['primary'], .28)}, {rgba(r['secondary'], .16)});
-    border-color: {rgba(r['primary'], .58)}; border-radius: {MD3_SHAPE['button']}px; }}
+    border-color: {r['primary']}; border-radius: {MD3_SHAPE['button']}px; }}
 button:focus, button:focus-within {{ outline: none; border-color: {r['primary']}; box-shadow: inset 0 0 0 2px {r['primary']}; }}
 button:disabled {{ opacity: .38; }}
 button.flat, button.md3-text-button {{ color: {r['primary']}; background-color: transparent;
     background-image: none; border-color: transparent; box-shadow: none; }}
 button.flat:hover, button.md3-text-button:hover {{ color: {r['on_primary_container']};
-    background-color: {rgba(r['primary'], .14)}; border-color: transparent; box-shadow: none; }}
+    background-color: {rgba(r['primary'], .16)}; border-color: transparent; box-shadow: none; }}
 button.flat:checked, button.md3-text-button:checked {{ color: {r['on_primary_container']};
     background-color: {r['primary_container']}; border-color: transparent; }}
 button.accent-button {{ color: {r['on_primary']}; background-color: {r['primary']}; background-image: {grad_accent};
-    border-color: {rgba(r['primary'], .85)}; font-weight: 700;
-    box-shadow: inset 0 1px {rgba('#ffffff', .35)}, 0 4px 16px {rgba(r['primary'], .34)}; }}
+    border-color: {r['primary']}; font-weight: 700;
+    box-shadow: 0 4px 16px {rgba(r['primary'], .36)}; }}
 button.accent-button:hover {{ background-color: {accent_hover}; background-image: {grad_accent}; border-color: {r['secondary']};
-    box-shadow: inset 0 1px {rgba('#ffffff', .45)}, 0 6px 20px {rgba(r['primary'], .45)}; }}
+    box-shadow: 0 6px 20px {rgba(r['primary'], .48)}; }}
 button.accent-button:focus {{ box-shadow: inset 0 0 0 2px {r['on_primary']}; }}
-button.power-button {{ color: {r['error']}; border-color: {rgba(r['error'], .34)}; background-color: {rgba(r['error'], .10)}; background-image: none; }}
-button.power-button:hover {{ color: {r['error']}; border-color: {rgba(r['error'], .62)}; background-color: {r['error_container']};
-    box-shadow: 0 4px 14px {rgba(r['error'], .22)}; }}
-button.small-button {{ font-size: {px('caption')}; padding: 5px 9px; border-radius: {MD3_SHAPE['button']}px; }}
-button.tool-button {{ padding: 9px 7px; font-size: {px('caption')}; }}
-button.close-button {{ min-width: 30px; min-height: 30px; padding: 0; border-radius: {MD3_SHAPE['badge']}px;
-    color: {r['on_surface_variant']}; background-color: {rgba(r['on_surface'], .05)}; background-image: none;
-    border-color: {rgba(r['on_surface'], .08)}; box-shadow: none; font-size: {type_sizes['title_large']:g}px; }}
-button.close-button:hover {{ color: {r['on_surface']}; background-color: {rgba(r['primary'], .18)}; border-color: {rgba(r['primary'], .42)}; }}
+button.power-button {{ color: {r['error']}; border-color: {rgba(r['error'], .40)}; background-color: {rgba(r['error'], .12)}; background-image: none; }}
+button.power-button:hover {{ color: {r['on_error_container']}; border-color: {r['error']}; background-color: {r['error_container']};
+    box-shadow: 0 4px 14px {rgba(r['error'], .24)}; }}
+button.small-button {{ font-size: {px('caption')}; padding: 5px 10px; border-radius: {MD3_SHAPE['button']}px; }}
+button.tool-button {{ padding: 9px 8px; font-size: {px('caption')}; }}
+button.close-button {{ min-width: 32px; min-height: 32px; padding: 0; border-radius: {MD3_SHAPE['badge']}px;
+    color: {r['on_surface_variant']}; background-color: {rgba(r['surface_container_high'], .86)}; background-image: none;
+    border-color: {rgba(r['on_surface'], .14)}; box-shadow: none; font-size: {type_sizes['title_large']:g}px; }}
+button.close-button:hover {{ color: {r['on_primary_container']}; background-color: {r['primary_container']}; border-color: {rgba(r['primary'], .55)}; }}
 button.close-button:checked, button.close-button:active {{ border-radius: {MD3_SHAPE['badge']}px; }}
-.control-tabs {{ padding: 4px; border: 1px solid {rgba(r['primary'], .18)}; border-radius: {MD3_SHAPE['pill']}px;
-    background-color: {rgba(r['surface_container_low'], .68)}; }}
+.control-tabs {{ padding: 4px; border: 1px solid {rgba(r['primary'], .26)}; border-radius: {MD3_SHAPE['pill']}px;
+    background-color: {rgba(r['surface_container_low'], card_alpha)}; }}
 .control-tabs button {{ color: {r['on_surface_variant']}; background: transparent; background-image: none; border-color: transparent;
-    border-radius: {MD3_SHAPE['badge']}px; box-shadow: none; padding: 6px 4px; font-size: {px('caption')}; }}
-.control-tabs button:hover {{ color: {r['on_surface']}; background-color: {rgba(r['primary'], .12)}; }}
+    border-radius: {MD3_SHAPE['badge']}px; box-shadow: none; padding: 6px 6px; font-size: {px('caption')}; font-weight: 600; }}
+.control-tabs button:hover {{ color: {r['on_surface']}; background-color: {rgba(r['primary'], .16)}; }}
 .control-tabs button:checked, .control-tabs button:active, .control-tabs button:selected {{ color: {r['on_primary_container']};
     border-radius: {MD3_SHAPE['badge']}px; background-color: {r['primary_container']};
-    background-image: linear-gradient(135deg, {rgba(r['primary'], .28)}, {rgba(r['secondary'], .18)});
-    border-color: {rgba(r['primary'], .44)}; }}
+    border-color: {rgba(r['primary'], .55)}; font-weight: 700; }}
 .scale, scale {{ padding: 6px 2px; }}
-scale trough {{ min-height: 6px; border: 1px solid {rgba(r['on_surface'], .12)}; border-radius: {MD3_SHAPE['badge']}px; background-color: {rgba(r['surface_sunken'], .85)}; background-image: none; }}
-scale highlight {{ min-height: 6px; border: none; border-radius: {MD3_SHAPE['badge']}px; background-color: {r['primary']}; background-image: {grad_bar}; }}
-scale slider {{ min-width: 16px; min-height: 16px; margin: -5px; border: 2px solid {r['primary']};
+scale trough {{ min-height: 7px; border: 1px solid {rgba(r['on_surface'], .14)}; border-radius: {MD3_SHAPE['badge']}px; background-color: {rgba(r['surface_sunken'], .92)}; background-image: none; }}
+scale highlight {{ min-height: 7px; border: none; border-radius: {MD3_SHAPE['badge']}px; background-color: {r['primary']}; background-image: {grad_bar}; }}
+scale slider {{ min-width: 18px; min-height: 18px; margin: -6px; border: 2px solid {r['primary']};
     border-radius: {MD3_SHAPE['badge']}px; background-color: #ffffff; background-image: none;
-    box-shadow: 0 2px 8px {rgba('#000000', .38)}, 0 0 0 2px {rgba(r['primary'], .22)}; }}
-scale:focus trough {{ outline: none; box-shadow: 0 0 0 2px {rgba(r['primary'], .45)}; }}
+    box-shadow: 0 2px 8px {rgba('#000000', .36)}, 0 0 0 2px {rgba(r['primary'], .24)}; }}
+scale:focus trough {{ outline: none; box-shadow: 0 0 0 2px {rgba(r['primary'], .55)}; }}
 scale:disabled {{ opacity: .38; }}
-progressbar trough, .metric-progress trough {{ min-height: 6px; border: 1px solid {rgba(r['on_surface'], .12)}; border-radius: {MD3_SHAPE['badge']}px;
-    background-color: {rgba(r['surface_sunken'], .85)}; background-image: none; }}
-progressbar progress, .metric-progress progress {{ min-height: 6px; border: none; border-radius: {MD3_SHAPE['badge']}px;
+progressbar trough, .metric-progress trough {{ min-height: 7px; border: 1px solid {rgba(r['on_surface'], .14)}; border-radius: {MD3_SHAPE['badge']}px;
+    background-color: {rgba(r['surface_sunken'], .92)}; background-image: none; }}
+progressbar progress, .metric-progress progress {{ min-height: 7px; border: none; border-radius: {MD3_SHAPE['badge']}px;
     background-color: {r['primary']}; background-image: {grad_bar}; }}
 .metric-value, .network-rate, .quick-slider-value, .pulse-value {{ font-family: {mono_family}; font-feature-settings: "tnum 1, cv01 1"; }}
 .spec-value {{ font-family: {mono_family}, {family}; }}
 .metric-value, .network-rate {{ color: {r['primary']}; font-weight: 700; letter-spacing: -.3px; }}
 .metric-value {{ font-size: {type_sizes['headline']:g}px; }}
 .network-rate {{ font-size: {type_sizes['title_large']:g}px; }}
-entry, spinbutton {{ color: {r['on_surface']}; caret-color: {r['primary']}; border: 1px solid {rgba(r['on_surface'], .14)};
-    border-radius: {MD3_SHAPE['pill']}px; padding: 9px 12px; background-color: {rgba(r['surface_sunken'], .62)};
-    box-shadow: inset 0 1px 3px {rgba('#000000', .18 if dark_mode else .06)}; }}
+entry, spinbutton {{ color: {r['on_surface']}; caret-color: {r['primary']}; border: 1px solid {rgba(r['on_surface'], .18)};
+    border-radius: {MD3_SHAPE['pill']}px; padding: 9px 13px; background-color: {rgba(r['surface_sunken'], ctrl_alpha)};
+    box-shadow: none; }}
 entry:focus, spinbutton:focus {{ outline: none; border-color: {r['primary']};
-    box-shadow: inset 0 0 0 1px {rgba(r['primary'], .65)}, 0 0 0 3px {rgba(r['primary'], .16)}; }}
+    box-shadow: inset 0 0 0 1px {rgba(r['primary'], .72)}, 0 0 0 3px {rgba(r['primary'], .18)}; }}
 entry selection, textview text selection {{ background-color: {r['primary_container']}; color: {r['on_primary_container']}; }}
 spinbutton button {{ border: none; background: transparent; background-image: none; box-shadow: none; border-radius: {MD3_SHAPE['button']}px; padding: 5px 8px; }}
-menu, tooltip {{ color: {r['on_surface']}; background-color: {rgba(r['surface_container_high'], .95)};
-    border: 1px solid {rgba(r['primary'], .28)}; border-radius: {MD3_SHAPE['button']}px; padding: 5px;
+menu, tooltip {{ color: {r['on_surface']}; background-color: {rgba(r['surface_container_high'], .98)};
+    border: 1px solid {rgba(r['primary'], .36)}; border-radius: {MD3_SHAPE['button']}px; padding: 6px;
     box-shadow: 0 10px 28px {r['shadow']}; }}
-menuitem {{ padding: 8px; border-radius: {MD3_SHAPE['button']}px; }}
-menuitem:hover {{ background-color: {rgba(r['primary'], .16)}; }}
+menuitem {{ padding: 8px 10px; border-radius: {MD3_SHAPE['button']}px; }}
+menuitem:hover {{ color: {r['on_primary_container']}; background-color: {r['primary_container']}; }}
 list.wallpaper-list {{ background: transparent; color: {r['on_surface']}; }}
-list.wallpaper-list row {{ border: 1px solid {rgba(r['on_surface'], .08)}; border-radius: {MD3_SHAPE['button']}px;
-    margin: 2px 0; background: {rgba(r['surface_container'], .52)}; color: {r['on_surface']}; padding: 6px 8px; }}
-list.wallpaper-list row:hover {{ background: {rgba(r['primary'], .12)}; border-color: {rgba(r['primary'], .28)}; }}
+list.wallpaper-list row {{ border: 1px solid {rgba(r['on_surface'], .12)}; border-radius: {MD3_SHAPE['button']}px;
+    margin: 2px 0; background: {rgba(r['surface_container'], card_alpha)}; color: {r['on_surface']}; padding: 7px 10px; }}
+list.wallpaper-list row:hover {{ background: {rgba(r['primary'], .14)}; border-color: {rgba(r['primary'], .38)}; }}
 list.wallpaper-list row:selected, list.wallpaper-list row:active {{ border-radius: {MD3_SHAPE['button']}px;
-    background: {r['primary_container']}; background-image: linear-gradient(90deg, {rgba(r['primary'], .24)}, {rgba(r['secondary'], .10)});
-    border-color: {rgba(r['primary'], .55)}; color: {r['on_primary_container']}; }}
+    background: {r['primary_container']}; border-color: {r['primary']}; color: {r['on_primary_container']}; font-weight: 700; }}
 flowbox.wallpaper-grid {{ background: transparent; padding: 4px; }}
-flowbox.wallpaper-grid flowboxchild, .wallpaper-tile {{ padding: 10px; border: 1px solid {rgba(r['on_surface'], .09)};
-    border-radius: {MD3_SHAPE['card']}px; background-color: {rgba(r['surface_container'], .52)};
+flowbox.wallpaper-grid flowboxchild, .wallpaper-tile {{ padding: 10px; border: 1px solid {rgba(r['on_surface'], .12)};
+    border-radius: {MD3_SHAPE['card']}px; background-color: {rgba(r['surface_container'], card_alpha)};
     box-shadow: inset 0 1px {card_edge}; }}
-flowbox.wallpaper-grid flowboxchild:hover, .wallpaper-tile:hover {{ background-color: {rgba(r['primary'], .12)}; border-color: {rgba(r['primary'], .35)}; }}
+flowbox.wallpaper-grid flowboxchild:hover, .wallpaper-tile:hover {{ background-color: {rgba(r['surface_container_high'], card_alpha)}; border-color: {rgba(r['primary'], .45)}; }}
 flowbox.wallpaper-grid flowboxchild:selected, .wallpaper-tile:selected {{ border-radius: {MD3_SHAPE['card']}px;
-    background-image: linear-gradient(145deg, {rgba(r['primary'], .22)}, {rgba(r['secondary'], .12)});
-    border-color: {rgba(r['primary'], .65)}; background-color: {r['primary_container']};
-    box-shadow: 0 6px 18px {rgba(r['primary'], .22)}; }}
-.audio-stream-row {{ padding: 12px; border: 1px solid {rgba(r['on_surface'], .09)}; border-radius: {MD3_SHAPE['card']}px;
-    background-color: {rgba(r['surface_container'], .52)}; }}
+    background-image: none; border-color: {r['primary']}; background-color: {r['primary_container']};
+    box-shadow: 0 6px 18px {rgba(r['primary'], .24)}; }}
+.audio-stream-row {{ padding: 12px 14px; border: 1px solid {rgba(r['on_surface'], .12)}; border-radius: {MD3_SHAPE['card']}px;
+    background-color: {rgba(r['surface_container'], card_alpha)}; }}
 .audio-stream-row button:checked {{ border-radius: {MD3_SHAPE['button']}px; background-color: {r['primary_container']};
-    border-color: {rgba(r['primary'], .52)}; color: {r['on_primary_container']}; }}
+    border-color: {r['primary']}; color: {r['on_primary_container']}; }}
 .system-inventory {{ color: {r['on_surface']}; font-size: {size:g}px; }}
 label.system-summary {{ font-family: {mono_family}; color: {r['on_surface']}; }}
-.keycap {{ font-family: {mono_family}; font-size: {px('caption')}; color: {r['primary']}; font-weight: 600;
-    background-color: {rgba(r['primary'], .12)}; background-image: linear-gradient(180deg, {rgba(r['primary'], .14)}, {rgba(r['secondary'], .06)});
-    border: 1px solid {rgba(r['primary'], .32)};
-    border-radius: {MD3_SHAPE['button']}px; padding: 5px 9px; box-shadow: inset 0 1px {card_edge}; text-shadow: none; }}
+.keycap {{ font-family: {mono_family}; font-size: {px('caption')}; color: {r['on_primary_container']}; font-weight: 700;
+    background-color: {r['primary_container']}; background-image: none;
+    border: 1px solid {rgba(r['primary'], .48)};
+    border-radius: {MD3_SHAPE['button']}px; padding: 5px 10px; box-shadow: none; text-shadow: none; }}
 .shortcut-description, .welcome-copy, .message-text {{ color: {r['on_surface']}; font-size: {px('body')}; }}
-.user-message {{ background-color: {r['primary_container']};
-    background-image: linear-gradient(135deg, {rgba(r['primary'], .26)}, {rgba(r['secondary'], .16)});
-    border-color: {rgba(r['primary'], .36)}; }}
-.assistant-message {{ background-color: {rgba(r['surface_container_high'], .72)};
-    border-left: 3px solid {r['secondary']}; }}
-.composer {{ padding: 10px; border: 1px solid {rgba(r['primary'], .24)}; border-radius: {MD3_SHAPE['card']}px;
-    background-color: {rgba(r['surface_container_low'], .64)};
-    box-shadow: inset 0 1px {card_edge}; }}
+.user-message {{ background-color: {r['primary_container']}; background-image: none;
+    border-color: {rgba(r['primary'], .46)}; border-bottom-right-radius: 8px; }}
+.assistant-message {{ background-color: {rgba(r['surface_container_high'], card_alpha)};
+    border-left: 4px solid {r['secondary']}; border-bottom-left-radius: 8px; }}
+.composer {{ padding: 12px; border: 1px solid {rgba(r['primary'], .30)}; border-radius: {MD3_SHAPE['card']}px;
+    background-color: {rgba(r['surface_container_low'], card_alpha)}; box-shadow: none; }}
 textview, textview text {{ color: {r['on_surface']}; caret-color: {r['primary']}; background: transparent; }}
-.media-title {{ color: {r['on_surface']}; font-size: {px('title_medium')}; font-weight: 600; }}
+.media-title {{ color: {r['on_surface']}; font-size: {px('title_medium')}; font-weight: 700; }}
 .empty-state {{ color: {r['on_surface_variant']}; padding: 40px; }}
-.provider-status, .value {{ color: {r['primary']}; font-size: {px('caption')}; font-weight: 600; }}
-.status {{ color: {r['primary']}; font-size: {px('body')}; }}
+.provider-status, .value {{ color: {r['primary']}; font-size: {px('caption')}; font-weight: 700; }}
+.status {{ color: {r['primary']}; font-size: {px('body')}; font-weight: 600; }}
 .status.error {{ color: {r['error']}; }}
 .welcome-icon {{ color: {r['secondary']}; font-size: {type_sizes['headline']:g}px; margin-bottom: 4px; }}
 .welcome-title {{ color: {r['on_surface']}; font-size: {px('headline')}; font-weight: 700; letter-spacing: -.3px; }}
-combobox button {{ padding: 7px 10px; }}
+combobox button {{ padding: 8px 11px; }}
 combobox arrow {{ color: {r['on_surface_variant']}; }}
 scrollbar {{ background: transparent; opacity: 1; }}
 scrollbar trough {{ background: transparent; }}
-scrollbar slider {{ background-color: {rgba(r['on_surface'], .24)}; border-radius: {MD3_SHAPE['badge']}px; }}
-scrollbar slider:hover {{ background-color: {rgba(r['primary'], .55)}; }}
+scrollbar slider {{ background-color: {rgba(r['on_surface'], .26)}; border-radius: {MD3_SHAPE['badge']}px; }}
+scrollbar slider:hover {{ background-color: {rgba(r['primary'], .65)}; }}
 scrollbar slider:active {{ background-color: {r['primary']}; }}
 scrolledwindow, viewport {{ background: transparent; border: none; }}
-row:focus {{ outline: none; box-shadow: inset 0 0 0 2px {rgba(r['primary'], .85)}; }}
-.glass-calendar {{ background-color: {rgba(r['surface_container'], .55)}; border-color: {r['outline_variant']}; }}
+row:focus {{ outline: none; box-shadow: inset 0 0 0 2px {rgba(r['primary'], .90)}; }}
+.glass-calendar {{ background-color: {rgba(r['surface_container'], card_alpha)}; border-color: {r['outline_variant']}; }}
 .calendar-page {{ padding: 12px; }}
-.calendar-page .calendar-card, .calendar-page .calendar-footer {{ padding: 12px; }}
+.calendar-page .calendar-card, .calendar-page .calendar-footer {{ padding: 14px; }}
 .calendar-card .glass-calendar {{ background: transparent; border: none; padding: 0; }}
 .calendar-page.calendar-narrow .glass-calendar .calendar-title {{ font-size: {px('title_medium')}; }}
 .calendar-page.calendar-narrow .glass-calendar button.calendar-day-btn {{ min-width: 0; padding: 4px 0; }}
 .calendar-date {{ color: {r['on_surface']}; font-size: {px('headline')}; font-weight: 700; letter-spacing: -.2px; }}
 button.calendar-primary {{ color: {r['on_primary']}; background-color: {r['primary']}; background-image: {grad_accent};
-    border: 1px solid {r['primary']}; font-weight: 700; min-height: 34px; padding: 0 16px;
-    border-radius: 999px; box-shadow: inset 0 1px {rgba('#ffffff', .35)}, 0 4px 14px {rgba(r['primary'], .35)}; }}
+    border: 1px solid {r['primary']}; font-weight: 700; min-height: 36px; padding: 0 18px;
+    border-radius: 999px; box-shadow: 0 4px 14px {rgba(r['primary'], .36)}; }}
 button.calendar-primary:hover {{ color: {r['on_primary']}; background-color: {accent_hover}; background-image: {grad_accent};
-    border-color: {r['secondary']}; box-shadow: 0 6px 18px {rgba(r['primary'], .45)}; }}
+    border-color: {r['secondary']}; box-shadow: 0 6px 18px {rgba(r['primary'], .48)}; }}
 button.calendar-primary:checked, button.calendar-primary:active {{ color: {r['on_primary']};
     background-color: {r['primary']}; border-color: {r['primary']}; }}
-button.calendar-secondary {{ color: {r['on_surface']}; background-color: {rgba(r['surface_container_high'], .68)};
-    border: 1px solid {rgba(r['on_surface'], .15)}; font-weight: 600; min-height: 34px; padding: 0 16px;
+button.calendar-secondary {{ color: {r['on_surface']}; background-color: {rgba(r['surface_container_high'], ctrl_alpha)};
+    border: 1px solid {rgba(r['on_surface'], .18)}; font-weight: 600; min-height: 36px; padding: 0 18px;
     border-radius: 999px; }}
-button.calendar-secondary:hover {{ color: {r['on_surface']}; background-color: {rgba(r['primary'], .16)};
-    border-color: {rgba(r['primary'], .50)}; }}
+button.calendar-secondary:hover {{ color: {r['on_primary_container']}; background-color: {r['primary_container']};
+    border-color: {rgba(r['primary'], .55)}; }}
 button.calendar-secondary:checked, button.calendar-secondary:active {{ color: {r['on_primary_container']};
-    background-color: {r['primary_container']}; border-color: {rgba(r['primary'], .55)}; }}
-.glass-calendar .calendar-header {{ color: {r['on_surface']}; border-bottom: 1px solid {rgba(r['primary'], .18)};
-    padding-bottom: 6px; margin-bottom: 4px; }}
+    background-color: {r['primary_container']}; border-color: {r['primary']}; }}
+.glass-calendar .calendar-header {{ color: {r['on_surface']}; border-bottom: 1px solid {rgba(r['primary'], .24)};
+    padding-bottom: 8px; margin-bottom: 6px; }}
 .glass-calendar .calendar-title {{ color: {r['on_surface']}; font-size: {round(type_sizes['title_large'] * 1.31, 2):g}px; font-weight: 700; letter-spacing: -.2px; }}
 .glass-calendar .calendar-week-num {{ color: {r['on_surface_variant']}; font-size: {px('caption')}; padding: 0 4px; }}
 .glass-calendar .calendar-empty-cell {{ color: transparent; background-color: transparent; }}
 .glass-calendar .calendar-weekday-header, .glass-calendar .calendar-week-header {{ color: {r['primary']};
     font-size: {round(type_sizes['caption'] * 1.16, 2):g}px; font-weight: 700; padding: 4px 0; }}
-.glass-calendar button.calendar-nav-btn {{ color: {r['on_surface']}; background: {rgba(r['surface_container_high'], .58)};
-    border: 1px solid {rgba(r['on_surface'], .12)}; box-shadow: none; padding: 2px 4px; min-width: 32px;
+.glass-calendar button.calendar-nav-btn {{ color: {r['on_surface']}; background: {rgba(r['surface_container_high'], ctrl_alpha)};
+    border: 1px solid {rgba(r['on_surface'], .16)}; box-shadow: none; padding: 2px 4px; min-width: 32px;
     min-height: 32px; border-radius: 999px; }}
 .glass-calendar button.calendar-nav-btn:checked, .glass-calendar button.calendar-nav-btn:active {{ color: {r['on_primary']};
     background-color: {r['primary']}; background-image: {grad_accent}; border-color: {r['primary']}; }}
-.glass-calendar button.calendar-nav-btn:hover {{ color: {r['primary']}; background-color: {rgba(r['primary'], .14)}; border-color: {rgba(r['primary'], .40)}; }}
+.glass-calendar button.calendar-nav-btn:hover {{ color: {r['on_primary_container']}; background-color: {r['primary_container']}; border-color: {rgba(r['primary'], .50)}; }}
 .glass-calendar button.calendar-day-btn {{ background: transparent; background-image: none; border: 1px solid transparent; box-shadow: none;
     padding: 4px 2px; min-width: 32px; min-height: 30px; border-radius: 999px;
-    font-size: {round(type_sizes['body'] * 1.05, 2):g}px; font-weight: 500; color: {r['on_surface']}; }}
-.glass-calendar button.calendar-day-btn:hover {{ background-color: {rgba(r['primary'], .16)}; border-color: {rgba(r['primary'], .38)}; }}
+    font-size: {round(type_sizes['body'] * 1.05, 2):g}px; font-weight: 600; color: {r['on_surface']}; }}
+.glass-calendar button.calendar-day-btn:hover {{ background-color: {rgba(r['primary'], .18)}; border-color: {rgba(r['primary'], .44)}; }}
 .glass-calendar button.calendar-day-btn.today {{ border-color: {r['primary']}; color: {r['on_surface']};
-    background-color: {rgba(r['primary'], .18)}; font-weight: 700; box-shadow: 0 0 0 1px {rgba(r['primary'], .28)}; }}
+    background-color: {rgba(r['primary'], .22)}; font-weight: 700; box-shadow: 0 0 0 1px {rgba(r['primary'], .36)}; }}
 .glass-calendar button.calendar-day-btn.selected {{ background-image: {grad_accent}; background-color: {r['primary']};
     border-color: {r['primary']}; color: {r['on_primary']}; font-weight: 700;
     box-shadow: 0 3px 12px {rgba(r['primary'], .42)}; }}
@@ -783,53 +849,54 @@ separator {{ background-color: {r['outline']}; }}
 """
     panel = _scope_panel_css(panel) + _dialog_css(r)
     panel += f"""window.glass-window.control-center-window .glass-surface {{
-    border-color: {rgba(r['primary'], .30)};
-    background-image: linear-gradient(148deg, {rgba(r['primary'], sheen_a)}, {rgba(r['secondary'], sheen_b)} 36%, transparent 72%);
-    box-shadow: inset 0 1px {top_edge}, inset 0 -1px {rgba(r['secondary'], .14)}, 0 28px 72px {r['shadow']};
+    border-color: {rgba(r['primary'], rim_alpha)};
+    background-image: none;
+    box-shadow: inset 0 1px {top_edge}, 0 28px 72px {r['shadow']};
 }}
 window.glass-window.power-menu-window .glass-surface {{
-    border-color: {rgba(r['primary'], .30)};
-    background-image: linear-gradient(155deg, {rgba(r['primary'], sheen_a)}, {rgba(r['secondary'], sheen_b)} 42%, transparent 78%);
+    border-color: {rgba(r['primary'], rim_alpha)};
+    background-image: none;
     box-shadow: inset 0 1px {top_edge}, 0 22px 54px {r['shadow']};
 }}
 """
     return panel
 
 
-def _render_swaync(*, bg, card_edge, css_header, dark_mode, family, grad_accent, grad_bar, opacity, px,
-                   r, rgba, rim_alpha, sheen_a, sheen_b, size, top_edge) -> str:
+def _render_swaync(*, bg, card_alpha, card_edge, css_header, ctrl_alpha, dark_mode, family, grad_accent,
+                   grad_bar, opacity, px, r, rgba, rim_alpha, size, top_edge) -> str:
     """Render ``swaync.css``."""
     swaync = '@import "../swaync/style.css";\n' + css_header + _role_definitions(r) + f"""@define-color bg {bg};
 @define-color cc-bg {rgba(r['surface_container_low'], opacity)};
-@define-color noti-bg {rgba(r['surface_container_high'], max(.82, opacity))};
-@define-color noti-border-color {rgba(r['primary'], .24)};
+@define-color noti-bg {rgba(r['surface_container_high'], max(.90, opacity))};
+@define-color noti-border-color {rgba(r['primary'], .32)};
 @define-color text-color {r['on_surface']};
 @define-color text-color-disabled {r['on_surface_variant']};
 * {{ font-family: {family}; font-size: {size:g}px; color: {r['on_surface']}; }}
 .control-center {{ background-color: {rgba(r['surface_container_low'], opacity)};
-    background-image: linear-gradient(155deg, {rgba(r['primary'], sheen_a)}, {rgba(r['secondary'], sheen_b)} 42%, transparent 78%);
+    background-image: url("../assets/anime/sakura.svg");
+    background-repeat: no-repeat; background-position: right top; background-size: 56px 56px;
     color: {r['on_surface']};
     border: 1px solid {rgba(r['primary'], rim_alpha)}; border-radius: {MD3_SHAPE['window']}px; padding: 16px;
     box-shadow: inset 0 1px {top_edge}, 0 22px 56px {r['shadow']}; }}
-.notification {{ background-color: {rgba(r['surface_container_high'], max(.86, opacity))};
-    background-image: linear-gradient(160deg, {rgba('#ffffff', .05 if dark_mode else .50)}, transparent 45%);
-    border: 1px solid {rgba(r['on_surface'], .12)}; border-left: 3px solid {r['primary']};
+.notification {{ background-color: {rgba(r['surface_container_high'], max(.90, opacity))};
+    background-image: none;
+    border: 1px solid {rgba(r['on_surface'], .14)}; border-left: 4px solid {r['primary']};
     border-radius: {MD3_SHAPE['card']}px; padding: 8px;
-    box-shadow: inset 0 1px {card_edge}, 0 8px 24px {rgba('#000000', .22 if dark_mode else .10)}; }}
-.notification:hover {{ background-color: {rgba(r['surface_container_highest'], .94)};
-    border-color: {rgba(r['primary'], .45)}; border-left-color: {r['secondary']}; }}
+    box-shadow: inset 0 1px {card_edge}, 0 8px 24px {rgba('#000000', .20 if dark_mode else .08)}; }}
+.notification:hover {{ background-color: {rgba(r['surface_container_highest'], .96)};
+    border-color: {rgba(r['primary'], .48)}; border-left-color: {r['secondary']}; }}
 .summary, .widget-title {{ color: {r['on_surface']}; font-weight: 700; }}
 .body, .widget-dnd {{ color: {r['on_surface']}; }}
 .time, .app-name {{ color: {r['on_surface_variant']}; font-size: {px('caption')}; font-weight: 600; }}
-.notification-row .notification-background .notification.critical {{ border-color: {r['error']}; border-left: 3px solid {r['error']}; background-color: {r['error_container']}; }}
+.notification-row .notification-background .notification.critical {{ border-color: {r['error']}; border-left: 4px solid {r['error']}; background-color: {r['error_container']}; }}
 .notification-group:focus .notification, .notification-row:focus .notification,
 .notification-row:focus-within .notification {{ outline: 2px solid {r['primary']}; outline-offset: -2px; }}
-.widget-dnd {{ background-color: {rgba(r['surface_container'], .68)}; border: 1px solid {rgba(r['on_surface'], .10)};
+.widget-dnd {{ background-color: {rgba(r['surface_container'], card_alpha)}; border: 1px solid {rgba(r['on_surface'], .12)};
     border-radius: {MD3_SHAPE['pill']}px; box-shadow: inset 0 1px {card_edge}; }}
-button {{ color: {r['on_surface']}; background-color: {rgba(r['surface_container_high'], .72)};
-    border: 1px solid {rgba(r['on_surface'], .14)}; border-radius: {MD3_SHAPE['button']}px; box-shadow: none; text-shadow: none;
+button {{ color: {r['on_surface']}; background-color: {rgba(r['surface_container_high'], ctrl_alpha)};
+    border: 1px solid {rgba(r['on_surface'], .16)}; border-radius: {MD3_SHAPE['button']}px; box-shadow: none; text-shadow: none;
     transition: background-color 140ms ease-out, border-color 140ms ease-out; }}
-button:hover {{ color: {r['on_primary_container']}; background-color: {r['primary_container']}; border-color: {rgba(r['primary'], .45)}; }}
+button:hover {{ color: {r['on_primary_container']}; background-color: {r['primary_container']}; border-color: {rgba(r['primary'], .50)}; }}
 button:checked, button:active {{ color: {r['on_primary_container']}; background-color: {r['primary_container']}; border-color: {r['primary']}; }}
 button:disabled {{ opacity: .38; }}
 button:focus {{ outline: none; box-shadow: inset 0 0 0 2px {r['primary']}; }}
@@ -837,10 +904,10 @@ button.suggested-action {{ background-color: {r['primary']}; background-image: {
 .notification-default-action {{ background: transparent; }}
 .close-button {{ background-color: {rgba(r['on_surface'], .10)}; border-radius: {MD3_SHAPE['badge']}px; }}
 .close-button:hover {{ background-color: {rgba(r['error'], .22)}; color: {r['error']}; }}
-switch {{ background-color: {rgba(r['surface_sunken'], .85)}; border: 1px solid {rgba(r['on_surface'], .16)}; border-radius: {MD3_SHAPE['badge']}px; }}
+switch {{ background-color: {rgba(r['surface_sunken'], .92)}; border: 1px solid {rgba(r['on_surface'], .16)}; border-radius: {MD3_SHAPE['badge']}px; }}
 switch:checked {{ background-color: {r['primary']}; background-image: {grad_bar}; border-color: {r['primary']}; }}
 switch slider {{ background-color: #ffffff; border-radius: {MD3_SHAPE['badge']}px; box-shadow: 0 1px 4px rgba(0, 0, 0, .35); }}
-scrollbar slider {{ background-color: {rgba(r['on_surface'], .24)}; border-radius: {MD3_SHAPE['badge']}px; }}
+scrollbar slider {{ background-color: {rgba(r['on_surface'], .26)}; border-radius: {MD3_SHAPE['badge']}px; }}
 """
     return swaync
 
@@ -910,68 +977,79 @@ def _render_fuzzel(*, accent, base, bg, font, opacity, r, size) -> str:
     return fuzzel
 
 
-def _render_lock(*, accent, base, bg, border, danger, font, ink, opacity, secondary, size, surface) -> str:
+def _render_lock(*, accent, base, bg, border, danger, dark_mode, font, ink, opacity, secondary, size, surface) -> str:
     """Render ``swaylock.conf``."""
-    lock = _replace_ini((base / "swaylock/config").read_text(), "", {"color": bg[1:], "font": font,
-        "font-size": font_scale.whole_points(font_scale.lock_pixels(size)), "inside-color": _alpha(bg, max(.86, opacity)), "ring-color": border[1:],
+    lock = _replace_ini((base / "swaylock/config").read_text(), "", {"color": bg[1:],
+        "image": "~/.config/niri/assets/anime/lock-bg.png",
+        "scaling": "fill" if dark_mode else "solid_color",
+        "font": font,
+        "font-size": font_scale.whole_points(font_scale.lock_pixels(size)), "inside-color": _alpha(bg, max(.90, opacity)), "ring-color": border[1:],
         "text-color": ink[1:], "key-hl-color": accent[1:], "bs-hl-color": secondary[1:],
-        "inside-ver-color": _alpha(surface, .92), "ring-ver-color": accent[1:], "text-ver-color": ink[1:],
-        "inside-wrong-color": _alpha(surface, .92), "ring-wrong-color": danger[1:], "text-wrong-color": ink[1:]})
+        "inside-ver-color": _alpha(surface, .94), "ring-ver-color": accent[1:], "text-ver-color": ink[1:],
+        "inside-wrong-color": _alpha(surface, .94), "ring-wrong-color": danger[1:], "text-wrong-color": ink[1:]})
     return lock
 
 
 def _render_eww(*, bg, css_header, dark_mode, family, grad_accent, grad_bar, mono_family, opacity,
-                outline, p, r, rgba, size, surface, top_edge) -> str:
+                outline, p, r, rgba, rim_alpha, size, surface, top_edge) -> str:
     """Render ``eww.css``."""
     # Rust frontends consume the same generated roles as GTK; only their
     # selector vocabulary differs.  Bar geometry and timing stay owned by
-    # bar_backend.py, so padding, heights and animation hooks are unchanged.
-    bar_top = rgba(_mix(r['surface_container_high'], r['primary'], .12 if dark_mode else .06), opacity)
-    bar_bot = rgba(r['surface_container'], opacity)
-    island_top = rgba(_mix(r['surface_container_highest'], r['primary'], .16 if dark_mode else .08), opacity)
-    island_bot = rgba(r['surface_container_low'], opacity)
+    # bar_backend.py, so padding, heights and animation hooks stay synchronized.
     eww = css_header + _role_definitions(r) + f"""@define-color bg {bg};
 @define-color surface {surface};
 @define-color accent {r['primary']};
 @define-color secondary {r['secondary']};
 @define-color on_accent {r['on_primary']};
+@keyframes nyx-sparkle {{
+    0% {{ opacity: 0.72; }}
+    50% {{ opacity: 1.00; }}
+    100% {{ opacity: 0.72; }}
+}}
+@keyframes nyx-ws-glow {{
+    0% {{ box-shadow: 0 2px 10px {rgba(r['primary'], .36)}; }}
+    50% {{ box-shadow: 0 2px 16px {rgba(r['primary'], .62)}; }}
+    100% {{ box-shadow: 0 2px 10px {rgba(r['primary'], .36)}; }}
+}}
+@keyframes nyx-island-pulse {{
+    0% {{ box-shadow: inset 0 1px {top_edge}, 0 0 10px {rgba(r['primary'], .24)}; }}
+    50% {{ box-shadow: inset 0 1px {top_edge}, 0 0 18px {rgba(r['secondary'], .44)}; }}
+    100% {{ box-shadow: inset 0 1px {top_edge}, 0 0 10px {rgba(r['primary'], .24)}; }}
+}}
 * {{ font-family: {family}; font-size: {size:g}px; color: {r['on_surface']}; }}
 window.background, window, .background {{ background-color: rgba(0, 0, 0, 0); background-image: none; border: none; box-shadow: none; }}
 .bar-host {{ background-color: rgba(0, 0, 0, 0); background-image: none; border: none; box-shadow: none; }}
 .segment {{ background-color: {rgba(r['surface_container_high'], opacity)};
-    background-image: linear-gradient(180deg, {bar_top}, {bar_bot});
-    border: 1px solid {rgba(r['primary'], .26 if dark_mode else .22)}; border-radius: 22px; padding: 2px 10px;
-    box-shadow: inset 0 1px {top_edge}, inset 0 -1px {rgba(r['secondary'], .10)}; }}
+    background-image: none;
+    border: 1px solid {rgba(r['primary'], rim_alpha)}; border-radius: 22px; padding: 2px 10px;
+    box-shadow: inset 0 1px {top_edge}, 0 6px 18px {rgba('#000000', .22 if dark_mode else .10)}; }}
 button {{ background: transparent; border: none; box-shadow: none; }}
 .pill {{ color: {r['on_surface']}; background: transparent; border: none; border-radius: {MD3_SHAPE['pill']}px; padding: 3px 8px; transition: background-color 140ms ease-out, color 140ms ease-out, box-shadow 140ms ease-out; }}
 .segment .pill * {{ background-color: transparent; background-image: none; box-shadow: none; }}
 .segment .pill, .segment .workspace {{ background: transparent; border: none; }}
-.segment .pill.launcher-btn {{ color: {r['primary']}; background: {rgba(r['primary'], .14)}; padding: 3px 10px; font-weight: 700; }}
-.segment .pill.launcher-btn:hover {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent}; box-shadow: 0 2px 10px {rgba(r['primary'], .42)}; }}
+.segment .pill.launcher-btn {{ color: {r['primary']}; background: {rgba(r['primary'], .16)}; border: 1px solid {rgba(r['primary'], .42)}; padding: 2px 8px; font-weight: 700; }}
+.segment .pill.launcher-btn:hover {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent}; border-color: {r['secondary']}; box-shadow: 0 2px 12px {rgba(r['primary'], .48)}; }}
+.launcher-avatar {{ border-radius: 999px; }}
 .segment .pill.control-btn {{ color: {r['primary']}; }}
-.segment .pill.audio-btn.muted {{ color: {r['error']}; background: {rgba(r['error'], .14)}; }}
-.segment .pill.clock, .segment .pill.resources, .segment .pill.current-app {{
-    background-color: {rgba(r['surface_container_low'], .72)};
-    background-image: linear-gradient(180deg, {rgba('#ffffff', .05 if dark_mode else .50)}, transparent);
-    border: 1px solid {rgba(r['on_surface'], .09)};
+.segment .pill.audio-btn.muted {{ color: {r['error']}; background: {rgba(r['error'], .16)}; }}
+.segment .pill.resources, .segment .pill.current-app {{
+    background-color: {rgba(r['surface_container_low'], .88)};
+    background-image: none;
+    border: 1px solid {rgba(r['on_surface'], .12)};
     border-radius: 999px; padding: 2px 10px; margin: 0 2px; }}
-.segment .pill.clock {{ padding: 0 11px; border-color: {rgba(r['secondary'], .24)}; }}
-.segment .pill.current-app {{ border-color: {rgba(r['primary'], .22)}; }}
+.segment .pill.current-app {{ border-color: {rgba(r['primary'], .30)}; }}
 .app-dot {{ color: {r['primary']}; font-size: {round(size * .72, 2):g}px; margin-right: 4px; }}
-.app-label {{ font-weight: 600; }}
-/* 状态规则必须与上面 3 类选择器同优先级，否则底色被基础规则压住、只有文字变色。 */
-.segment .pill.clock:hover, .segment .pill.resources:hover, .segment .pill.current-app:hover {{
-    color: {r['on_primary_container']}; background: {rgba(r['primary'], .20)}; border-color: {rgba(r['primary'], .45)}; }}
-.segment .pill.clock:active, .segment .pill.clock:checked,
+.app-label {{ font-weight: 700; color: {r['on_surface']}; }}
+.segment .pill.resources:hover, .segment .pill.current-app:hover {{
+    color: {r['on_primary_container']}; background: {r['primary_container']}; border-color: {rgba(r['primary'], .55)}; }}
 .segment .pill.resources:active, .segment .pill.resources:checked,
 .segment .pill.current-app:active, .segment .pill.current-app:checked {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent}; }}
-.segment .pill.clock:focus, .segment .pill.resources:focus, .segment .pill.current-app:focus {{ outline: none; box-shadow: inset 0 0 0 2px {r['primary']}; }}
-.workspace {{ color: {r['on_surface_variant']}; background: transparent; border: none; border-radius: 999px; padding: 3px 8px; min-width: 20px; font-weight: 600; transition: background-color 140ms ease-out, color 140ms ease-out; }}
-.workspace:hover, .pill:hover {{ color: {r['on_primary_container']}; background: {rgba(r['primary'], .20)}; border-radius: 999px; }}
-/* 工作区持久选中可以更宽；普通 pill 的按压/选中反馈只换配色，padding、字重等几何保持基态。 */
+.segment .pill.resources:focus, .segment .pill.current-app:focus {{ outline: none; box-shadow: inset 0 0 0 2px {r['primary']}; }}
+.workspace {{ color: {r['on_surface_variant']}; background: transparent; border: none; border-radius: 999px; padding: 3px 9px; min-width: 22px; font-weight: 700; transition: background-color 140ms ease-out, color 140ms ease-out; }}
+.workspace:hover, .pill:hover {{ color: {r['on_primary_container']}; background: {r['primary_container']}; border-radius: 999px; }}
 .workspace.active, .workspace:active {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent};
-    border-radius: 999px; font-weight: 700; min-width: 32px; padding: 3px 12px;
-    box-shadow: inset 0 1px {rgba('#ffffff', .35)}, 0 2px 10px {rgba(r['primary'], .45)}; }}
+    border-radius: 999px; font-weight: 700; min-width: 34px; padding: 3px 12px;
+    box-shadow: 0 2px 10px {rgba(r['primary'], .42)}; animation: nyx-ws-glow 2.8s ease-in-out infinite; }}
 .pill:active, .pill:checked {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent}; }}
 .workspace.active label, .workspace:active label, .pill:active label, .pill:checked label {{ color: {r['on_primary']}; }}
 .compact .pill, .compact .workspace {{ padding: 2px 5px; }}
@@ -979,7 +1057,7 @@ button {{ background: transparent; border: none; box-shadow: none; }}
 .segment .pill, .segment .workspace,
 .segment .pill:hover, .segment .pill:active, .segment .pill:checked,
 .segment .workspace:hover, .segment .workspace:active, .segment .workspace.active {{ border-radius: 999px; }}
-.separator {{ background-color: {rgba(r['primary'], .22)}; min-width: 1px; margin: 7px 4px; }}
+.separator {{ background-color: {rgba(r['primary'], .28)}; min-width: 1px; margin: 7px 4px; }}
 .resource-row {{ background: transparent; }}
 .resource {{ padding: 0 3px; }}
 .resource-icon {{ color: {r['primary']}; font-size: {round(size * .76, 2):g}px; font-weight: 700; margin-right: 3px; }}
@@ -987,22 +1065,27 @@ button {{ background: transparent; border: none; box-shadow: none; }}
 .resource.ram .resource-icon {{ color: {r['secondary']}; }}
 .resource.temp .resource-icon {{ color: {p['warning']}; }}
 .pill.network-btn .resource-icon {{ color: {p['success']}; }}
-.resource-value {{ color: {r['on_surface']}; font-family: {mono_family}; font-size: {round(size * .88, 2):g}px; font-weight: 600; font-feature-settings: "tnum 1, cv01 1"; }}
+.resource-value {{ color: {r['on_surface']}; font-family: {mono_family}; font-size: {round(size * .88, 2):g}px; font-weight: 700; font-feature-settings: "tnum 1, cv01 1"; }}
 .clock-time {{ color: {r['on_surface']}; font-family: {mono_family}; font-size: {round(size * 1.06, 2):g}px; font-weight: 700; letter-spacing: -0.3px; font-feature-settings: "tnum 1, cv01 1"; }}
-.clock-date {{ color: {r['primary']}; font-size: {round(size * .70, 2):g}px; font-weight: 600; letter-spacing: .05em; margin-top: 0; }}
+.clock-date {{ color: {r['primary']}; font-size: {round(size * .78, 2):g}px; font-weight: 700; letter-spacing: .04em; margin-top: 0; }}
 .island {{ background-color: {rgba(r['surface_container_highest'], opacity)};
-    background-image: linear-gradient(180deg, {island_top}, {island_bot});
-    border: 1px solid {rgba(r['primary'], .30 if dark_mode else .24)}; border-radius: 22px; padding: 8px 12px;
-    box-shadow: inset 0 1px {top_edge}, inset 0 -1px {rgba(r['secondary'], .12)}; }}
-.island.playing, .island.expanded {{ border-color: {rgba(r['primary'], .52)};
-    box-shadow: inset 0 1px {top_edge}, 0 0 14px {rgba(r['primary'], .24)}; }}
-.island-idle-icon {{ color: {r['primary']}; font-size: {round(size * 1.05, 2):g}px; font-weight: 700; }}
+    background-image: url("../assets/anime/cat-ears.svg");
+    background-repeat: no-repeat; background-position: center top; background-size: 40px 14px;
+    border: 1px solid {rgba(r['primary'], .42 if dark_mode else .34)}; border-radius: 22px; padding: 8px 12px;
+    box-shadow: inset 0 1px {top_edge}, 0 6px 20px {rgba('#000000', .24 if dark_mode else .10)}; }}
+.island.playing, .island.expanded {{ border-color: {r['primary']};
+    box-shadow: inset 0 1px {top_edge}, 0 0 16px {rgba(r['primary'], .34)}; }}
+.island.playing {{ animation: nyx-island-pulse 2.6s ease-in-out infinite; }}
+.island-idle-row {{ background: transparent; }}
+.island-idle-icon {{ color: {r['primary']}; font-size: {round(size * 1.05, 2):g}px; font-weight: 700; animation: nyx-sparkle 2.2s ease-in-out infinite; }}
 .island.playing .island-idle-icon {{ color: {r['secondary']}; }}
+.island-clock {{ padding: 2px 10px; border-radius: 999px; background-color: {rgba(r['surface_container_low'], .72)}; border: 1px solid {rgba(r['primary'], .24)}; }}
+.island-clock:hover {{ background-color: {r['primary_container']}; border-color: {r['primary']}; }}
 .island-title {{ color: {r['on_surface']}; font-weight: 700; }}
 .island-summary {{ color: {r['on_surface_variant']}; font-size: {round(size * .90, 2):g}px; }}
-.island-cover {{ border-radius: 10px; border: 1px solid {rgba(r['primary'], .28)}; padding: 2px; background: {rgba(r['surface_sunken'], .55)}; }}
+.island-cover {{ border-radius: 12px; border: 1px solid {rgba(r['primary'], .36)}; padding: 2px; background: {rgba(r['surface_sunken'], .75)}; }}
 .island button {{ color: {r['on_surface']}; padding: 4px 8px; border-radius: 999px; font-weight: 600; }}
-.island button:hover {{ color: {r['on_primary_container']}; background: {rgba(r['primary'], .20)}; border-radius: 999px; }}
+.island button:hover {{ color: {r['on_primary_container']}; background: {r['primary_container']}; border-radius: 999px; }}
 .island button:active {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent}; border-radius: 999px; }}
 .island button.island-play {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent}; padding: 4px 12px;
     box-shadow: 0 2px 10px {rgba(r['primary'], .38)}; }}
@@ -1017,34 +1100,35 @@ progressbar trough, scale trough {{ background: {rgba(r['on_surface'], .18)}; bo
 progressbar progress, scale highlight {{ background: {r['primary']}; background-image: {grad_bar}; border-radius: 999px; min-height: 8px; }}
 scale slider {{ background: #ffffff; border: 2px solid {r['primary']}; border-radius: 999px; min-width: 18px; min-height: 18px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45); margin: -5px 0; }}
 button:focus, .pill:focus, .workspace:focus {{ outline: none; box-shadow: inset 0 0 0 2px {r['primary']}; }}
-.reduce-motion * {{ transition: none; }}
+.reduce-motion, .reduce-motion * {{ transition: none; animation: none; }}
 """
     return eww
 
 
-def _render_anyrun(*, bg, css_header, dark_mode, family, opacity, outline, r, rgba, rim_alpha, sheen_a,
-                   sheen_b, size, top_edge) -> str:
+def _render_anyrun(*, bg, css_header, ctrl_alpha, dark_mode, family, opacity, outline, r, rgba, rim_alpha,
+                   size, top_edge) -> str:
     """Render ``anyrun.css``."""
     anyrun = css_header + _role_definitions(r) + f"""@define-color bg {bg};
 * {{ font-family: {family}; font-size: {size:g}px; color: {r['on_surface']}; }}
 window {{ background: transparent; }}
 box.main {{ background-color: {rgba(r['surface_container_high'], opacity)};
-    background-image: linear-gradient(150deg, {rgba(r['primary'], sheen_a)}, {rgba(r['secondary'], sheen_b)} 42%, transparent 78%);
+    background-image: url("../assets/anime/star-sparkle.svg");
+    background-repeat: no-repeat; background-position: right top; background-size: 30px 30px;
     border: 1px solid {rgba(r['primary'], rim_alpha)};
     border-radius: {MD3_SHAPE['window']}px; padding: 18px; margin: 16px;
     box-shadow: inset 0 1px {top_edge}, 0 24px 60px {r['shadow']}; }}
-text {{ color: {r['on_surface']}; background: {rgba(r['surface_sunken'], .72)}; caret-color: {r['primary']};
-    padding: 12px 14px; border: 1px solid {rgba(r['primary'], .24)}; border-radius: {MD3_SHAPE['pill']}px; min-height: 34px;
-    box-shadow: inset 0 1px 4px {rgba('#000000', .22 if dark_mode else .06)}; }}
-text:focus {{ outline: none; border-color: {r['primary']}; box-shadow: inset 0 0 0 2px {r['primary']}, 0 0 12px {rgba(r['primary'], .24)}; }}
+text {{ color: {r['on_surface']}; background: {rgba(r['surface_sunken'], ctrl_alpha)}; caret-color: {r['primary']};
+    padding: 12px 14px; border: 1px solid {rgba(r['primary'], .34)}; border-radius: {MD3_SHAPE['pill']}px; min-height: 34px;
+    box-shadow: none; }}
+text:focus {{ outline: none; border-color: {r['primary']}; box-shadow: inset 0 0 0 2px {r['primary']}, 0 0 12px {rgba(r['primary'], .28)}; }}
 .matches, list, row {{ background: transparent; }}
-row {{ color: {r['on_surface']}; border: 1px solid transparent; border-radius: {MD3_SHAPE['button']}px; padding: 8px 10px; margin: 2px 0; }}
-row:hover {{ background: {rgba(r['primary'], .12)}; border-color: {rgba(r['primary'], .22)}; }}
+row {{ color: {r['on_surface']}; border: 1px solid transparent; border-radius: {MD3_SHAPE['button']}px; padding: 8px 12px; margin: 2px 0; }}
+row:hover {{ color: {r['on_primary_container']}; background: {rgba(r['primary'], .14)}; border-color: {rgba(r['primary'], .32)}; }}
 row:selected, row:active, .match:selected {{ color: {r['on_primary_container']};
     background-color: {r['primary_container']};
-    background-image: linear-gradient(90deg, {rgba(r['primary'], .26)}, {rgba(r['secondary'], .12)});
-    border: 1px solid {rgba(r['primary'], .42)}; border-left: 3px solid {r['primary']};
-    border-radius: {MD3_SHAPE['button']}px; }}
+    background-image: none;
+    border: 1px solid {rgba(r['primary'], .58)}; border-left: 4px solid {r['primary']};
+    border-radius: {MD3_SHAPE['button']}px; font-weight: 700; }}
 label {{ {outline} }}
 """
     return anyrun

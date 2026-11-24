@@ -129,6 +129,7 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         if visual:
             self.set_visual(visual)
         self.get_style_context().add_class("glass-window")
+        self.get_style_context().add_class(f"{mode}-window")
         if not animations_enabled(self, not self.reduced_motion):
             self.get_style_context().add_class("reduce-motion")
         if mode == "control":
@@ -218,14 +219,36 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         else:
             copy = SURFACE_COPY[mode]
             title, subtitle = tr(copy[0], copy[1]), tr(copy[2], copy[3])
-        header = pack(self.surface, box(False, 12, "panel-header"))
-        titles = pack(header, box(spacing=4), True)
+        header = pack(self.surface, box(False, 14, "panel-header"))
         if mode == "control":
             header.get_style_context().add_class("control-header")
+            avatar_path = BASE / "assets/anime/mascot-avatar.png"
+            if avatar_path.is_file():
+                try:
+                    gi.require_version("GdkPixbuf", "2.0")
+                    from gi.repository import GdkPixbuf
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(str(avatar_path), 54, 54, True)
+                    avatar_frame = box(spacing=0, css="mascot-avatar-frame")
+                    avatar_frame.set_valign(Gtk.Align.CENTER)
+                    pack(avatar_frame, Gtk.Image.new_from_pixbuf(pixbuf))
+                    pack(header, avatar_frame)
+                except (GLib.Error, OSError, ValueError):
+                    pass
+        titles = pack(header, box(spacing=4), True)
+        if mode == "control":
+            hour = datetime.datetime.now().hour
+            if 5 <= hour < 12:
+                greeting = tr("Good morning, Master", "早上好，主人")
+            elif 12 <= hour < 18:
+                greeting = tr("Good afternoon, Master", "下午好，主人")
+            elif 18 <= hour < 23:
+                greeting = tr("Good evening, Master", "晚上好，主人")
+            else:
+                greeting = tr("Late night, Master", "夜深了，主人")
             pack(titles, label(tr("Settings", "设置"), "control-heading"))
-            pack(titles, label(f"{platform.node()} · Niri", "control-caption"))
+            pack(titles, label(f"{greeting} · {platform.node()} · Niri", "control-caption", localize=False))
         else:
-            pack(titles, label("S E L A N D I A", "eyebrow"))
+            pack(titles, label("S E L A N D I A  ✦  N Y X", "eyebrow", localize=False))
             pack(titles, label(title, "panel-title"))
             pack(titles, label(subtitle, "subtitle"))
         if mode == "control":
@@ -585,6 +608,9 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         self.navigation = SettingsNavigation(self)
         if narrow:
             self.navigation.set_size_request(-1, 110)
+            if getattr(self.navigation, "mascot_box", None) is not None:
+                self.navigation.mascot_box.set_no_show_all(True)
+                self.navigation.mascot_box.hide()
         self.control_switcher = self.navigation.list
         pack(columns, self.navigation)
         pages = pack(columns, box(spacing=4 if narrow else 12), True)

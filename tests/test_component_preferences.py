@@ -120,13 +120,14 @@ class ComponentTests(unittest.TestCase):
                 self.assertLessEqual(g['left']+12+g['island']/2,width/2)
                 self.assertGreaterEqual(width-g['right']-12-g['island']/2,width/2)
 
-    def test_only_right_window_contains_clock_and_three_bounded_layers(self):
+    def test_only_center_island_contains_clock_and_three_bounded_layers(self):
         text,names=bar_backend.render([('monitor',1600)])
         self.assertEqual(len(names),3)
         definitions=text.split('(defwindow ')
         self.assertNotIn('state.clock',definitions[1])
-        self.assertIn('state.clock',definitions[2])
-        self.assertNotIn('state.clock',definitions[3])
+        self.assertNotIn('state.clock',definitions[2])
+        self.assertIn('bar-right',definitions[2])
+        self.assertIn('state.clock',definitions[3])
         self.assertNotIn(':width "100%"',text)
 
     def test_events_expire_prioritize_and_dismiss_without_mutating_audio(self):

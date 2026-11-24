@@ -22,19 +22,19 @@ from panel_support import DESKTOP, box, button, capture, label, pack, scroller
 
 class AppearancePage:
     def _build_appearance(self):
-        from appearance import DEFAULTS, PRESETS, load_settings
+        from appearance import DEFAULTS, PRESETS, load_settings, preset_label
         self.appearance_busy = True
         body = box(spacing=12)
         self.appearance_body = body
-        theme = self.card(body, tr_legacy("COLOR & GLASS  /  主题与玻璃质感"))
-        pack(theme, label(tr_legacy("应用与桌面 · Apps & desktop"), "control-label"))
+        theme = self.card(body, tr("COLOR & THEME", "主题与配色"))
+        pack(theme, label(tr("Apps & desktop", "应用与桌面"), "control-label"))
         self.color_mode_combo = Gtk.ComboBoxText()
         self.color_mode_combo.append("dark", tr_legacy("深色 · Dark"))
         self.color_mode_combo.append("light", tr_legacy("浅色 · Light"))
         pack(theme, self.color_mode_combo)
         self.theme_combo = Gtk.ComboBoxText()
-        for key, preset in PRESETS.items():
-            self.theme_combo.append(key, tr_legacy(preset["label"]))
+        for key in PRESETS:
+            self.theme_combo.append(key, preset_label(key))
         pack(theme, self.theme_combo)
         swatch_row = pack(theme, box(False, 8, "palette-preview"))
         self.palette_swatches = []
@@ -128,9 +128,9 @@ class AppearancePage:
         swatches = getattr(self, "palette_swatches", None)
         if not swatches:
             return
-        preset = self.theme_combo.get_active_id() or "glacier"
+        from appearance import DEFAULTS, palette
+        preset = self.theme_combo.get_active_id() or DEFAULTS["preset"]
         mode = self.color_mode_combo.get_active_id() or "dark"
-        from appearance import palette
         colors = palette({"preset": preset, "color_mode": mode})
         keys = ("background", "surface_raised", "accent", "secondary", "ink")
         for provider, key in zip(swatches, keys):

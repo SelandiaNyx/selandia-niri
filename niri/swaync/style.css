@@ -2,31 +2,31 @@
  *
  * theme/swaync.css is imported after this file and supplies the generated MD3
  * roles for the active preset, colour mode and font size.  The constants below
- * are the dark glacier fallback from design/TOKENS.md. */
-@define-color md3_primary #5ee7ff;
-@define-color md3_on_primary #04131c;
-@define-color md3_primary_container #326a80;
-@define-color md3_on_primary_container #f1f6ff;
-@define-color md3_secondary #a78bfa;
-@define-color md3_secondary_container #41406e;
-@define-color md3_on_secondary_container #f1f6ff;
-@define-color md3_surface #090d16;
-@define-color md3_surface_container_low #0d1320;
-@define-color md3_surface_container #111828;
-@define-color md3_surface_container_high #192338;
-@define-color md3_surface_container_highest #242e42;
-@define-color md3_surface_sunken #060910;
-@define-color md3_on_surface #f1f6ff;
-@define-color md3_on_surface_variant #b9c9de;
-@define-color md3_outline rgba(241, 246, 255, 0.140);
-@define-color md3_outline_variant rgba(241, 246, 255, 0.060);
-@define-color md3_error #fb7185;
-@define-color md3_error_container #5d3a4f;
-@define-color md3_on_error_container #f1f6ff;
-@define-color bg #090d16;
-@define-color cc-bg rgba(13, 19, 32, 0.780);
-@define-color noti-bg rgba(25, 35, 56, 0.820);
-@define-color noti-border-color @md3_outline;
+ * are the dark Sakura Nyan fallback tokens. */
+@define-color md3_primary #ff8fbf;
+@define-color md3_on_primary #3a0a20;
+@define-color md3_primary_container #74465e;
+@define-color md3_on_primary_container #fff4f8;
+@define-color md3_secondary #8fd3ff;
+@define-color md3_secondary_container #4d5469;
+@define-color md3_on_secondary_container #fff4f8;
+@define-color md3_surface #1a1118;
+@define-color md3_surface_container_low #21161e;
+@define-color md3_surface_container #271a24;
+@define-color md3_surface_container_high #33232f;
+@define-color md3_surface_container_highest #3d2d39;
+@define-color md3_surface_sunken #120b10;
+@define-color md3_on_surface #fff4f8;
+@define-color md3_on_surface_variant #ecd3df;
+@define-color md3_outline rgba(255, 244, 248, 0.140);
+@define-color md3_outline_variant rgba(255, 244, 248, 0.060);
+@define-color md3_error #ff8a9a;
+@define-color md3_error_container #70424f;
+@define-color md3_on_error_container #fff4f8;
+@define-color bg #1a1118;
+@define-color cc-bg rgba(33, 22, 30, 0.940);
+@define-color noti-bg rgba(51, 35, 47, 0.940);
+@define-color noti-border-color rgba(255, 143, 191, 0.320);
 @define-color text-color @md3_on_surface;
 @define-color text-color-disabled @md3_on_surface_variant;
 
@@ -37,12 +37,15 @@
 }
 .control-center {
     background-color: @cc-bg;
-    background-image: linear-gradient(155deg, alpha(@md3_primary, .13), alpha(@md3_secondary, .06) 42%, transparent 78%);
+    background-image: url("../assets/anime/sakura.svg");
+    background-repeat: no-repeat;
+    background-position: right top;
+    background-size: 56px 56px;
     color: @md3_on_surface;
-    border: 1px solid alpha(@md3_primary, .28);
-    border-radius: 26px;
-    padding: 18px;
-    box-shadow: inset 0 1px alpha(white, .16), 0 22px 56px alpha(black, .36);
+    border: 1px solid alpha(@md3_primary, .36);
+    border-radius: 28px;
+    padding: 16px;
+    box-shadow: inset 0 1px alpha(@md3_primary, .20), 0 22px 56px alpha(black, .34);
 }
 /* Upstream paints a rectangular grey row around cards; keep the card surface. */
 .notification-group,
@@ -61,21 +64,24 @@
 .notification-row .notification-background .notification,
 .notification {
     background-color: @noti-bg;
+    background-image: none;
     color: @md3_on_surface;
-    border: 1px solid alpha(@md3_on_surface, .12);
-    border-left: 3px solid @md3_primary;
-    border-radius: 20px;
+    border: 1px solid alpha(@md3_on_surface, .14);
+    border-left: 4px solid @md3_primary;
+    border-radius: 24px;
     padding: 8px;
-    box-shadow: inset 0 1px alpha(white, .10), 0 8px 24px alpha(black, .22);
+    box-shadow: inset 0 1px alpha(@md3_on_surface, .08), 0 8px 24px alpha(black, .20);
 }
 .notification-row .notification-background .notification:hover,
 .notification:hover {
-    background-color: alpha(@md3_surface_container_highest, .94);
-    border-color: @md3_outline;
+    background-color: alpha(@md3_surface_container_highest, .96);
+    border-color: alpha(@md3_primary, .48);
+    border-left-color: @md3_secondary;
 }
 .notification-row .notification-background .notification.critical,
 .notification.critical {
     border-color: @md3_error;
+    border-left: 4px solid @md3_error;
     background-color: @md3_error_container;
 }
 .notification-group:focus .notification,
@@ -85,27 +91,27 @@
     outline-offset: -2px;
 }
 .notification-content { padding: 10px; }
-.summary { color: @md3_on_surface; font-weight: 600; font-size: 14px; }
+.summary { color: @md3_on_surface; font-weight: 700; font-size: 14px; }
 .body { color: @md3_on_surface; }
-.time, .app-name { color: @md3_on_surface_variant; font-size: 11px; }
-.widget-title { color: @md3_on_surface; margin: 4px 0 18px; }
-.widget-title > label { font-size: 18px; font-weight: 600; }
+.time, .app-name { color: @md3_on_surface_variant; font-size: 11px; font-weight: 600; }
+.widget-title { color: @md3_on_surface; margin: 4px 0 16px; }
+.widget-title > label { font-size: 18px; font-weight: 700; }
 .widget-title > button { font-size: 11px; }
 .widget-dnd {
-    margin: 4px 0 18px;
+    margin: 4px 0 16px;
     color: @md3_on_surface;
-    border: 1px solid @md3_outline_variant;
-    border-radius: 14px;
-    background-color: alpha(@md3_surface_container, .65);
+    border: 1px solid alpha(@md3_on_surface, .12);
+    border-radius: 16px;
+    background-color: alpha(@md3_surface_container, .92);
     padding: 12px;
 }
 .widget-mpris { margin: 4px 0 14px; }
-.widget-mpris-player { border-radius: 20px; padding: 12px; }
+.widget-mpris-player { border-radius: 24px; padding: 12px; }
 button {
     color: @md3_on_surface;
-    background-color: alpha(@md3_surface_container_high, .70);
+    background-color: alpha(@md3_surface_container_high, .92);
     border: 1px solid @md3_outline;
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 8px 12px;
     box-shadow: none;
     text-shadow: none;
@@ -114,7 +120,7 @@ button {
 button:hover {
     color: @md3_on_primary_container;
     background-color: @md3_primary_container;
-    border-color: alpha(@md3_primary, .35);
+    border-color: alpha(@md3_primary, .45);
 }
 button:checked {
     color: @md3_on_primary_container;
@@ -123,15 +129,15 @@ button:checked {
 }
 button:disabled { opacity: .38; }
 button:focus { outline: none; box-shadow: inset 0 0 0 2px @md3_primary; }
-button.suggested-action { background-color: @md3_primary; color: @md3_on_primary; border-color: @md3_primary; font-weight: 600; }
+button.suggested-action { background-color: @md3_primary; color: @md3_on_primary; border-color: @md3_primary; font-weight: 700; }
 .notification-default-action { background: transparent; }
-.close-button { background-color: alpha(@md3_on_surface, .08); border-radius: 999px; }
+.close-button { background-color: alpha(@md3_on_surface, .10); border-radius: 999px; }
 switch {
-    background-color: alpha(@md3_surface_sunken, .85);
+    background-color: alpha(@md3_surface_sunken, .92);
     border: 1px solid @md3_outline;
     border-radius: 999px;
 }
 switch:checked { background-color: @md3_primary; background-image: none; }
 switch slider { background-color: @md3_on_primary; border-radius: 999px; }
 scrollbar { background: transparent; }
-scrollbar slider { background-color: alpha(@md3_on_surface, .22); border-radius: 999px; }
+scrollbar slider { background-color: alpha(@md3_on_surface, .24); border-radius: 999px; }

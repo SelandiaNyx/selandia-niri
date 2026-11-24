@@ -160,7 +160,7 @@ else:raise SystemExit('Unexpected audio command in read-only fixture')
                     # Side capsules are intentionally inset a few pixels inside the 44 px segment.
                     assert all(abs(h - island_height) <= 12 for rows in heights.values() for h in rows),(size,g)
                     assert 12+g['left']['width'] < (width-g['island']['width'])//2,g
-                    clock_x=width-12-g['right']['width']+g['right']['capsules'][0]['x'];assert clock_x>width/2,g
+                    right_x=width-12-g['right']['width']+g['right']['capsules'][0]['x'];assert right_x>width/2,g
                     gap=round((12+g['left']['width']+(width-small)/2)/2)
                     assert click(gap,24,width)==1,('gap input',g)
                     assert click((width-small)//2+1,13,width)==1,('corner input',g)
@@ -214,7 +214,7 @@ else:raise SystemExit('Unexpected audio command in read-only fixture')
                             y=12+1
                             assert pixel(idle,x,y)==pixel(baseline,x,y),('rounded corner',kind,x,y)
                     images[width,size,alpha]=(idle,points)
-                    results.append(dict(width=width,opacity=alpha,clock_x=clock_x,collapsed=small,expanded=expanded['island']['width'],center_error=error,animation=sizes,click_through=True,font_size=size,capsule_heights=heights,idle_height=g['island']['height']))
+                    results.append(dict(width=width,opacity=alpha,right_x=right_x,collapsed=small,expanded=expanded['island']['width'],center_error=error,animation=sizes,click_through=True,font_size=size,capsule_heights=heights,idle_height=g['island']['height']))
                     appearance.apply_settings({**appearance.load_settings(),'reduced_motion':True});island.send('show',kind='volume');time.sleep(.18);assert state()['width']==460 and state()['reduced']
                     stop(p);wait(lambda:not island.endpoint().exists());time.sleep(.25)
                 before,points=images[width,size,.2];after,_=images[width,size,1];deltas=[]

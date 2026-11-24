@@ -28,7 +28,7 @@ from control_widgets import icon, pack, prepare_icon_theme, style
 from i18n import tr
 
 BASE = Path(__file__).resolve().parent.parent
-MENU_WIDTH = 292
+MENU_WIDTH = 324
 
 # identifier, symbolic icon, english label, chinese label, confirmation question.
 # The question is None for actions that destroy nothing.
@@ -125,6 +125,7 @@ class PowerMenu(Gtk.ApplicationWindow):
         pack(header, header_badge)
         pack(header, style(Gtk.Label(label=tr("Power", "电源"), xalign=0), "control-heading"), True)
         close = style(Gtk.Button(label="×"), "close-button")
+        close.set_valign(Gtk.Align.CENTER)
         close.set_relief(Gtk.ReliefStyle.NONE)
         close.set_tooltip_text(tr("Close · Esc", "关闭 · Esc"))
         close.connect("clicked", lambda _: self.cancel())
