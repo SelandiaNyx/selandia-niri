@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, GLib, Gtk
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "niri/shell"))
 from navigation_catalog import PAGES, PAGE_KEYS
@@ -71,6 +71,40 @@ class TestSettingsNavigation(unittest.TestCase):
         self.assertTrue(handled)
         self.assertEqual(self.panel.selected_tab, "network")
         self.assertEqual(self.nav.search.get_text(), "ethernet")
+
+    def test_size_allocate_does_not_snap_scroll_back_after_selection_revealed(self):
+        window = Gtk.OffscreenWindow()
+        window.set_default_size(260, 420)
+        window.add(self.nav)
+        self.addCleanup(window.destroy)
+        window.show_all()
+
+        def pump():
+            while Gtk.events_pending():
+                Gtk.main_iteration_do(False)
+
+        self.nav.select("quick")
+        pump()
+        adj = self.nav.scroll.get_vadjustment()
+        self.assertGreater(adj.get_upper(), adj.get_page_size())
+        self.assertFalse(self.nav._reveal_pending)
+
+        # User scrolls down past the selected "quick" row; subsequent row hover
+        # / layout size-allocate events must never snap the scrollbar back.
+        target = min(200.0, adj.get_upper() - adj.get_page_size())
+        adj.set_value(target)
+        pump()
+        self.nav.rows["appearance"].set_state_flags(Gtk.StateFlags.PRELIGHT, False)
+        self.nav.list.emit("size-allocate", self.nav.list.get_allocation())
+        pump()
+        self.assertAlmostEqual(adj.get_value(), target, delta=1.0)
+
+        # Selecting a distant row explicitly still reveals it into view.
+        self.nav.select("security")
+        pump()
+        row_alloc = self.nav.rows["security"].get_allocation()
+        self.assertGreaterEqual(adj.get_value() + adj.get_page_size(), row_alloc.y + row_alloc.height - 1)
+        self.assertFalse(self.nav._reveal_pending)
 
 
 if __name__ == "__main__":

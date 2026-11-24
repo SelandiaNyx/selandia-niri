@@ -14,6 +14,7 @@ class SettingsNavigation(Gtk.Box):
         self.rows = {}
         self.syncing = False
         self._reveal_source = None
+        self._reveal_pending = False
         self._disposed = False
         style(self, "settings-sidebar")
         # MD3 Navigation Drawer width: generous room for English & Chinese labels.
@@ -78,7 +79,7 @@ class SettingsNavigation(Gtk.Box):
         self.search.connect("stop-search", lambda _: self.search.set_text(""))
         self.search.connect("key-press-event", self._on_search_key)
         self.list.connect("row-selected", self.selected)
-        self.list.connect("size-allocate", lambda *_: self.schedule_reveal())
+        self.list.connect("size-allocate", self._on_list_allocate)
         self.connect("destroy", self.dispose)
 
     def _on_search_key(self, _entry, event):
@@ -120,9 +121,14 @@ class SettingsNavigation(Gtk.Box):
         self.syncing = True
         self.list.select_row(row)
         self.syncing = False
+        self._reveal_pending = True
         self.schedule_reveal()
         if focus:
             row.grab_focus()
+
+    def _on_list_allocate(self, *_):
+        if self._reveal_pending:
+            self.schedule_reveal()
 
     def schedule_reveal(self):
         if not self._disposed and self._reveal_source is None:
@@ -130,14 +136,22 @@ class SettingsNavigation(Gtk.Box):
 
     def reveal_selected(self):
         self._reveal_source = None
+        if self._disposed:
+            return GLib.SOURCE_REMOVE
         row = self.list.get_selected_row()
-        if not self._disposed and row is not None and row.get_mapped():
-            allocation = row.get_allocation()
-            self.scroll.get_vadjustment().clamp_page(allocation.y, allocation.y + allocation.height)
+        if row is None:
+            self._reveal_pending = False
+            return GLib.SOURCE_REMOVE
+        adjustment = self.scroll.get_vadjustment()
+        allocation = row.get_allocation()
+        if row.get_mapped() and allocation.height > 0 and adjustment.get_page_size() > 0:
+            adjustment.clamp_page(allocation.y, allocation.y + allocation.height)
+            self._reveal_pending = False
         return GLib.SOURCE_REMOVE
 
     def dispose(self, *_):
         self._disposed = True
+        self._reveal_pending = False
         if self._reveal_source is not None:
             GLib.source_remove(self._reveal_source)
             self._reveal_source = None

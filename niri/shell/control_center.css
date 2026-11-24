@@ -494,7 +494,7 @@ window.glass-window.control-center-window .settings-navigation row {
     color: @md3_on_surface_variant;
     background: transparent;
     font-weight: 600;
-    transition: background-color 140ms ease-out, border-color 140ms ease-out, color 140ms ease-out;
+    transition: background-color 140ms ease-out;
 }
 window.glass-window.control-center-window .settings-navigation row:hover {
     color: @md3_on_surface;
