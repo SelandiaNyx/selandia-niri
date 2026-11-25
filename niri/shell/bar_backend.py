@@ -91,7 +91,7 @@ def render(monitors, *, size=12):
     initial={'kind':'idle','width':96,'open':False,'title':'','summary':'','cover':'',
              'can_next':False,'can_previous':False,'can_toggle':False,'media':False,'playing':False,'player':'','progress':0,'has_progress':False,
              'volume':0,'has_audio':False,'muted':False,'brightness':0,'has_brightness':False,
-             'clock':'','clock_short':'','clock_time':'','clock_date':'','app_name':tr('Desktop','桌面'),'window_title':tr('No focused window','没有当前窗口'),'app_id':'','window_id':None,'workspaces':{key:[] for key,_ in monitors},'network':'','battery':'',
+             'clock':'','clock_short':'','clock_time':'','clock_date':'','app_name':tr('Desktop','桌面'),'window_title':tr('No focused window','没有当前窗口'),'app_id':'','window_id':None,'workspaces':{key:[] for key,_ in monitors},'network':'','battery':'','bt_on':False,'bt_icon':'󰂲','bt_tooltip':tr('Bluetooth','蓝牙'),
              'cpu_text':'—','memory_text':'—','network_text':'—','temperature_text':'—','gpu_text':'—','metrics_detail':'','metrics_available':False,
              'notification_icon':'dialog-information-symbolic','reduced':load_settings()['reduced_motion'],'tray':False}
     lines=['(deflisten state :initial '+q(json.dumps(initial))+' '+q(bridge+' listen')+')'];names=[]
@@ -142,7 +142,9 @@ def render(monitors, *, size=12):
                             box(label(q('󰖩'),**{'class':q('resource-icon')}),
                                 *( [] if narrow else [label('{state.network_text}',**{'class':q('resource-value'),'visible':'{state.network_text != "—"}'})] ),
                                 spacing='3'))
-        hardware=box(*([] if narrow else [network_button]),audio,battery,tray,spacing='2' if narrow else '4')
+        bt_button=node('button',{'class':'{state.bt_on ? "pill bt-btn active" : "pill bt-btn"}','onclick':q(desktop+' bluetooth'),'timeout':q('5s'),'visible':'false' if very_narrow else 'true','tooltip':'{state.bt_tooltip}'},
+                       label('{state.bt_icon}'))
+        hardware=box(*([] if narrow else [network_button]),bt_button,audio,battery,tray,spacing='2' if narrow else '4')
         actions=box(*([] if very_narrow else [button('󰂚',desktop+' notification-toggle',tr('Notifications','通知'))]),
                     button('󰒓',desktop+' control',tr('Control Center','控制中心'),css='pill control-btn bar-right'),
                     spacing='2' if narrow else '4')

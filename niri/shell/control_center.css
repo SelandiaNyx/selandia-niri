@@ -932,6 +932,119 @@ window.glass-window.power-menu-window button.accent-button {
     font-weight: 700;
 }
 
+/* ---- Native Polkit/BlueZ Auth & Visual Clipboard Modals ---------------- */
+window.glass-window.polkit-window .glass-surface,
+window.glass-window.clipboard-window .glass-surface {
+    border-color: alpha(@md3_primary, .42);
+    border-radius: 28px;
+    background-image: none;
+    box-shadow: inset 0 1px alpha(@md3_primary, .24), 0 24px 60px alpha(black, .38);
+}
+window.glass-window.polkit-window .panel-header,
+window.glass-window.clipboard-window .panel-header {
+    padding: 14px 18px 12px;
+    background-color: @md3_surface_container_low;
+    background-image: none;
+    border-bottom: 1px solid alpha(@md3_primary, .26);
+    border-radius: 27px 27px 0 0;
+}
+window.glass-window.polkit-window .mascot-avatar-frame,
+window.glass-window.clipboard-window .mascot-avatar-frame {
+    padding: 2px;
+    border-radius: 999px;
+    border: 2px solid @md3_primary;
+    background-color: @md3_surface_container_high;
+}
+window.glass-window.polkit-window .control-heading,
+window.glass-window.clipboard-window .control-heading {
+    color: @md3_on_surface;
+    font-size: 1.24em;
+    font-weight: 800;
+}
+window.glass-window.polkit-window .control-caption,
+window.glass-window.clipboard-window .control-caption {
+    color: @md3_on_surface_variant;
+    font-size: .84em;
+    font-weight: 600;
+}
+window.glass-window.polkit-window .auth-message {
+    color: @md3_on_surface;
+    font-size: .98em;
+    font-weight: 600;
+}
+window.glass-window.polkit-window .auth-prompt {
+    color: @md3_primary;
+    font-size: .88em;
+    font-weight: 700;
+}
+window.glass-window.polkit-window .auth-error {
+    color: @md3_error;
+    font-size: .90em;
+    font-weight: 700;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid alpha(@md3_error, .45);
+    background-color: alpha(@md3_error_container, .65);
+}
+window.glass-window.polkit-window .auth-passkey {
+    color: @md3_primary;
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 2.0em;
+    font-weight: 800;
+    letter-spacing: 4px;
+    padding: 10px 16px;
+    border-radius: 16px;
+    background-color: @md3_surface_sunken;
+    border: 1px solid alpha(@md3_primary, .36);
+}
+window.glass-window.polkit-window .data-row,
+window.glass-window.clipboard-window .data-row {
+    padding: 8px 12px;
+    border: 1px solid alpha(@md3_on_surface, .12);
+    border-radius: 14px;
+    background-color: @md3_surface_container_low;
+}
+window.glass-window.polkit-window .status-badge {
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: .78em;
+    font-weight: 700;
+    color: @md3_primary;
+    background-color: alpha(@md3_primary, .16);
+    border: 1px solid alpha(@md3_primary, .42);
+}
+window.glass-window.clipboard-window list.clipboard-list {
+    background: transparent;
+}
+window.glass-window.clipboard-window row.clipboard-row {
+    margin: 3px 0;
+    border: 1px solid alpha(@md3_on_surface, .10);
+    border-radius: 16px;
+    background-color: @md3_surface_container;
+    color: @md3_on_surface;
+}
+window.glass-window.clipboard-window row.clipboard-row:hover {
+    border-color: alpha(@md3_primary, .42);
+    background-color: @md3_surface_container_high;
+}
+window.glass-window.clipboard-window row.clipboard-row:selected {
+    border-color: @md3_primary;
+    background-color: @md3_primary_container;
+    color: @md3_on_primary_container;
+}
+window.glass-window.clipboard-window .clipboard-thumb {
+    border-radius: 10px;
+    border: 1px solid alpha(@md3_primary, .30);
+    background-color: @md3_surface_sunken;
+    padding: 2px;
+}
+window.glass-window.clipboard-window .inline-confirm {
+    padding: 10px 12px;
+    border: 1px solid alpha(@md3_error, .50);
+    border-radius: 14px;
+    background-color: alpha(@md3_error_container, .65);
+}
+
 /* ---- Interaction states & Reduced motion -------------------------------- */
 window.glass-window.control-center-window button,
 window.glass-window.control-center-window scale slider {

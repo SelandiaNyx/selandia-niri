@@ -123,15 +123,10 @@ case "${1:-}" in
         esac
         ;;
     clipboard)
-        selection=$(cliphist list | menu --prompt "$(tr 'Clipboard' '剪贴板')  ›  ") || exit 0
-        [[ -n "$selection" ]] || exit 0
-        printf '%s\n' "$selection" | cliphist decode | wl-copy
+        exec python3 -B "$base/shell/clipboard_menu.py"
         ;;
     clipboard-clear)
-        confirm "$(tr 'Clear clipboard?' '清空剪贴板？')" || exit 0
-        cliphist wipe
-        wl-copy --clear
-        notify "$(tr 'Clipboard history cleared' '剪贴板历史已清空')"
+        exec python3 -B "$base/shell/clipboard_menu.py" --confirm-clear
         ;;
     lock)
         exec python3 -B "$base/shell/lock_session.py"

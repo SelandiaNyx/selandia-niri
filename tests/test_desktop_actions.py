@@ -202,17 +202,16 @@ if name == "alacritty" and os.environ.get("TEST_LANGUAGE_LOG"):
         self.assertEqual(result.returncode, 2)
         self.assertEqual(len(calls), 1)
 
-    def test_dmenu_confirmation_does_not_reuse_the_application_placeholder(self):
-        result, calls = self.invoke("clipboard-clear", LC_ALL="C", TEST_DESKTOP_STDOUT="Cancel")
+    def test_clipboard_uses_native_visual_manager_and_safe_clear_confirmation(self):
+        result, calls = self.invoke("clipboard")
         self.assert_success(result)
-        fuzzel = [call for call in calls if call[0] == "fuzzel"]
-        self.assertTrue(fuzzel)
-        self.assertIn("--dmenu", fuzzel[0])
-        placeholder = fuzzel[0][fuzzel[0].index("--placeholder") + 1]
-        self.assertNotEqual(placeholder, "Search applications")
-        self.assertNotIn(" · ", placeholder)
-        # Cancelling must not wipe the clipboard: only the menu ran.
-        self.assertEqual([call[0] for call in calls], ["fuzzel"])
+        self.assertEqual(calls, [["python3", "-B", str(self.base / "shell/clipboard_menu.py")]])
+        self.assertFalse(any(call[0] == "fuzzel" for call in calls))
+
+        result, calls = self.invoke("clipboard-clear")
+        self.assert_success(result)
+        self.assertEqual(calls, [["python3", "-B", str(self.base / "shell/clipboard_menu.py"), "--confirm-clear"]])
+        self.assertFalse(any(call[0] == "fuzzel" for call in calls))
 
     def test_lock_uses_session_scoped_readiness_helper(self):
         result, calls = self.invoke("lock")

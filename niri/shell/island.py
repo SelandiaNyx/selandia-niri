@@ -182,6 +182,24 @@ def sample_battery():
     return values
 
 
+def sample_bluetooth():
+    try:
+        import bluetooth_backend
+        st = bluetooth_backend.read_state()
+        if not st.get('available') or not st.get('adapters'):
+            return {'bt_on': False, 'bt_icon': '󰂲', 'bt_tooltip': tr('Bluetooth unavailable', '蓝牙不可用')}
+        powered = any(a.get('powered') for a in st['adapters'])
+        connected = [d for d in st.get('devices', []) if d.get('connected')]
+        if not powered:
+            return {'bt_on': False, 'bt_icon': '󰂲', 'bt_tooltip': tr('Bluetooth off', '蓝牙已关闭')}
+        if connected:
+            names = ', '.join(d.get('name') or d.get('address', '') for d in connected[:3])
+            return {'bt_on': True, 'bt_icon': f'󰂱 {len(connected)}', 'bt_tooltip': tr('Connected: ', '已连接：') + names}
+        return {'bt_on': True, 'bt_icon': '󰂯', 'bt_tooltip': tr('Bluetooth on', '蓝牙已开启')}
+    except Exception:
+        return {'bt_on': False, 'bt_icon': '󰂲', 'bt_tooltip': tr('Bluetooth', '蓝牙')}
+
+
 def sample_brightness():
     import brightness
     data = brightness.read_state()
@@ -248,7 +266,7 @@ def listen():
         monitor=NotificationFeed(events,stopping,base=BASE);monitor.thread.start()
         state={'kind':'idle','width':96,'open':False,'title':'','summary':'','cover':'','can_next':False,'can_previous':False,'can_toggle':False,'media':False,'playing':False,
                'player':'','progress':0,'has_progress':False,'volume':0,'has_audio':False,'muted':False,'brightness':0,
-               'has_brightness':False,'notification_icon':'dialog-information-symbolic','clock':'','clock_short':'','clock_time':'','clock_date':'',**focused_application(None),'workspaces':{},'network':'','battery':'','reduced':False,'tray':False,
+               'has_brightness':False,'notification_icon':'dialog-information-symbolic','clock':'','clock_short':'','clock_time':'','clock_date':'',**focused_application(None),'workspaces':{},'network':'','battery':'','bt_on':False,'bt_icon':'󰂲','bt_tooltip':tr('Bluetooth','蓝牙'),'reduced':False,'tray':False,
                'cpu_text':'—','memory_text':'—','network_text':'—','temperature_text':'—','gpu_text':'—',
                'metrics_detail':'', 'metrics_available':False}
         from metrics import MetricsSampler
@@ -265,7 +283,7 @@ def listen():
         from media_events import MediaChanges,RefreshGate,PlaybackClock
         audio_changes=AudioChanges(stopping);media_changes=MediaChanges(stopping)
         audio_gate=RefreshGate(audio_changes.changed,interval=120);media_gate=RefreshGate(media_changes.changed,interval=120)
-        battery_gate=RefreshGate(interval=30);metrics_gate=RefreshGate(interval=3);playback=PlaybackClock()
+        battery_gate=RefreshGate(interval=30);bt_gate=RefreshGate(interval=10);metrics_gate=RefreshGate(interval=3);playback=PlaybackClock()
         # Only an explicit brightness preview requests this potentially slow DDC read.
         brightness_gate=RefreshGate(interval=float('inf'));brightness_gate.changed.clear()
         brightness_gate.fallback=float('inf')
@@ -293,7 +311,7 @@ def listen():
                     if value.get('action')=='show' and value.get('kind')=='brightness':
                         brightness_gate.changed.set()
                     if value.get('action') in ('light-state','notification-policy'):state.update(value['values'])
-                for name,gate,function in (('audio',audio_gate,sample_audio),('media',media_gate,sample_media),('battery',battery_gate,sample_battery),('metrics',metrics_gate,sample_metrics),('brightness',brightness_gate,sample_brightness)):
+                for name,gate,function in (('audio',audio_gate,sample_audio),('media',media_gate,sample_media),('battery',battery_gate,sample_battery),('bluetooth',bt_gate,sample_bluetooth),('metrics',metrics_gate,sample_metrics),('brightness',brightness_gate,sample_brightness)):
                     try:
                         values=gate.take()
                         if values is not None:

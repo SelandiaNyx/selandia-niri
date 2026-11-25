@@ -46,6 +46,8 @@ button { background: transparent; border: none; box-shadow: none; }
 .segment .pill.launcher-btn:hover { color: #16112b; background: #9da8ff; background-image: linear-gradient(135deg, #9da8ff, #ff8dc7); border-color: #ff8dc7; }
 .launcher-avatar { border-radius: 999px; }
 .segment .pill.control-btn { color: #9da8ff; }
+.segment .pill.bt-btn { color: #dfd8ee; }
+.segment .pill.bt-btn.active { color: #9da8ff; }
 .segment .pill.audio-btn.muted { color: #ff8aa0; background: rgba(255, 138, 160, 0.160); }
 .segment .pill.resources, .segment .pill.current-app {
     background-color: rgba(33, 28, 49, 0.900);

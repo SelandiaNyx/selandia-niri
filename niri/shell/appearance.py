@@ -1085,6 +1085,8 @@ button {{ background: transparent; border: none; box-shadow: none; }}
 .segment .pill.launcher-btn:hover {{ color: {r['on_primary']}; background: {r['primary']}; background-image: {grad_accent}; border-color: {r['secondary']}; }}
 .launcher-avatar {{ border-radius: 999px; }}
 .segment .pill.control-btn {{ color: {r['primary']}; }}
+.segment .pill.bt-btn {{ color: {r['on_surface_variant']}; }}
+.segment .pill.bt-btn.active {{ color: {r['primary']}; }}
 .segment .pill.audio-btn.muted {{ color: {r['error']}; background: {rgba(r['error'], .16)}; }}
 .segment .pill.resources, .segment .pill.current-app {{
     background-color: {rgba(r['surface_container_low'], .90)};

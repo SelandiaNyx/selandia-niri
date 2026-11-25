@@ -35,12 +35,15 @@ case "${1:-}" in
     clipboard-text) exec wl-paste --type text --watch cliphist store ;;
     clipboard-image) exec wl-paste --type image --watch cliphist store ;;
     polkit)
+        if python3 -B -c "import gi; gi.require_version('PolkitAgent', '1.0'); from gi.repository import PolkitAgent" 2>/dev/null; then
+            exec python3 -B "$base/shell/polkit_agent.py"
+        fi
         for agent in /usr/lib/polkit-kde-authentication-agent-1 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1; do
             if [[ -x "$agent" ]]; then
                 exec "$agent"
             fi
         done
-        printf '%s\n' '找不到 Polkit 验证代理，请安装 polkit-kde-agent。' >&2
+        printf '%s\n' '找不到 Polkit 验证代理，请安装 polkit。' >&2
         exit 1
         ;;
     *) printf '未知组件：%s\n' "${1:-}" >&2; exit 2 ;;

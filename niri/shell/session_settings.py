@@ -10,6 +10,7 @@ import tempfile
 
 UNITS = {"selandia-niri@" + component + ".service" for component in
          ("clipboard-text", "clipboard-image", "notifications", "waybar")}
+SHADOW_AUTOSTART = {"blueman.desktop", "nm-applet.desktop"}
 JOURNAL = "session-settings-backup.json"
 
 
@@ -20,7 +21,8 @@ def journal_path():
 def managed_relative(relative):
     parts = Path(relative).parts
     return (len(parts) == 2 and parts[0] == "autostart" and
-            parts[1].startswith("selandia-niri-") and parts[1].endswith(".desktop") and
+            ((parts[1].startswith("selandia-niri-") and parts[1].endswith(".desktop")) or
+             parts[1] in SHADOW_AUTOSTART) and
             not any(char in parts[1] for char in ("\x00", "\r", "\n")) or
             len(parts) == 3 and parts[:2] == ("systemd", "user") and parts[2] in UNITS)
 
