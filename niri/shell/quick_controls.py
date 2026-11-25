@@ -18,8 +18,12 @@ def build_overview(panel):
            "主人，随时按 Ctrl+K 可直达 Wi-Fi、蓝牙、防火墙、进程管理、Docker 或护眼夜览；点击右侧小箭头即可进入详情页哦~"),
     ))
 
-    hero = Gtk.Box(orientation=(Gtk.Orientation.VERTICAL if panel.panel_width < 650
-                                else Gtk.Orientation.HORIZONTAL), spacing=14)
+    wide_hero = panel.panel_width >= 650
+    hero = Gtk.Grid(column_spacing=12, row_spacing=12, column_homogeneous=True,
+                    row_homogeneous=wide_hero)
+    hero.set_hexpand(True)
+    hero.set_vexpand(False)
+    hero.set_valign(Gtk.Align.START)
     pack(body, hero)
     panel.tiles = {}
     panel.tile_groups = {}
@@ -27,6 +31,7 @@ def build_overview(panel):
 
     def tile(key, title, image, callback, details=None):
         group = style(Gtk.Box(), "quick-tile")
+        group.set_hexpand(True)
         toggle = style(Gtk.ToggleButton(), "quick-toggle")
         toggle.set_tooltip_text(title)
         toggle.get_accessible().set_name(title)
@@ -37,6 +42,7 @@ def build_overview(panel):
         pack(badge, icon(image, 18))
         pack(inner, badge)
         labels = pack(inner, Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2), True)
+        labels.set_valign(Gtk.Align.CENTER)
         title_label = pack(labels, text(title, "quick-title", 18))
         title_label.set_ellipsize(Pango.EllipsizeMode.NONE)
         title_label.set_line_wrap(True)
@@ -63,20 +69,23 @@ def build_overview(panel):
         panel.tile_groups[key] = group
         return group
 
-    tile_grid = Gtk.Grid(column_spacing=12, row_spacing=12, column_homogeneous=True)
-    # Inline Control Center drill-down (never destroys the window!).
-    tile_grid.attach(tile("wifi", tr("Wi-Fi", "无线网络"), "network-wireless-symbolic", panel.toggle_wifi,
-                          lambda: panel.select_control_tab("network")), 0, 0, 1, 1)
-    tile_grid.attach(tile("bluetooth", tr("Bluetooth", "蓝牙"), "bluetooth-active-symbolic", panel.toggle_bluetooth,
-                          lambda: panel.select_control_tab("bluetooth")), 1, 0, 1, 1)
-    tile_grid.attach(tile("dnd", tr("Do Not Disturb", "勿扰模式"), "notifications-disabled-symbolic", panel.toggle_dnd,
-                          lambda: panel.select_control_tab("notifications")), 0, 1, 1, 1)
-    tile_grid.attach(tile("idle", tr("Stay awake", "保持唤醒"), "display-brightness-symbolic", panel.toggle_idle,
-                          lambda: panel.select_control_tab("power")), 1, 1, 1, 1)
+    # 3 equal-width columns on wide windows: 2x2 quick tiles + 1x2 Media card
+    # so Media has the exact same column width as each quick tile and aligns flush.
+    hero.attach(tile("wifi", tr("Wi-Fi", "无线网络"), "network-wireless-symbolic", panel.toggle_wifi,
+                     lambda: panel.select_control_tab("network")), 0, 0, 1, 1)
+    hero.attach(tile("bluetooth", tr("Bluetooth", "蓝牙"), "bluetooth-active-symbolic", panel.toggle_bluetooth,
+                     lambda: panel.select_control_tab("bluetooth")), 1, 0, 1, 1)
+    hero.attach(tile("dnd", tr("Do Not Disturb", "勿扰模式"), "notifications-disabled-symbolic", panel.toggle_dnd,
+                     lambda: panel.select_control_tab("notifications")), 0, 1, 1, 1)
+    hero.attach(tile("idle", tr("Stay awake", "保持唤醒"), "display-brightness-symbolic", panel.toggle_idle,
+                     lambda: panel.select_control_tab("power")), 1, 1, 1, 1)
 
     panel.media_controls = MediaControls(panel)
-    pack(hero, tile_grid, True)
-    pack(hero, panel.media_controls, True)
+    panel.media_controls.set_hexpand(True)
+    if wide_hero:
+        hero.attach(panel.media_controls, 2, 0, 1, 2)
+    else:
+        hero.attach(panel.media_controls, 0, 2, 2, 1)
 
     # Clickable live pulse strip -> jumps to Monitor & Processes
     pulse_btn = style(Gtk.Button(), "flat")

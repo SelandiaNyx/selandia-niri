@@ -60,9 +60,9 @@ class MediaControls(Gtk.Box):
         pack(info, cover)
         metadata = pack(info, Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3), True)
         metadata.set_valign(Gtk.Align.CENTER)
-        self.title = pack(metadata, text(tr("Not playing", "没有正在播放的音乐"), "media-heading", 16))
-        self.artist = pack(metadata, text(tr("Open a player to listen", "打开播放器开始聆听"), "media-subtitle", 18))
-        self.status = pack(metadata, text(tr("Not playing", "未播放"), "media-state", 18))
+        self.title = pack(metadata, text(tr("Not playing", "没有正在播放的音乐"), "media-heading", 22))
+        self.artist = pack(metadata, text(tr("Open a player to listen", "打开播放器开始聆听"), "media-subtitle", 24))
+        self.status = pack(metadata, text(tr("Not playing", "未播放"), "media-state", 24))
         transport = pack(self, Gtk.Box(spacing=8))
         transport.set_halign(Gtk.Align.CENTER)
         self.buttons = {}

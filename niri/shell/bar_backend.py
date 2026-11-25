@@ -38,7 +38,7 @@ def geometry(width, size=12):
     width=max(320,int(width));factor=max(1,size/12)
     compact=width<1500 or (size>=15 and width<2400)
     left=min(round(250*factor),round(width*.27))
-    right=min(round(620*factor),round(width*(.35 if compact else .38)))
+    right=min(round(820*factor),round(width*(.35 if compact else .38)))
     maximum=max(160,min(round(460*factor),int(2*min(width/2-left-12,width/2-right-12)-24)))
     # Keep a real gap on both sides even when the output is very narrow.
     right=min(right,max(96,int(width/2-12-maximum/2)))
@@ -138,8 +138,8 @@ def render(monitors, *, size=12):
                    box(label('{state.muted ? "󰝟" : "󰕾"}'),
                        label(q('${state.volume}%'),**{'visible':'false' if narrow else '{state.has_audio}'}),
                        spacing='3'))
-        network_button=node('button',{'class':q('pill network-btn'),'onclick':q(desktop+' network'),'timeout':q('5s'),'tooltip':q(tr('Network','网络'))},
-                            box(label(q('󰖩 NET'),**{'class':q('resource-icon')}),
+        network_button=node('button',{'class':q('pill network-btn'),'onclick':q(desktop+' network'),'timeout':q('5s'),'tooltip':q('{state.metrics_detail}')},
+                            box(label(q('󰖩'),**{'class':q('resource-icon')}),
                                 *( [] if narrow else [label('{state.network_text}',**{'class':q('resource-value'),'visible':'{state.network_text != "—"}'})] ),
                                 spacing='3'))
         hardware=box(*([] if narrow else [network_button]),audio,battery,tray,spacing='2' if narrow else '4')

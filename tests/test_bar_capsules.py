@@ -95,7 +95,7 @@ class BarCapsuleTests(unittest.TestCase):
                 shape=bar_backend.geometry(width,size)
                 compact = width < 1500 or (size >= 15 and width < 2400)
                 self.assertGreaterEqual(shape['left'],min(round(250*max(1,size/12)),round(width*.27)))
-                self.assertEqual(shape['right'],min(round(620*max(1,size/12)),round(width*(.35 if compact else .38))))
+                self.assertEqual(shape['right'],min(round(820*max(1,size/12)),round(width*(.35 if compact else .38))))
                 self.assertGreaterEqual(shape['collapsed'], 96)
                 self.assertLessEqual(shape['collapsed'], shape['island'])
                 self.assertGreaterEqual(shape['height'],44)
