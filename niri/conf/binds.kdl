@@ -69,6 +69,15 @@ binds {
     Mod+Ctrl+Down hotkey-overlay-title=null { focus-workspace-down; }
     Mod+WheelScrollUp cooldown-ms=180 hotkey-overlay-title=null { focus-workspace-up; }
     Mod+WheelScrollDown cooldown-ms=180 hotkey-overlay-title=null { focus-workspace-down; }
+    Mod+Shift+WheelScrollUp cooldown-ms=150 hotkey-overlay-title=null { focus-column-left; }
+    Mod+Shift+WheelScrollDown cooldown-ms=150 hotkey-overlay-title=null { focus-column-right; }
+    Mod+Ctrl+WheelScrollUp cooldown-ms=150 hotkey-overlay-title=null { move-column-left; }
+    Mod+Ctrl+WheelScrollDown cooldown-ms=150 hotkey-overlay-title=null { move-column-right; }
+    Mod+WheelScrollLeft cooldown-ms=150 hotkey-overlay-title=null { focus-column-left; }
+    Mod+WheelScrollRight cooldown-ms=150 hotkey-overlay-title=null { focus-column-right; }
+    Mod+MouseBack repeat=false hotkey-overlay-title=null { focus-column-left; }
+    Mod+MouseForward repeat=false hotkey-overlay-title=null { focus-column-right; }
+    Mod+MouseMiddle repeat=false hotkey-overlay-title=null { toggle-overview; }
     Mod+1 hotkey-overlay-title=null { focus-workspace "1"; }
     Mod+Alt+1 hotkey-overlay-title=null { move-window-to-workspace focus=false "1"; }
     Mod+Shift+1 hotkey-overlay-title=null { move-window-to-workspace "1"; }

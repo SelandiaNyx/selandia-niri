@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Pango
+gi.require_version("Gdk", "3.0")
+from gi.repository import Gdk, Gtk, Pango
 
 from control_widgets import icon, icon_button, nyx_guide_banner, pack, style, text
 from i18n import tr
@@ -62,6 +63,12 @@ def build_overview(panel):
         pack(group, toggle, True)
         if details:
             action_cb = details if callable(details) else (lambda: panel.select_control_tab("network"))
+            def _on_tile_button(_widget, event, cb=action_cb):
+                if event.button == Gdk.BUTTON_SECONDARY:
+                    cb()
+                    return True
+                return False
+            toggle.connect("button-press-event", _on_tile_button)
             disclosure, _ = icon_button("pan-end-symbolic", tr(f"{title} settings", f"进入{title}设置"),
                                          action_cb, "quick-disclosure")
             pack(group, disclosure)

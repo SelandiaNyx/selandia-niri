@@ -299,7 +299,7 @@ class PolkitAuthDialog:
 
         self.reveal_btn = style(Gtk.ToggleButton(), "small-button")
         self.reveal_btn.set_image(icon("view-reveal-symbolic", 16))
-        self.reveal_btn.set_tooltip_text(tr("Show / hide password", "显示 / 隐藏密码"))
+        self.reveal_btn.set_tooltip_text(tr("Show / hide password (Alt+S)", "显示或隐藏密码（Alt+S）"))
         self.reveal_btn.connect("toggled", lambda b: self.entry.set_visibility(b.get_active()))
         pack(pw_row, self.reveal_btn)
 
@@ -428,8 +428,16 @@ class PolkitAuthDialog:
         self.session.response(password)
 
     def _on_key(self, _win, event):
+        alt = bool(event.state & Gdk.ModifierType.MOD1_MASK)
         if event.keyval == Gdk.KEY_Escape:
             self.cancel()
+            return True
+        if event.keyval == Gdk.KEY_F2 or (alt and event.keyval in (Gdk.KEY_s, Gdk.KEY_S)):
+            self.reveal_btn.set_active(not self.reveal_btn.get_active())
+            return True
+        if event.keyval in (Gdk.KEY_Left, Gdk.KEY_Right) and self.window.get_focus() in (self.cancel_btn, self.auth_btn):
+            target = self.auth_btn if self.window.get_focus() is self.cancel_btn else self.cancel_btn
+            target.grab_focus()
             return True
         return False
 
@@ -495,18 +503,22 @@ class BluezPromptDialog:
             pack(card, lbl)
 
         actions = pack(body, Gtk.Box(spacing=10))
-        cancel_btn = pack(actions, style(Gtk.Button(label=tr("Reject", "拒绝")), "text-button"), True)
-        cancel_btn.connect("clicked", lambda _: self.reject())
-        ok_btn = pack(actions, style(Gtk.Button(label=tr("Confirm Pair", "确认配对")), "accent-button"), True)
-        ok_btn.connect("clicked", lambda _: self.accept())
+        self.cancel_btn = pack(actions, style(Gtk.Button(label=tr("Reject", "拒绝")), "text-button"), True)
+        self.cancel_btn.connect("clicked", lambda _: self.reject())
+        self.ok_btn = pack(actions, style(Gtk.Button(label=tr("Confirm Pair", "确认配对")), "accent-button"), True)
+        self.ok_btn.connect("clicked", lambda _: self.accept())
 
         self.window.show_all()
         self.window.present()
-        GLib.idle_add((self.entry or ok_btn).grab_focus)
+        GLib.idle_add((self.entry or self.ok_btn).grab_focus)
 
     def _on_key(self, _win, event):
         if event.keyval == Gdk.KEY_Escape:
             self.reject()
+            return True
+        if event.keyval in (Gdk.KEY_Left, Gdk.KEY_Right) and (self.entry is None or not self.entry.has_focus()):
+            target = self.ok_btn if self.window.get_focus() is self.cancel_btn else self.cancel_btn
+            target.grab_focus()
             return True
         return False
 

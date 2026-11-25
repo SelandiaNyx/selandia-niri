@@ -58,10 +58,11 @@ class AiPage:
         toolbar = pack(self.content, box(False, 8))
         self.profile_choices = pack(toolbar, Gtk.ComboBoxText(), True)
         self.add_profile_button = pack(toolbar, button("+", self.add_ai_profile, tooltip=tr("Add connection", "新增连接配置")))
-        pack(toolbar, button("⚙", self.toggle_settings, tooltip=tr_legacy("Connection settings · 连接设置")))
+        pack(toolbar, button("⚙", self.toggle_settings, tooltip=tr("Connection settings (Ctrl+,)", "连接设置（Ctrl+,）")))
         history_row = pack(self.content, box(False, 8))
         self.conversation_choices = pack(history_row, Gtk.ComboBoxText(), True)
-        self.new_chat_button = pack(history_row, button(tr("New chat", "新对话"), self.new_ai_chat))
+        self.new_chat_button = pack(history_row, button(tr("New chat", "新对话"), self.new_ai_chat,
+                                                        tooltip=tr("New conversation (Ctrl+N)", "新建对话（Ctrl+N）")))
         self.settings_box = box(spacing=8, css="card")
         self.settings_container = pack(self.content, scroller(self.settings_box))
         settings_height = min(340, max(120, self.available_height - 410))
@@ -125,13 +126,15 @@ class AiPage:
         pack(composer, input_scroll)
         composer_actions = pack(composer, box(False, 8))
         self.clear_button = pack(composer_actions, button(tr("Delete chat", "删除对话"), self.clear_chat))
-        self.copy_button = pack(composer_actions, button(tr_legacy("Copy · 复制"), self.copy_reply))
+        self.copy_button = pack(composer_actions, button(tr_legacy("Copy · 复制"), self.copy_reply,
+                                                         tooltip=tr("Copy last reply (Ctrl+Shift+C)", "复制最新回复（Ctrl+Shift+C）")))
         self.copy_button.set_sensitive(False)
         self.send_button = pack(composer_actions, button(tr_legacy("Send  ↗  发送"), self.send_chat, "accent-button"), True)
         self.stop_button = pack(composer_actions, button(tr("Stop", "停止"), self.stop_chat,
                                                        "accent-button", tooltip="Ctrl+."), True)
         self.stop_button.set_no_show_all(True)
-        pack(composer, label(tr_legacy("Enter to send · 回车发送   /   Shift+Enter for newline · 换行"), "hint"))
+        pack(composer, label(tr("Enter Send · Shift+Enter Newline · Ctrl+N New · Ctrl+Shift+C Copy · Ctrl+. Stop",
+                                "Enter 发送 · Shift+Enter 换行 · Ctrl+N 新对话 · Ctrl+Shift+C 复制 · Ctrl+. 停止"), "hint", wrap=True))
         self.update_ai_workspace(self.workspace)
         self.profile_choices.connect("changed", self.choose_ai_profile)
         self.conversation_choices.connect("changed", self.choose_ai_chat)

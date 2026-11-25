@@ -185,6 +185,10 @@ class ConfirmClearWindow(Gtk.ApplicationWindow):
         if event.keyval == Gdk.KEY_Escape:
             self.get_application().quit()
             return True
+        if event.keyval in (Gdk.KEY_Left, Gdk.KEY_Right, Gdk.KEY_KP_Left, Gdk.KEY_KP_Right):
+            target = self.confirm_btn if self.get_focus() is self.cancel_btn else self.cancel_btn
+            target.grab_focus()
+            return True
         return False
 
     def _confirm(self, *_):
@@ -262,10 +266,13 @@ class ClipboardWindow(Gtk.ApplicationWindow):
         scroll = Gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scroll.set_shadow_type(Gtk.ShadowType.NONE)
+        self.scroll = scroll
         self.listbox = style(Gtk.ListBox(), "clipboard-list")
         self.listbox.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        self.listbox.set_activate_on_single_click(True)
         self.listbox.set_filter_func(self._matches)
         self.listbox.connect("row-activated", lambda _lb, row: self._pick(row))
+        self.listbox.connect("button-press-event", self._on_list_button)
         scroll.add(self.listbox)
         pack(body, scroll, True)
 
@@ -273,8 +280,8 @@ class ClipboardWindow(Gtk.ApplicationWindow):
         self.empty_label.set_no_show_all(True)
 
         footer = pack(body, style(Gtk.Label(
-            label=tr("↑↓ Select · Enter Copy · Del Remove item · Esc Close",
-                     "↑↓ 选择 · Enter 复制并关闭 · Del 删除单条 · Esc 关闭"),
+            label=tr("↑↓ / Ctrl+1…9 Copy · Shift+Del / Middle-click Remove · Esc Close",
+                     "↑↓ 或 Ctrl+1…9 快速复制 · Shift+Del 或中键删除 · Esc 关闭"),
             xalign=0,
         ), "hint"))
         footer.set_ellipsize(Pango.EllipsizeMode.END)
@@ -433,22 +440,60 @@ class ClipboardWindow(Gtk.ApplicationWindow):
             row = next((r for r in self.rows if self._matches(r)), None)
         self._pick(row)
 
-    def _move_selection(self, step: int):
+    def _reveal_row(self, row: Gtk.ListBoxRow | None):
+        if row is None or getattr(self, "scroll", None) is None:
+            return
+        adj = self.scroll.get_vadjustment()
+        alloc = row.get_allocation()
+        if adj is not None and alloc.height > 0 and adj.get_page_size() > 0:
+            adj.clamp_page(alloc.y, alloc.y + alloc.height)
+
+    def _on_list_button(self, _lb, event):
+        if event.button == Gdk.BUTTON_MIDDLE:
+            row = self.listbox.get_row_at_y(int(event.y))
+            if row is not None and row in self.rows:
+                self._delete_row(row)
+                return True
+        return False
+
+    def _move_selection(self, step: int, *, absolute: int | None = None):
         visible = [r for r in self.rows if self._matches(r)]
         if not visible:
             return
-        cur = self.listbox.get_selected_row()
-        idx = visible.index(cur) if cur in visible else -1
-        target = visible[(idx + step) % len(visible)]
+        if absolute is not None:
+            target = visible[max(0, min(len(visible) - 1, absolute))]
+        else:
+            cur = self.listbox.get_selected_row()
+            idx = visible.index(cur) if cur in visible else -1
+            target = visible[(idx + step) % len(visible)]
         self.listbox.select_row(target)
+        self._reveal_row(target)
 
     def _on_search_key(self, _entry, event):
-        if event.keyval in (Gdk.KEY_Down, Gdk.KEY_Up):
-            self._move_selection(1 if event.keyval == Gdk.KEY_Down else -1)
+        ctrl = bool(event.state & Gdk.ModifierType.CONTROL_MASK)
+        if event.keyval in (Gdk.KEY_Down, Gdk.KEY_KP_Down) or (ctrl and event.keyval in (Gdk.KEY_n, Gdk.KEY_N)):
+            self._move_selection(1)
+            return True
+        if event.keyval in (Gdk.KEY_Up, Gdk.KEY_KP_Up) or (ctrl and event.keyval in (Gdk.KEY_p, Gdk.KEY_P)):
+            self._move_selection(-1)
+            return True
+        if event.keyval in (Gdk.KEY_Page_Down, Gdk.KEY_KP_Page_Down):
+            self._move_selection(6)
+            return True
+        if event.keyval in (Gdk.KEY_Page_Up, Gdk.KEY_KP_Page_Up):
+            self._move_selection(-6)
+            return True
+        if ctrl and event.keyval in (Gdk.KEY_Home, Gdk.KEY_KP_Home):
+            self._move_selection(0, absolute=0)
+            return True
+        if ctrl and event.keyval in (Gdk.KEY_End, Gdk.KEY_KP_End):
+            self._move_selection(0, absolute=10**6)
             return True
         return False
 
     def _on_key(self, _win, event):
+        ctrl = bool(event.state & Gdk.ModifierType.CONTROL_MASK)
+        shift = bool(event.state & Gdk.ModifierType.SHIFT_MASK)
         if event.keyval == Gdk.KEY_Escape:
             if self.confirm_bar.get_visible():
                 self._show_confirm(False)
@@ -457,7 +502,17 @@ class ClipboardWindow(Gtk.ApplicationWindow):
             else:
                 self.get_application().quit()
             return True
-        if event.keyval == Gdk.KEY_Delete and not self.search.has_focus():
+        if self.confirm_bar.get_visible() and event.keyval in (Gdk.KEY_Left, Gdk.KEY_Right, Gdk.KEY_KP_Left, Gdk.KEY_KP_Right):
+            target = self.confirm_ok if self.get_focus() is self.confirm_cancel else self.confirm_cancel
+            target.grab_focus()
+            return True
+        if ctrl and Gdk.KEY_1 <= event.keyval <= Gdk.KEY_9:
+            visible = [r for r in self.rows if self._matches(r)]
+            idx = event.keyval - Gdk.KEY_1
+            if idx < len(visible):
+                self._pick(visible[idx])
+            return True
+        if event.keyval in (Gdk.KEY_Delete, Gdk.KEY_KP_Delete) and (shift or not self.search.has_focus()):
             row = self.listbox.get_selected_row()
             if row is not None and self._matches(row):
                 self._delete_row(row)

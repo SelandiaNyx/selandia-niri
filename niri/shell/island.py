@@ -186,16 +186,17 @@ def sample_bluetooth():
     try:
         import bluetooth_backend
         st = bluetooth_backend.read_state()
-        if not st.get('available') or not st.get('adapters'):
+        adapter = st.get('adapter')
+        if not st.get('available') or not adapter:
             return {'bt_on': False, 'bt_icon': '󰂲', 'bt_tooltip': tr('Bluetooth unavailable', '蓝牙不可用')}
-        powered = any(a.get('powered') for a in st['adapters'])
+        powered = bool(adapter.get('powered'))
         connected = [d for d in st.get('devices', []) if d.get('connected')]
         if not powered:
-            return {'bt_on': False, 'bt_icon': '󰂲', 'bt_tooltip': tr('Bluetooth off', '蓝牙已关闭')}
+            return {'bt_on': False, 'bt_icon': '󰂲', 'bt_tooltip': tr('Bluetooth off · Right-click to enable', '蓝牙已关闭 · 右键快速开启')}
         if connected:
             names = ', '.join(d.get('name') or d.get('address', '') for d in connected[:3])
             return {'bt_on': True, 'bt_icon': f'󰂱 {len(connected)}', 'bt_tooltip': tr('Connected: ', '已连接：') + names}
-        return {'bt_on': True, 'bt_icon': '󰂯', 'bt_tooltip': tr('Bluetooth on', '蓝牙已开启')}
+        return {'bt_on': True, 'bt_icon': '󰂯', 'bt_tooltip': tr('Bluetooth on · Right-click to disable', '蓝牙已开启 · 右键快速关闭')}
     except Exception:
         return {'bt_on': False, 'bt_icon': '󰂲', 'bt_tooltip': tr('Bluetooth', '蓝牙')}
 
@@ -409,6 +410,30 @@ def main():
     if action in ('dismiss','tray'):send(action);return
     if action=='workspace':
         niri_request({'Action':{'FocusWorkspace':{'reference':{'Id':int(sys.argv[2])}}}});return
+    if action=='workspace-step':
+        direction=sys.argv[2]
+        if direction=='up':niri_request({'Action':{'FocusWorkspaceUp':{}}})
+        elif direction=='down':niri_request({'Action':{'FocusWorkspaceDown':{}}})
+        else:raise ValueError('workspace-step direction')
+        return
+    if action=='volume-step':
+        direction=sys.argv[2]
+        if direction=='up':call(['wpctl','set-volume','-l','1.0','@DEFAULT_AUDIO_SINK@','5%+'])
+        elif direction=='down':call(['wpctl','set-volume','@DEFAULT_AUDIO_SINK@','5%-'])
+        else:raise ValueError('volume-step direction')
+        send('show',kind='volume');return
+    if action=='toggle-wifi':
+        current=call(['nmcli','radio','wifi']).strip().lower()
+        call(['nmcli','radio','wifi','off' if current=='enabled' else 'on']);return
+    if action=='toggle-bluetooth':
+        import bluetooth_backend
+        st=bluetooth_backend.read_state()
+        adapter=st.get('adapter')
+        if adapter and adapter.get('path'):
+            bluetooth_backend.set_power(adapter['path'],not adapter.get('powered',False))
+        return
+    if action=='media-quick':
+        call(['playerctl','play-pause']);send('show',kind='media');return
     state=json.loads(endpoint().with_suffix('.json').read_text())
     if action=='volume':
         requested=percent(sys.argv[2])

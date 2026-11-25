@@ -114,6 +114,12 @@ class PreferencesPage(Gtk.Box):
             self.stack.set_visible_child_name(target)
         self.resume()
 
+    def cycle_subtab(self, delta: int):
+        keys = [item[0] for item in self.SUBTABS]
+        current = self.stack.get_visible_child_name() or keys[0]
+        idx = keys.index(current) if current in keys else 0
+        self.select_subtab(keys[(idx + delta) % len(keys)])
+
     def refresh(self):
         active = self.stack.get_visible_child_name() or "applications"
         page = self.subpages.get(active)

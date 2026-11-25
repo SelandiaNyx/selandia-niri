@@ -130,6 +130,9 @@ class SettingsNavigation(Gtk.Box):
             return True
         return False
 
+    def _visible_rows(self):
+        return [row for row in self.rows.values() if self.matches(row)]
+
     def _on_list_key(self, _list, event):
         if event.keyval in (Gdk.KEY_Right, Gdk.KEY_Return, Gdk.KEY_KP_Enter):
             stack = getattr(self.panel, "control_stack", None)
@@ -137,6 +140,25 @@ class SettingsNavigation(Gtk.Box):
             if visible is not None:
                 visible.child_focus(Gtk.DirectionType.TAB_FORWARD)
                 return True
+        if event.keyval in (Gdk.KEY_Home, Gdk.KEY_KP_Home):
+            rows = self._visible_rows()
+            if rows:
+                self.panel.select_control_tab(rows[0].key, focus=True)
+            return True
+        if event.keyval in (Gdk.KEY_End, Gdk.KEY_KP_End):
+            rows = self._visible_rows()
+            if rows:
+                self.panel.select_control_tab(rows[-1].key, focus=True)
+            return True
+        if event.keyval in (Gdk.KEY_Page_Up, Gdk.KEY_KP_Page_Up, Gdk.KEY_Page_Down, Gdk.KEY_KP_Page_Down):
+            rows = self._visible_rows()
+            if rows:
+                cur = self.list.get_selected_row()
+                idx = rows.index(cur) if cur in rows else 0
+                step = -5 if event.keyval in (Gdk.KEY_Page_Up, Gdk.KEY_KP_Page_Up) else 5
+                target = rows[max(0, min(len(rows) - 1, idx + step))]
+                self.panel.select_control_tab(target.key, focus=True)
+            return True
         return False
 
     def matches(self, row):

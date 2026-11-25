@@ -144,7 +144,7 @@ class PowerMenu(Gtk.ApplicationWindow):
         self.action_buttons = {}
         actions = style(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8), "power-actions")
         blocked_sleep = sleep_blocked() if blocked is None else bool(blocked)
-        for identifier, glyph, english, chinese, question in ACTIONS:
+        for index, (identifier, glyph, english, chinese, question) in enumerate(ACTIONS, start=1):
             row = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
             style(row, "power-action-row")
             widget = Gtk.Button()
@@ -156,10 +156,13 @@ class PowerMenu(Gtk.ApplicationWindow):
             badge.set_valign(Gtk.Align.CENTER)
             pack(badge, icon(glyph, 16))
             pack(inner, badge)
-            pack(inner, Gtk.Label(label=tr(english, chinese), xalign=0))
+            pack(inner, Gtk.Label(label=tr(english, chinese), xalign=0), True)
+            key_hint = style(Gtk.Label(label=str(index)), "hint")
+            key_hint.set_valign(Gtk.Align.CENTER)
+            pack(inner, key_hint)
             widget.add(inner)
             widget.get_accessible().set_name(tr(english, chinese))
-            widget.set_tooltip_text(tr(*_HINTS[identifier]))
+            widget.set_tooltip_text(tr(*_HINTS[identifier]) + f" ({index})")
             widget.connect("clicked", lambda _widget, key=identifier: self.choose(key))
             pack(row, widget, True)
             if identifier == "sleep" and blocked_sleep:
@@ -203,13 +206,47 @@ class PowerMenu(Gtk.ApplicationWindow):
     def on_map(self, *_):
         self.action_buttons["lock"].grab_focus()
 
+    def _move_action_focus(self, delta: int):
+        focused = self.get_focus()
+        ordered = [self.action_buttons[key] for key in ACTION_IDS]
+        idx = ordered.index(focused) if focused in ordered else -1
+        ordered[(idx + delta) % len(ordered)].grab_focus()
+
     def on_key(self, _widget, event):
-        if event.keyval == Gdk.KEY_Escape:
-            if self.stack.get_visible_child_name() == "confirm":
+        kv = event.keyval
+        mods = event.state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.MOD1_MASK)
+        if self.stack.get_visible_child_name() == "confirm":
+            if kv in (Gdk.KEY_Escape, Gdk.KEY_BackSpace):
                 self.back()
-            else:
-                self.cancel()
+                return True
+            if kv in (Gdk.KEY_Left, Gdk.KEY_Right, Gdk.KEY_Up, Gdk.KEY_Down,
+                      Gdk.KEY_KP_Left, Gdk.KEY_KP_Right, Gdk.KEY_KP_Up, Gdk.KEY_KP_Down):
+                target = self.confirm_button if self.get_focus() is self.cancel_button else self.cancel_button
+                target.grab_focus()
+                return True
+            return False
+        if kv == Gdk.KEY_Escape:
+            self.cancel()
             return True
+        if kv in (Gdk.KEY_Down, Gdk.KEY_KP_Down):
+            self._move_action_focus(1)
+            return True
+        if kv in (Gdk.KEY_Up, Gdk.KEY_KP_Up):
+            self._move_action_focus(-1)
+            return True
+        if kv in (Gdk.KEY_Home, Gdk.KEY_KP_Home):
+            self.action_buttons[ACTION_IDS[0]].grab_focus()
+            return True
+        if kv in (Gdk.KEY_End, Gdk.KEY_KP_End):
+            self.action_buttons[ACTION_IDS[-1]].grab_focus()
+            return True
+        if not mods:
+            if Gdk.KEY_1 <= kv <= Gdk.KEY_5:
+                self.choose(ACTION_IDS[kv - Gdk.KEY_1])
+                return True
+            if Gdk.KEY_KP_1 <= kv <= Gdk.KEY_KP_5:
+                self.choose(ACTION_IDS[kv - Gdk.KEY_KP_1])
+                return True
         return False
 
     def choose(self, identifier):

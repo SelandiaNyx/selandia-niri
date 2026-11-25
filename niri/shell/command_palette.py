@@ -50,13 +50,16 @@ class CommandPalette(Gtk.EventBox):
         scroll.set_shadow_type(Gtk.ShadowType.NONE)
         scroll.set_min_content_height(120)
         scroll.set_max_content_height(420)
+        self.scroll = scroll
         self.list = Gtk.ListBox()
         self.list.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        self.list.set_activate_on_single_click(True)
         self.list.connect("row-activated", self._on_row_activated)
         scroll.add(self.list)
         pack(card, scroll, True)
 
-        self.hint = pack(card, Gtk.Label(label=tr("↑↓ Navigate · Enter Open · Esc Close", "↑↓ 选择 · Enter 直达 · Esc 关闭"), xalign=0))
+        self.hint = pack(card, Gtk.Label(label=tr("↑↓ / Ctrl+N/P Navigate · PageUp/Down Jump · Enter Open · Esc Close",
+                                                  "↑↓ / Ctrl+N/P 选择 · PageUp/Down 翻页 · Enter 直达 · Esc 关闭"), xalign=0))
         style(self.hint, "hint")
 
         self._items = self._build_catalog()
@@ -132,19 +135,49 @@ class CommandPalette(Gtk.EventBox):
             return True
         return False
 
+    def _reveal_row(self, row: Gtk.ListBoxRow | None):
+        if row is None or getattr(self, "scroll", None) is None:
+            return
+        adj = self.scroll.get_vadjustment()
+        alloc = row.get_allocation()
+        if adj is not None and alloc.height > 0 and adj.get_page_size() > 0:
+            adj.clamp_page(alloc.y, alloc.y + alloc.height)
+
+    def _move_selection(self, step: int, *, absolute: int | None = None):
+        visible = [r for r in self._rows if self._matches(r)]
+        if not visible:
+            return
+        if absolute is not None:
+            target = visible[max(0, min(len(visible) - 1, absolute))]
+        else:
+            current = self.list.get_selected_row()
+            idx = visible.index(current) if current in visible else -1
+            target = visible[(idx + step) % len(visible)]
+        self.list.select_row(target)
+        self._reveal_row(target)
+
     def _on_entry_key(self, _entry, event):
+        ctrl = bool(event.state & Gdk.ModifierType.CONTROL_MASK)
         if event.keyval == Gdk.KEY_Escape:
             self.close()
             return True
-        if event.keyval in (Gdk.KEY_Down, Gdk.KEY_Up):
-            visible = [r for r in self._rows if self._matches(r)]
-            if not visible:
-                return True
-            current = self.list.get_selected_row()
-            idx = visible.index(current) if current in visible else -1
-            step = 1 if event.keyval == Gdk.KEY_Down else -1
-            target = visible[(idx + step) % len(visible)]
-            self.list.select_row(target)
+        if event.keyval in (Gdk.KEY_Down, Gdk.KEY_KP_Down) or (ctrl and event.keyval in (Gdk.KEY_n, Gdk.KEY_N)):
+            self._move_selection(1)
+            return True
+        if event.keyval in (Gdk.KEY_Up, Gdk.KEY_KP_Up) or (ctrl and event.keyval in (Gdk.KEY_p, Gdk.KEY_P)):
+            self._move_selection(-1)
+            return True
+        if event.keyval in (Gdk.KEY_Page_Down, Gdk.KEY_KP_Page_Down):
+            self._move_selection(6)
+            return True
+        if event.keyval in (Gdk.KEY_Page_Up, Gdk.KEY_KP_Page_Up):
+            self._move_selection(-6)
+            return True
+        if (ctrl or not self.entry.get_text()) and event.keyval in (Gdk.KEY_Home, Gdk.KEY_KP_Home):
+            self._move_selection(0, absolute=0)
+            return True
+        if (ctrl or not self.entry.get_text()) and event.keyval in (Gdk.KEY_End, Gdk.KEY_KP_End):
+            self._move_selection(0, absolute=10**6)
             return True
         return False
 

@@ -86,8 +86,16 @@ def render(monitors, *, size=12):
     # application; Eww's bounded command timeout cannot kill its foreground UI.
     desktop='niri msg action spawn -- '+shlex.quote(str(BASE/'scripts/desktop'))
     bridge='python3 -B '+shlex.quote(str(BASE/'shell/island.py'))
-    def button(text,command,tooltip=None,enabled='true',css='pill'):
-        return node('button',{'class':q(css),'onclick':q(command),'timeout':q('5s'),'tooltip':q(tooltip or text),'active':enabled},label(q(text)))
+    def button(text,command,tooltip=None,enabled='true',css='pill',*,right=None,middle=None):
+        attrs={'class':q(css),'onclick':q(command),'timeout':q('5s'),'tooltip':q(tooltip or text),'active':enabled}
+        if right:attrs['onrightclick']=q(right)
+        if middle:attrs['onmiddleclick']=q(middle)
+        return node('button',attrs,label(q(text)))
+    def wheel(scroll_cmd,child,*,right=None,middle=None):
+        attrs={'onscroll':q(scroll_cmd),'timeout':q('5s')}
+        if right:attrs['onrightclick']=q(right)
+        if middle:attrs['onmiddleclick']=q(middle)
+        return node('eventbox',attrs,child)
     initial={'kind':'idle','width':96,'open':False,'title':'','summary':'','cover':'',
              'can_next':False,'can_previous':False,'can_toggle':False,'media':False,'playing':False,'player':'','progress':0,'has_progress':False,
              'volume':0,'has_audio':False,'muted':False,'brightness':0,'has_brightness':False,
@@ -102,19 +110,26 @@ def render(monitors, *, size=12):
             geometry=node('geometry',{'anchor':q(anchor),'x':q('0px' if anchor=='top center' else '12px'),'y':q('12px'),'width':q(str(width)+'px'),'height':q(str(g['height'])+'px')})
             return node('defwindow '+name,{'monitor':str(index),'namespace':q(namespace),'stacking':q('fg'),'focusable':'false','exclusive':'false','resizable':'true','geometry':geometry},content)
         workspace='(for item in {state.workspaces['+key+']} '+node('button',{'class':'{item.active ? "workspace active" : "workspace"}','onclick':q(bridge+' workspace ${item.id}'),'timeout':q('5s'),'tooltip':'{item.name}'},label('{item.name}',**{'limit-width':'2' if narrow else '3'}))+')'
+        workspaces_box=wheel(bridge+' workspace-step {}',box(workspace,spacing='3' if narrow else '6'))
         segment=q('segment compact' if narrow else 'segment')
         is_zh=i18n.get_language().startswith('zh')
         app_limit = '5' if (narrow and is_zh) else '8' if narrow else '16' if is_zh else '20'
-        application=node('button',{'class':q('pill current-app'),'hexpand':'false','onclick':q('niri msg action toggle-overview'),'timeout':q('5s'),'tooltip':'{state.window_title}'},
+        application=node('button',{'class':q('pill current-app'),'hexpand':'false',
+                                   'onclick':q('niri msg action toggle-overview'),
+                                   'onrightclick':q('niri msg action toggle-window-floating'),
+                                   'onmiddleclick':q('niri msg action close-window'),
+                                   'timeout':q('5s'),'tooltip':'{state.window_title}'},
                          box(label(q('●'),**{'class':q('app-dot')}),
                              label('{state.app_name}',**{'class':q('app-label'),'truncate':'true','limit-width':q(app_limit),'xalign':'0'}),
                              spacing='2'))
         avatar_size=str(max(22,min(32,g['height']-16)))
         avatar_path=str(mascot_asset(None,'avatar64'))
-        launcher=node('button',{'class':q('pill launcher-btn'),'onclick':q(desktop+' launcher'),'timeout':q('5s'),'tooltip':q(tr('Applications','应用'))},
+        launcher=node('button',{'class':q('pill launcher-btn'),'onclick':q(desktop+' launcher'),
+                                'onrightclick':q(desktop+' control'),'onmiddleclick':q(desktop+' ai'),
+                                'timeout':q('5s'),'tooltip':q(tr('Apps · Right-click Control Center · Middle-click AI','应用启动器 · 右键控制中心 · 中键AI侧栏'))},
                       node('image',{'class':q('launcher-avatar'),'path':q(avatar_path),'image-width':avatar_size,'image-height':avatar_size}))
         left=box(launcher,node('box',{'class':q('separator')}),
-                 box(workspace,spacing='3' if narrow else '6'),node('box',{'class':q('separator')}),
+                 workspaces_box,node('box',{'class':q('separator')}),
                  application,**{'class':segment,'spacing':'4' if narrow else '6','halign':q('start'),'hexpand':'false'})
         host_class='{state.reduced ? "bar-host reduce-motion" : "bar-host"}'
         left_outer=box(left,halign=q('start'),hexpand='true',**{'class':host_class})
@@ -128,33 +143,59 @@ def render(monitors, *, size=12):
             telemetry_items.append(resource('󰍛 RAM','{state.memory_text}',tr('Memory','内存'),'ram'))
         if not narrow:
             telemetry_items.append(resource('󰔏 TEMP','{state.temperature_text}',tr('Temperature','温度'),'temp'))
-        telemetry=node('button',{'class':q('pill resources bar-right'),'onclick':q(desktop+' system'),'timeout':q('5s'),'tooltip':q('{state.metrics_detail}')},
+        telemetry=node('button',{'class':q('pill resources bar-right'),'onclick':q(desktop+' system'),
+                                 'onrightclick':q(desktop+' system-monitor'),
+                                 'timeout':q('5s'),'tooltip':q('{state.metrics_detail}')},
             box(*telemetry_items,**{'class':q('resource-row'),'spacing':'6' if narrow else '8'}))
         tray=(button('⋯',bridge+' tray',tr('System tray','系统托盘')) if narrow else box(node('systray',{'icon-size':'16','spacing':'4'}),**{'class':q('pill'),'tooltip':q(tr('System tray','系统托盘'))}))
         if very_narrow:tray=node('box',{'visible':'false'})
         battery=label('{state.battery}',**{'class':q('pill battery'),'tooltip':q(tr('Battery','电池')),'visible':'false' if narrow else '{state.battery != ""}'})
-        audio=node('button',{'class':'{state.muted ? "pill audio-btn muted" : "pill audio-btn"}','onclick':q(bridge+' show volume'),'timeout':q('5s'),'visible':'false' if very_narrow else 'true',
-                            'tooltip':'{state.muted ? '+q(tr('Muted','已静音'))+' : '+q(tr('Volume','音量'))+'}'},
-                   box(label('{state.muted ? "󰝟" : "󰕾"}'),
-                       label(q('${state.volume}%'),**{'visible':'false' if narrow else '{state.has_audio}'}),
-                       spacing='3'))
-        network_button=node('button',{'class':q('pill network-btn'),'onclick':q(desktop+' network'),'timeout':q('5s'),'tooltip':q('{state.metrics_detail}')},
+        audio_btn=node('button',{'class':'{state.muted ? "pill audio-btn muted" : "pill audio-btn"}',
+                                 'onclick':q(bridge+' show volume'),
+                                 'onrightclick':q(desktop+' volume mute'),
+                                 'onmiddleclick':q(desktop+' volume mute'),
+                                 'timeout':q('5s'),'visible':'false' if very_narrow else 'true',
+                                 'tooltip':'{state.muted ? '+q(tr('Muted · Scroll volume · Right-click unmute','已静音 · 滚轮调音量 · 右键取消静音'))+' : '+q(tr('Volume · Scroll adjust · Right-click mute','音量 · 滚轮调节 · 右键静音'))+'}'},
+                       box(label('{state.muted ? "󰝟" : "󰕾"}'),
+                           label(q('${state.volume}%'),**{'visible':'false' if narrow else '{state.has_audio}'}),
+                           spacing='3'))
+        audio=wheel(bridge+' volume-step {}',audio_btn)
+        network_button=node('button',{'class':q('pill network-btn'),'onclick':q(desktop+' network'),
+                                      'onrightclick':q(bridge+' toggle-wifi'),
+                                      'timeout':q('5s'),'tooltip':q('{state.metrics_detail}')},
                             box(label(q('󰖩'),**{'class':q('resource-icon')}),
                                 *( [] if narrow else [label('{state.network_text}',**{'class':q('resource-value'),'visible':'{state.network_text != "—"}'})] ),
                                 spacing='3'))
-        bt_button=node('button',{'class':'{state.bt_on ? "pill bt-btn active" : "pill bt-btn"}','onclick':q(desktop+' bluetooth'),'timeout':q('5s'),'visible':'false' if very_narrow else 'true','tooltip':'{state.bt_tooltip}'},
+        bt_button=node('button',{'class':'{state.bt_on ? "pill bt-btn active" : "pill bt-btn"}','onclick':q(desktop+' bluetooth'),
+                                 'onrightclick':q(bridge+' toggle-bluetooth'),
+                                 'timeout':q('5s'),'visible':'false' if very_narrow else 'true','tooltip':'{state.bt_tooltip}'},
                        label('{state.bt_icon}'))
         hardware=box(*([] if narrow else [network_button]),bt_button,audio,battery,tray,spacing='2' if narrow else '4')
-        actions=box(*([] if very_narrow else [button('󰂚',desktop+' notification-toggle',tr('Notifications','通知'))]),
-                    button('󰒓',desktop+' control',tr('Control Center','控制中心'),css='pill control-btn bar-right'),
+        actions=box(*([] if very_narrow else [button('󰂚',desktop+' notification-toggle',
+                                                     tr('Notifications · Right-click Do Not Disturb','通知中心 · 右键切换勿扰'),
+                                                     right='swaync-client --skip-wait -d',
+                                                     middle='swaync-client --skip-wait -d')]),
+                    button('󰒓',desktop+' control',
+                           tr('Control Center · Right-click Power · Middle-click Shortcuts','控制中心 · 右键电源菜单 · 中键快捷键'),
+                           css='pill control-btn bar-right',
+                           right=desktop+' power',
+                           middle=desktop+' shortcuts'),
                     spacing='2' if narrow else '4')
         sep=node('box',{'class':q('separator')})
         right=box(telemetry,sep,hardware,sep,actions,**{'class':segment,'halign':q('end'),'hexpand':'false','spacing':'2' if narrow else '4'})
         right_outer=box(right,halign=q('end'),hexpand='true',**{'class':host_class})
         lines.append(window('selandia-right-'+str(index),right_outer,'top right',g['right'],'selandia-bar-right'))
-        idle_media=node('button',{'class':q('island-media-btn'),'onclick':q(bridge+' show media'),'timeout':q('5s'),'tooltip':q(tr('Media','媒体'))},
-                        label('{state.playing ? "󰎈" : "✦"}',**{'class':q('island-idle-icon')}))
-        idle_clock=node('button',{'class':q('island-clock'),'onclick':q(desktop+' calendar'),'timeout':q('5s'),'tooltip':q(tr('Open calendar','打开日历'))},
+        idle_media=wheel(bridge+' volume-step {}',
+                         node('button',{'class':q('island-media-btn'),'onclick':q(bridge+' show media'),
+                                        'onrightclick':q(bridge+' media-quick'),
+                                        'onmiddleclick':q('playerctl next'),
+                                        'timeout':q('5s'),
+                                        'tooltip':q(tr('Media · Right-click Play/Pause · Middle-click Next · Scroll Volume','媒体 · 右键播放或暂停 · 中键下一曲 · 滚轮音量'))},
+                              label('{state.playing ? "󰎈" : "✦"}',**{'class':q('island-idle-icon')})))
+        idle_clock=node('button',{'class':q('island-clock'),'onclick':q(desktop+' calendar'),
+                                  'onrightclick':q('swaync-client --skip-wait -d'),
+                                  'timeout':q('5s'),
+                                  'tooltip':q(tr('Calendar · Right-click Do Not Disturb','日历 · 右键切换勿扰'))},
                         box(label('{state.clock_time}',**{'class':q('clock-time')}),
                             *( [] if narrow else [label('{state.clock_date}',**{'class':q('clock-date')})] ),
                             spacing='6',valign=q('center')))

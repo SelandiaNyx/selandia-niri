@@ -128,6 +128,8 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         self.connect("destroy", self.on_destroy)
         self.connect("unmap", self.on_unmap)
         self.connect("key-press-event", self.on_key)
+        self.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        self.connect("button-press-event", self.on_button)
         self.set_decorated(False)
         self.set_resizable(False)
         self.set_app_paintable(True)
@@ -357,12 +359,16 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
                 self.feedback(tr(f"Copied {date_str} to clipboard", f"已复制 {date_str} 到剪贴板"))
             self.work(write_clip, copied, commit=True)
 
+        self._calendar_today = today
+        self._calendar_copy = copy_date
         self.calendar.connect("day-selected", selected)
         actions = pack(footer, box(self.panel_width < 360, 8, "calendar-actions"), True)
         for title, callback, css in (
                 (tr("Today", "今天"), today, "calendar-primary"),
                 (tr("Copy Date", "复制日期"), copy_date, "calendar-secondary")):
             pack(actions, button(title, callback, css), True)
+        pack(footer, label(tr("Arrows: Day · Alt+←/→: Month · T: Today · Ctrl+C: Copy",
+                              "方向键选日 · Alt+←/→ 切月 · T 跳今天 · Ctrl+C 复制"), "hint", wrap=True))
         selected()
 
     def on_destroy(self, *_):
@@ -529,18 +535,37 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
         self.work(start, None, lambda err: self.feedback(str(err), True), commit=True)
 
     def show_keyboard_help(self, anchor):
-        content = box(spacing=8)
-        pack(content, label(tr("Keyboard shortcuts", "键盘操作快捷键"), "section-title"))
-        for instruction in (tr("Ctrl + K  Global setting & command search", "Ctrl + K  全局命令与设置快搜"),
-                            tr("Ctrl + F  Search sidebar / page", "Ctrl + F  搜索侧栏或当前页"),
-                            tr("Alt + 1…6  Jump to category group", "Alt + 1…6  快速切换 6 大分组"),
-                            tr("Ctrl + 1…9  Select page", "Ctrl + 1…9  切换前 9 页"),
-                            tr("Alt + ← / →  Navigation history", "Alt + ← / →  页面浏览后退 / 前进"),
-                            tr("Ctrl + S  Apply current page", "Ctrl + S  应用当前页更改"),
-                            tr("F5 / Ctrl + R  Refresh current page", "F5 / Ctrl + R  刷新当前页"),
+        content = box(spacing=6)
+        pack(content, label(tr("Keyboard & mouse shortcuts", "键盘与鼠标操控指南"), "section-title"))
+        for instruction in (tr("Ctrl+K  Global setting & command search", "Ctrl+K  全局命令与设置快搜"),
+                            tr("Ctrl+F / /  Search sidebar", "Ctrl+F 或 /  搜索侧栏分类"),
+                            tr("F6  Switch focus between sidebar and page", "F6  在侧栏与页面内容间切换焦点"),
+                            tr("Alt+1…6  Jump to category group", "Alt+1…6  快速切换 6 大分组"),
+                            tr("Ctrl+1…9  Select page", "Ctrl+1…9  切换前 9 页"),
+                            tr("Ctrl+PageUp / PageDown  Cycle subtabs or pages", "Ctrl+PageUp/PageDown  切换子分页或相邻页"),
+                            tr("Alt+← / →  or Mouse Back/Forward  History", "Alt+←/→ 或鼠标侧键  后退 / 前进"),
+                            tr("Alt+Home  Jump to Overview", "Alt+Home  一键返回总览页"),
+                            tr("Ctrl+S  Apply current page", "Ctrl+S  应用当前页更改"),
+                            tr("F5 / Ctrl+R  Refresh current page", "F5 / Ctrl+R  刷新当前页"),
+                            tr("Right-click quick tile  Open detail page", "右键概览磁贴  直接进入对应设置页"),
+                            tr("Top bar  Wheel volume/workspace · Right-click toggle", "顶栏胶囊  滚轮调音量或工作区 · 右键快速开关"),
                             tr("Esc  Back / cancel / close", "Esc  逐层取消、返回总览或关闭")):
             pack(content, label(instruction, "hint"))
         self.show_popover(anchor, content)
+
+    def on_button(self, _widget, event):
+        if event.button not in (8, 9):
+            return False
+        if self.mode == "control":
+            if event.button == 8:
+                self.nav_back()
+            else:
+                self.nav_forward()
+            return True
+        if self.mode == "calendar" and getattr(self, "calendar", None) is not None:
+            self.calendar._navigate_month(-1 if event.button == 8 else 1)
+            return True
+        return False
 
     def protect_scroll_controls(self, widget):
         """Scrolling a settings page must not silently edit the hovered control."""
@@ -552,12 +577,39 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
     def show_connection_details(self, key, anchor):
         self.select_control_tab("bluetooth" if key == "bluetooth" else "network", focus=True)
 
+    @staticmethod
+    def _is_text_input(widget) -> bool:
+        return isinstance(widget, (Gtk.Editable, Gtk.TextView, Gtk.SpinButton))
+
+    def _toggle_pane_focus(self):
+        focused = self.get_focus()
+        in_sidebar = focused is not None and (focused is self.navigation or focused.is_ancestor(self.navigation))
+        if in_sidebar:
+            visible = self.control_stack.get_visible_child()
+            if visible is not None and visible.child_focus(Gtk.DirectionType.TAB_FORWARD):
+                return
+        self.focus_control_tab()
+
+    def _step_page_or_subtab(self, direction: int):
+        cur = self.control_stack.get_visible_child_name()
+        entry = self.page_host.entries.get(cur) if self.page_host else None
+        if entry is not None and hasattr(entry.content, "cycle_subtab"):
+            entry.content.cycle_subtab(direction)
+            return
+        if cur in self.control_pages:
+            index = self.control_pages.index(cur)
+            self.select_control_tab(self.control_pages[(index + direction) % len(self.control_pages)], focus=True)
+
     def on_key(self, _widget, event):
         ctrl = bool(event.state & Gdk.ModifierType.CONTROL_MASK)
         alt = bool(event.state & Gdk.ModifierType.MOD1_MASK)
+        shift = bool(event.state & Gdk.ModifierType.SHIFT_MASK)
         if self.mode == "control":
             if event.keyval == Gdk.KEY_F1:
                 self.show_keyboard_help(self.help_button)
+                return True
+            if event.keyval == Gdk.KEY_F6 and not ctrl and not alt:
+                self._toggle_pane_focus()
                 return True
             if event.keyval == Gdk.KEY_F5 or (ctrl and event.keyval in (Gdk.KEY_r, Gdk.KEY_R)):
                 self.refresh_visible_page()
@@ -578,12 +630,19 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
             if alt and event.keyval == Gdk.KEY_Right:
                 self.nav_forward()
                 return True
+            if alt and event.keyval in (Gdk.KEY_Home, Gdk.KEY_KP_Home):
+                self.select_control_tab("quick", focus=True)
+                return True
             if alt and Gdk.KEY_1 <= event.keyval <= Gdk.KEY_6:
                 idx = event.keyval - Gdk.KEY_1
                 groups = getattr(self.navigation, "group_first_keys", ())
                 if idx < len(groups):
                     self.select_control_tab(groups[idx], focus=True)
                 return True
+            if not ctrl and not alt and event.keyval in (Gdk.KEY_slash, Gdk.KEY_KP_Divide):
+                if not (self.command_palette and self.command_palette.is_open()) and not self._is_text_input(self.get_focus()):
+                    self.navigation.search.grab_focus()
+                    return True
             if ctrl:
                 if event.keyval in (Gdk.KEY_f, Gdk.KEY_F):
                     self.navigation.search.grab_focus()
@@ -591,14 +650,49 @@ class Panel(AudioPage, SystemPage, AppearancePage, QuickControlsPage, AiPage, Gt
                 if Gdk.KEY_1 <= event.keyval <= Gdk.KEY_9:
                     self.select_control_tab(self.control_pages[event.keyval - Gdk.KEY_1], focus=True)
                     return True
+                if event.keyval in (Gdk.KEY_Page_Up, Gdk.KEY_KP_Page_Up):
+                    self._step_page_or_subtab(-1)
+                    return True
+                if event.keyval in (Gdk.KEY_Page_Down, Gdk.KEY_KP_Page_Down):
+                    self._step_page_or_subtab(1)
+                    return True
                 if event.keyval in (Gdk.KEY_Tab, Gdk.KEY_ISO_Left_Tab):
-                    direction = -1 if event.state & Gdk.ModifierType.SHIFT_MASK else 1
+                    direction = -1 if shift else 1
                     index = self.control_pages.index(self.control_stack.get_visible_child_name())
                     self.select_control_tab(self.control_pages[(index + direction) % len(self.control_pages)], focus=True)
                     return True
+        if self.mode == "calendar" and getattr(self, "calendar", None) is not None:
+            if alt and event.keyval == Gdk.KEY_Left:
+                self.calendar._navigate_month(-1)
+                return True
+            if alt and event.keyval == Gdk.KEY_Right:
+                self.calendar._navigate_month(1)
+                return True
+            if ctrl and event.keyval in (Gdk.KEY_c, Gdk.KEY_C):
+                self._calendar_copy()
+                return True
+            if not ctrl and not alt and event.keyval in (Gdk.KEY_t, Gdk.KEY_T):
+                self._calendar_today()
+                return True
         if self.mode == "ai" and ctrl:
             if event.keyval in (Gdk.KEY_period, Gdk.KEY_KP_Decimal):
                 self.stop_chat()
+                return True
+            if event.keyval in (Gdk.KEY_n, Gdk.KEY_N):
+                self.new_ai_chat()
+                return True
+            if shift and event.keyval in (Gdk.KEY_c, Gdk.KEY_C):
+                self.copy_reply()
+                return True
+            if event.keyval == Gdk.KEY_comma:
+                self.toggle_settings()
+                return True
+            if event.keyval in (Gdk.KEY_Page_Up, Gdk.KEY_KP_Page_Up, Gdk.KEY_Page_Down, Gdk.KEY_KP_Page_Down):
+                adj = self.chat_scroll.get_vadjustment()
+                step = max(80.0, adj.get_page_size() * 0.8)
+                delta = -step if event.keyval in (Gdk.KEY_Page_Up, Gdk.KEY_KP_Page_Up) else step
+                high = max(adj.get_lower(), adj.get_upper() - adj.get_page_size())
+                adj.set_value(min(high, max(adj.get_lower(), adj.get_value() + delta)))
                 return True
         if event.keyval == Gdk.KEY_Escape:
             if self.mode == "control" and self.command_palette is not None and self.command_palette.is_open():

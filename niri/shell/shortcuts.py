@@ -171,6 +171,8 @@ def load_shortcuts():
                 if not body.strip():
                     continue
                 english, chinese, category_english, category_chinese = describe(body, attributes)
+                if "WheelScroll" in keys or "Mouse" in keys:
+                    category_english, category_chinese = "Mouse", "鼠标"
                 bindings[keys] = entry(keys, english, chinese, (category_english, category_chinese))
     bindings["mouse-move"] = entry("Mod + Left drag", "Move window", "拖动窗口", ("Mouse", "鼠标"))
     bindings["mouse-resize"] = entry("Mod + Right drag", "Resize window", "调整窗口大小", ("Mouse", "鼠标"))

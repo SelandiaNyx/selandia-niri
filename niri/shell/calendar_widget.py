@@ -118,8 +118,9 @@ class LocalizedCalendar(Gtk.Box):
         self.grid.set_row_homogeneous(True)
         self.grid.set_column_homogeneous(True)
 
+        self._smooth_scroll_accum = 0.0
         self._build_ui()
-        self.add_events(Gdk.EventMask.SCROLL_MASK)
+        self.add_events(Gdk.EventMask.SCROLL_MASK | Gdk.EventMask.SMOOTH_SCROLL_MASK)
         self.connect("scroll-event", self._on_scroll)
         self.connect("key-press-event", self._on_key_press)
 
@@ -159,7 +160,7 @@ class LocalizedCalendar(Gtk.Box):
         else:
             m_text = f"{MONTH_NAMES_EN[self.month]} {self.year}"
         self.month_label.set_text(m_text)
-        self.set_tooltip_text("Ctrl + 滚轮切换月份" if zh else "Ctrl + scroll to change month")
+        self.set_tooltip_text("Ctrl / Shift + 滚轮切换月份" if zh else "Ctrl or Shift + scroll to change month")
 
         for child in self.grid.get_children():
             self.grid.remove(child)
@@ -244,14 +245,25 @@ class LocalizedCalendar(Gtk.Box):
     def _on_scroll(self, _widget, event: Gdk.EventScroll) -> bool:
         # Leave ordinary wheel events to the enclosing ScrolledWindow, so all
         # six weeks remain reachable in short drawers and at larger text sizes.
-        if not event.state & Gdk.ModifierType.CONTROL_MASK:
+        if not (event.state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK)):
             return False
         if event.direction == Gdk.ScrollDirection.UP:
             self._navigate_month(-1)
             return True
-        elif event.direction == Gdk.ScrollDirection.DOWN:
+        if event.direction == Gdk.ScrollDirection.DOWN:
             self._navigate_month(1)
             return True
+        if event.direction == Gdk.ScrollDirection.SMOOTH:
+            ok, _dx, dy = event.get_scroll_deltas()
+            if ok and dy != 0:
+                self._smooth_scroll_accum += dy
+                if self._smooth_scroll_accum <= -0.5:
+                    self._smooth_scroll_accum = 0.0
+                    self._navigate_month(-1)
+                elif self._smooth_scroll_accum >= 0.5:
+                    self._smooth_scroll_accum = 0.0
+                    self._navigate_month(1)
+                return True
         return False
 
     def _on_key_press(self, _widget, event: Gdk.EventKey) -> bool:
